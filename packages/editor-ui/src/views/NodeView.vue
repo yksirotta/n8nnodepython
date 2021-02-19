@@ -180,8 +180,8 @@
 </template>
 
 <script lang="ts">
-import { defineAsyncComponent, defineComponent, nextTick } from 'vue';
-import { mapStores } from 'pinia';
+import { defineAsyncComponent, defineComponent, nextTick, watch } from 'vue';
+import { mapStores, storeToRefs } from 'pinia';
 
 import type {
 	Endpoint,
@@ -224,6 +224,7 @@ import {
 	AI_NODE_CREATOR_VIEW,
 	DRAG_EVENT_DATA_KEY,
 	UPDATE_WEBHOOK_ID_NODE_TYPES,
+	STORAGE_WF_KEY_PREFIX,
 } from '@/constants';
 import { copyPaste } from '@/mixins/copyPaste';
 import { externalHooks } from '@/mixins/externalHooks';
@@ -454,59 +455,6 @@ export default defineComponent({
 				elementRef.style.transform = `scale(${newScale})`;
 			}
 		},
-	},
-	async beforeRouteLeave(to, from, next) {
-		if (getNodeViewTab(to) === MAIN_HEADER_TABS.EXECUTIONS || from.name === VIEWS.TEMPLATE_IMPORT) {
-			next();
-			return;
-		}
-		if (this.uiStore.stateIsDirty && !this.readOnlyEnv) {
-			const confirmModal = await this.confirm(
-				this.$locale.baseText('generic.unsavedWork.confirmMessage.message'),
-				{
-					title: this.$locale.baseText('generic.unsavedWork.confirmMessage.headline'),
-					type: 'warning',
-					confirmButtonText: this.$locale.baseText(
-						'generic.unsavedWork.confirmMessage.confirmButtonText',
-					),
-					cancelButtonText: this.$locale.baseText(
-						'generic.unsavedWork.confirmMessage.cancelButtonText',
-					),
-					showClose: true,
-				},
-			);
-			if (confirmModal === MODAL_CONFIRM) {
-				// Make sure workflow id is empty when leaving the editor
-				this.workflowsStore.setWorkflowId(PLACEHOLDER_EMPTY_WORKFLOW_ID);
-				const saved = await this.saveCurrentWorkflow({}, false);
-				if (saved) {
-					await this.settingsStore.fetchPromptsData();
-				}
-				this.uiStore.stateIsDirty = false;
-
-				if (from.name === VIEWS.NEW_WORKFLOW) {
-					// Replace the current route with the new workflow route
-					// before navigating to the new route when saving new workflow.
-					await this.$router.replace(
-						{ name: VIEWS.WORKFLOW, params: { name: this.currentWorkflow } },
-						() => {
-							// We can't use next() here since vue-router
-							// would prevent the navigation with an error
-							void this.$router.push(to as RawLocation);
-						},
-					);
-				} else {
-					next();
-				}
-			} else if (confirmModal === MODAL_CANCEL) {
-				this.workflowsStore.setWorkflowId(PLACEHOLDER_EMPTY_WORKFLOW_ID);
-				this.resetWorkspace();
-				this.uiStore.stateIsDirty = false;
-				next();
-			}
-		} else {
-			next();
-		}
 	},
 	computed: {
 		...mapStores(
@@ -973,7 +921,7 @@ export default defineComponent({
 			});
 			this.stopLoading();
 		},
-		async openWorkflow(workflow: IWorkflowDb) {
+		async openWorkflow(workflow: IWorkflowDb, dirty = false) {
 			this.startLoading();
 
 			const selectedExecution = this.workflowsStore.activeWorkflowExecution;
@@ -983,7 +931,7 @@ export default defineComponent({
 			this.workflowsStore.addWorkflow(workflow);
 			this.workflowsStore.setActive(workflow.active || false);
 			this.workflowsStore.setWorkflowId(workflow.id);
-			this.workflowsStore.setWorkflowName({ newName: workflow.name, setStateDirty: false });
+			this.workflowsStore.setWorkflowName({ newName: workflow.name, setStateDirty: dirty });
 			this.workflowsStore.setWorkflowSettings(workflow.settings || {});
 			this.workflowsStore.setWorkflowPinData(workflow.pinData || {});
 			this.workflowsStore.setWorkflowVersionId(workflow.versionId);
@@ -1014,7 +962,7 @@ export default defineComponent({
 			await this.addNodes(workflow.nodes, workflow.connections);
 
 			if (!this.credentialsUpdated) {
-				this.uiStore.stateIsDirty = false;
+				this.uiStore.stateIsDirty = dirty;
 			}
 			this.canvasStore.zoomToFit();
 			void this.$externalHooks().run('workflow.open', {
@@ -2916,12 +2864,6 @@ export default defineComponent({
 		onBeforeUnload(e) {
 			if (this.isDemo || window.preventNodeViewBeforeUnload) {
 				return;
-			} else if (this.uiStore.stateIsDirty) {
-				const confirmationMessage = this.$locale.baseText(
-					'nodeView.itLooksLikeYouHaveBeenEditingSomething',
-				);
-				(e || window.event).returnValue = confirmationMessage; //Gecko + IE
-				return confirmationMessage; //Gecko + Webkit, Safari, Chrome etc.
 			} else {
 				this.startLoading(this.$locale.baseText('nodeView.redirecting'));
 				return;
@@ -2958,43 +2900,33 @@ export default defineComponent({
 				const templateId = this.$route.params.id;
 				await this.openWorkflowTemplate(templateId);
 			} else {
-				if (this.uiStore.stateIsDirty && !this.readOnlyEnv) {
-					const confirmModal = await this.confirm(
-						this.$locale.baseText('generic.unsavedWork.confirmMessage.message'),
-						{
-							title: this.$locale.baseText('generic.unsavedWork.confirmMessage.headline'),
-							type: 'warning',
-							confirmButtonText: this.$locale.baseText(
-								'generic.unsavedWork.confirmMessage.confirmButtonText',
-							),
-							cancelButtonText: this.$locale.baseText(
-								'generic.unsavedWork.confirmMessage.cancelButtonText',
-							),
-							showClose: true,
-						},
-					);
-					if (confirmModal === MODAL_CONFIRM) {
-						const saved = await this.saveCurrentWorkflow();
-						if (saved) await this.settingsStore.fetchPromptsData();
-					} else if (confirmModal === MODAL_CLOSE) {
-						return;
-					}
-				}
 				// Load a workflow
 				let workflowId = null as string | null;
 				if (this.$route.params.name) {
 					workflowId = this.$route.params.name;
 				}
-				if (workflowId !== null) {
-					let workflow: IWorkflowDb | undefined = undefined;
-					try {
-						workflow = await this.workflowsStore.fetchWorkflow(workflowId);
-					} catch (error) {
-						this.showError(error, this.$locale.baseText('openWorkflow.workflowNotFoundError'));
 
-						void this.$router.push({
-							name: VIEWS.NEW_WORKFLOW,
-						});
+				const localStoredWorkflow = localStorage.getItem(
+					`${STORAGE_WF_KEY_PREFIX}${workflowId ?? '__EMPTY__'}`,
+				);
+
+				if (workflowId !== null || localStoredWorkflow) {
+					let workflow: IWorkflowDb | undefined = undefined;
+					if (localStoredWorkflow) {
+						workflow = jsonParse(localStoredWorkflow);
+						this.workflowsStore.workflow = workflow;
+						this.uiStore.stateIsDirty = true;
+						// TODO: use versionId to make sure that local saved workflow isn't older than remote
+					} else {
+						try {
+							workflow = await this.restApi().getWorkflow(workflowId);
+						} catch (error) {
+							this.$showError(error, this.$locale.baseText('openWorkflow.workflowNotFoundError'));
+
+							this.$router.push({
+								name: VIEWS.NEW_WORKFLOW,
+							});
+						}
 					}
 
 					if (workflow) {
@@ -3018,6 +2950,20 @@ export default defineComponent({
 					// Create new workflow
 					await this.newWorkflow();
 				}
+
+				const { workflow: workflowRef } = storeToRefs(this.workflowsStore);
+				const self = this;
+				watch(
+					workflowRef,
+					() => {
+						void self.callDebounced(
+							'persistWorkflowOnChange',
+							{ debounceTime: 1000 },
+							workflowRef.value,
+						);
+					},
+					{ deep: true },
+				);
 			}
 			this.historyStore.reset();
 			this.uiStore.nodeViewInitialized = true;
@@ -4330,6 +4276,15 @@ export default defineComponent({
 					await this.applyExecutionData(this.$route.params.executionId as string);
 					this.workflowsStore.isInDebugMode = true;
 				}
+			}
+		},
+		persistWorkflowOnChange(workflow: IWorkflowDb) {
+			if (!workflow.id) return;
+			const storageKey = `${STORAGE_WF_KEY_PREFIX}${workflow.id}`;
+			if (this.uiStore.stateIsDirty) {
+				localStorage.setItem(storageKey, JSON.stringify(workflow));
+			} else {
+				localStorage.removeItem(storageKey);
 			}
 		},
 	},

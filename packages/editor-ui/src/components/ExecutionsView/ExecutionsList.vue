@@ -139,42 +139,6 @@ export default defineComponent({
 			}
 		},
 	},
-	async beforeRouteLeave(to, from, next) {
-		if (getNodeViewTab(to) === MAIN_HEADER_TABS.WORKFLOW) {
-			next();
-			return;
-		}
-		if (this.uiStore.stateIsDirty) {
-			const confirmModal = await this.confirm(
-				this.$locale.baseText('generic.unsavedWork.confirmMessage.message'),
-				{
-					title: this.$locale.baseText('generic.unsavedWork.confirmMessage.headline'),
-					type: 'warning',
-					confirmButtonText: this.$locale.baseText(
-						'generic.unsavedWork.confirmMessage.confirmButtonText',
-					),
-					cancelButtonText: this.$locale.baseText(
-						'generic.unsavedWork.confirmMessage.cancelButtonText',
-					),
-					showClose: true,
-				},
-			);
-
-			if (confirmModal === MODAL_CONFIRM) {
-				const saved = await this.saveCurrentWorkflow({}, false);
-				if (saved) {
-					await this.settingsStore.fetchPromptsData();
-				}
-				this.uiStore.stateIsDirty = false;
-				next();
-			} else if (confirmModal === MODAL_CANCEL) {
-				this.uiStore.stateIsDirty = false;
-				next();
-			}
-		} else {
-			next();
-		}
-	},
 	async mounted() {
 		this.loading = true;
 		const workflowUpdated = this.$route.params.name !== this.workflowsStore.workflowId;
