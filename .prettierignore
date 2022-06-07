@@ -1,6 +1,7 @@
 packages/editor-ui
 packages/design-system
 *package.json
+packages/*/dist
 
 !packages/nodes-base/src
 !packages/nodes-base/test

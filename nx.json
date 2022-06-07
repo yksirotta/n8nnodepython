@@ -1,0 +1,49 @@
+{
+  "extends": "nx/presets/npm.json",
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "nx/tasks-runners/default",
+      "options": {
+        "cacheableOperations": [
+          "build",
+          "clean",
+          "dev",
+          "format",
+          "lint",
+          "lintfix",
+          "postpack",
+          "prepack",
+          "test",
+          "test:sqlite",
+          "test:postgres",
+          "test:postgres:alt-schema",
+          "test:mysql",
+          "watch",
+          "typeorm",
+          "build:vue",
+          "build:vue:typecheck",
+          "test:ci",
+          "test:dev",
+          "build:storybook",
+          "storybook",
+          "build:theme",
+          "watch:theme",
+          "test:e2e",
+          "test:unit",
+          "build-node-dev",
+          "build:translations"
+        ]
+      }
+    }
+  },
+  "targetDefaults": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ]
+    }
+  },
+  "affected": {
+    "defaultBase": "master"
+  }
+}
