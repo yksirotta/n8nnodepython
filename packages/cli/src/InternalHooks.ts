@@ -18,7 +18,9 @@ import {
 } from '.';
 import { Telemetry } from './telemetry';
 import { IExecutionTrackProperties } from './Interfaces';
+import { EnabledOn } from './decorators';
 
+@EnabledOn('diagnostics.enabled')
 export class InternalHooksClass implements IInternalHooksClass {
 	private versionCli: string;
 
