@@ -75,12 +75,18 @@ Windows:
 npm install -g windows-build-tools
 ```
 
-#### npm workspaces
+#### Yarn workspaces
 
 n8n is split up in different modules which are all in a single mono repository.
-To facilitate the module management, [npm workspaces](https://docs.npmjs.com/cli/v7/using-npm/workspaces) are
-used. This automatically sets up file-links between modules which depend on each
-other.
+To facilitate those modules management, [Yarn workspaces](https://yarnpkg.com/features/workspaces) are used.
+This automatically sets up file-links between modules which depend on each other.
+
+So for the setup to work correctly [corepack](https://nodejs.org/docs/latest-v16.x/api/corepack.html) needs to be enabled globally like this:
+
+```
+make setup
+yarn
+```
 
 ### Actual n8n setup
 
@@ -111,21 +117,21 @@ checked out and set up:
 
 5. Install all dependencies of all modules and link them together:
 
-   ```
-   npm install
-   ```
+	```
+	yarn
+	```
 
 6. Build all the code:
-   ```
-   npm run build
-   ```
+	```
+	yarn build
+	```
 
 ### Start
 
 To start n8n execute:
 
 ```
-npm run start
+yarn start
 ```
 
 To start n8n with tunnel:
@@ -136,33 +142,34 @@ To start n8n with tunnel:
 
 ## Development cycle
 
-While iterating on n8n modules code, you can run `npm run dev`. It will then
+While iterating on n8n modules code, you can run `yarn dev`. It will then
 automatically build your code, restart the backend and refresh the frontend
 (editor-ui) on every change you make.
 
 1. Start n8n in development mode:
    ```
-   npm run dev
+   yarn dev
    ```
-1. Hack, hack, hack
-1. Check if everything still runs in production mode
+2. Hack, hack, hack
+3. Check if everything still runs in production mode
    ```
-   npm run build
-   npm run start
+   yarn build
+   yarn start
    ```
-1. Create tests
-1. Run all [tests](#test-suite)
+4. Create tests
+5. Run all [tests](#test-suite)
    ```
-   npm run test
+   yarn test
    ```
-1. Commit code and [create a pull request](https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork)
+
+6. Commit code and [create a pull request](https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork)
 
 ### Test suite
 
 The tests can be started via:
 
 ```
-npm run test
+yarn test
 ```
 
 If that gets executed in one of the package folders it will only run the tests

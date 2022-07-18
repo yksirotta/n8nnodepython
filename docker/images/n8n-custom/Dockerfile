@@ -16,14 +16,14 @@ RUN npm config set legacy-peer-deps true
 USER node
 
 RUN \
-	npm ci && \
+	yarn install --immutable && \
 	npm run build && \
 	# TODO: removing dev dependecies is deleting `bn.js`, which breaks the Snowflake node
-	npm prune --omit=dev && \
-	npm i --omit=dev bn.js && \
+	# TODO fix this
+	# npm prune --omit=dev && \
+	# npm i --omit=dev bn.js && \
 	find . -type f -name "*.ts" -o -name "*.js.map" -o -name "*.vue" -o -name "tsconfig.json" | xargs rm &&\
-	rm -rf node_modules/.cache packages/*/node_modules/.cache packages/*/.turbo .config .npm /tmp/*
-
+	rm -rf node_modules/.cache packages/*/node_modules/.cache packages/*/.turbo .config .npm .yarn /tmp/*
 
 # 2. Start with a new clean image with just the code that is needed to run n8n
 FROM n8nio/base:${NODE_VERSION}

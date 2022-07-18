@@ -5,43 +5,43 @@ A component system for [n8n](https://n8n.io) using Storybook to preview.
 ## Project setup
 
 ```
-npm install
+yarn install
 ```
 
 ### Compiles and hot-reloads for development
 
 ```
-npm run storybook
+yarn storybook
 ```
 
 ### Build static pages
 
 ```
-npm run build:storybook
+yarn build:storybook
 ```
 
 ### Run your unit tests
 
 ```
-npm run test:unit
+yarn test:unit
 ```
 
 ### Lints and fixes files
 
 ```
-npm run lint
+yarn lint
 ```
 
 ### Build css files
 
 ```
-npm run build:theme
+yarn build:theme
 ```
 
 ### Monitor theme files and build any changes
 
 ```
-npm run watch:theme
+yarn watch:theme
 ```
 
 ## License

@@ -4,7 +4,6 @@ node_modules
 tmp
 dist
 npm-debug.log*
-yarn.lock
 google-generated-credentials.json
 _START_PACKAGE
 .env
@@ -13,6 +12,13 @@ _START_PACKAGE
 !.vscode/settings.default.json
 .idea
 nodelinter.config.json
-packages/*/package-lock.json
-packages/*/.turbo
 *.swp
+
+# yarn
+yarn-error.log
+.yarn/cache
+.yarn/*.gz
+.yarn/build-state.yml
+
+# turborepo
+packages/*/.turbo/

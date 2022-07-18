@@ -1,4 +1,6 @@
 **/.env
+.yarn/*.gz
+.yarn/cache
 node_modules
 packages/node-dev
 packages/*/node_modules
