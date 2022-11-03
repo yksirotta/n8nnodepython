@@ -3,6 +3,8 @@ import { resolve } from 'path';
 import { defineConfig, mergeConfig } from 'vite';
 import { defineConfig as defineVitestConfig } from 'vitest/config';
 
+const isCI = process.env.CI === 'true';
+
 export default mergeConfig(
 	defineConfig({
 		plugins: [
@@ -40,6 +42,13 @@ export default mergeConfig(
 			globals: true,
 			environment: 'jsdom',
 			setupFiles: ['./src/__tests__/setup.ts'],
+			reporters: isCI ? 'dot' : 'default',
+			coverage: {
+				enabled: isCI,
+				reporter: 'json-summary',
+				reportsDirectory: '.coverage',
+			}
 		},
 	}),
 );
+console.log(isCI)

@@ -1,5 +1,7 @@
 const { compilerOptions } = require('./tsconfig.json');
 
+const isCI = process.env.CI === 'true';
+
 /** @type {import('jest').Config} */
 module.exports = {
 	verbose: true,
@@ -18,4 +20,10 @@ module.exports = {
 			},
 		},
 	},
+	ci: isCI,
+	json: isCI,
+	reporters: isCI ? ['default', 'github-actions'] : ['default'],
+	collectCoverage: isCI,
+	coverageDirectory: '.coverage',
+	coverageReporters: ['json-summary'],
 };

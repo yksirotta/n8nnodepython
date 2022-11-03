@@ -7,6 +7,7 @@ import {defineConfig, mergeConfig, PluginOption} from "vite";
 import { defineConfig as defineVitestConfig } from 'vitest/config';
 import packageJSON from './package.json';
 
+const isCI = process.env.CI === 'true';
 const vendorChunks = ['vue', 'vue-router', 'vuex'];
 const ignoreChunks = ['vue2-boring-avatars', 'vue-template-compiler', 'jquery', '@fontsource/open-sans'];
 
@@ -105,6 +106,12 @@ export default mergeConfig(
 			globals: true,
 			environment: 'jsdom',
 			setupFiles: ['./src/__tests__/setup.ts'],
+			reporters: isCI ? 'dot' : 'default',
+			coverage: {
+				enabled: isCI,
+				reporter: 'json-summary',
+				reportsDirectory: '.coverage',
+			}
 		},
 	}),
 );
