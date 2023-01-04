@@ -11,8 +11,9 @@ import { LoginRequest, UserRequest } from '@/requests';
 import type { Repository } from 'typeorm';
 import { In } from 'typeorm';
 import type { Config } from '@/config';
-import type { PublicUser, IDatabaseCollections, IInternalHooksClass } from '@/Interfaces';
+import type { PublicUser, IDatabaseCollections } from '@/Interfaces';
 import { handleEmailLogin, handleLdapLogin } from '@/auth';
+import type { InternalHooks } from '@/InternalHooks';
 
 @RestController()
 export class AuthController {
@@ -20,7 +21,7 @@ export class AuthController {
 
 	private readonly logger: ILogger;
 
-	private readonly internalHooks: IInternalHooksClass;
+	private readonly internalHooks: InternalHooks;
 
 	private readonly userRepository: Repository<User>;
 
@@ -32,7 +33,7 @@ export class AuthController {
 	}: {
 		config: Config;
 		logger: ILogger;
-		internalHooks: IInternalHooksClass;
+		internalHooks: InternalHooks;
 		repositories: Pick<IDatabaseCollections, 'User'>;
 	}) {
 		this.config = config;

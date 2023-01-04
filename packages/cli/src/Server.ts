@@ -1355,9 +1355,7 @@ class Server extends AbstractServer {
 			`/${this.restEndpoint}/settings`,
 			ResponseHelper.send(
 				async (req: express.Request, res: express.Response): Promise<IN8nUISettings> => {
-					void InternalHooksManager.getInstance().onFrontendSettingsAPI(
-						req.headers.sessionid as string,
-					);
+					InternalHooksManager.getInstance().onFrontendSettingsAPI(req.headers.sessionid as string);
 
 					return this.getSettingsForFrontend();
 				},
@@ -1499,5 +1497,5 @@ export async function start(): Promise<void> {
 		order: { createdAt: 'ASC' },
 		where: {},
 	});
-	await InternalHooksManager.getInstance().onServerStarted(diagnosticInfo, workflow?.createdAt);
+	InternalHooksManager.getInstance().onServerStarted(diagnosticInfo, workflow?.createdAt);
 }

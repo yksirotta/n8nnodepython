@@ -21,7 +21,8 @@ import type { ILogger } from 'n8n-workflow';
 import type { Config } from '@/config';
 import type { User } from '@db/entities/User';
 import { PasswordResetRequest } from '@/requests';
-import type { IDatabaseCollections, IExternalHooksClass, IInternalHooksClass } from '@/Interfaces';
+import type { IDatabaseCollections, IExternalHooksClass } from '@/Interfaces';
+import type { InternalHooks } from '@/InternalHooks';
 import { issueCookie } from '@/auth/jwt';
 import { isLdapEnabled } from '@/Ldap/helpers';
 
@@ -33,7 +34,7 @@ export class PasswordResetController {
 
 	private readonly externalHooks: IExternalHooksClass;
 
-	private readonly internalHooks: IInternalHooksClass;
+	private readonly internalHooks: InternalHooks;
 
 	private readonly userRepository: Repository<User>;
 
@@ -47,7 +48,7 @@ export class PasswordResetController {
 		config: Config;
 		logger: ILogger;
 		externalHooks: IExternalHooksClass;
-		internalHooks: IInternalHooksClass;
+		internalHooks: InternalHooks;
 		repositories: Pick<IDatabaseCollections, 'User'>;
 	}) {
 		this.config = config;

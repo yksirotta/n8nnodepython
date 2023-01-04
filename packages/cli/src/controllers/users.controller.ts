@@ -28,9 +28,9 @@ import type {
 	PublicUser,
 	IDatabaseCollections,
 	IExternalHooksClass,
-	IInternalHooksClass,
 	ITelemetryUserDeletionData,
 } from '@/Interfaces';
+import type { InternalHooks } from '@/InternalHooks';
 import type { ActiveWorkflowRunner } from '@/ActiveWorkflowRunner';
 import { AuthIdentity } from '@db/entities/AuthIdentity';
 
@@ -42,7 +42,7 @@ export class UsersController {
 
 	private externalHooks: IExternalHooksClass;
 
-	private internalHooks: IInternalHooksClass;
+	private internalHooks: InternalHooks;
 
 	private userRepository: Repository<User>;
 
@@ -68,7 +68,7 @@ export class UsersController {
 		config: Config;
 		logger: ILogger;
 		externalHooks: IExternalHooksClass;
-		internalHooks: IInternalHooksClass;
+		internalHooks: InternalHooks;
 		repositories: Pick<
 			IDatabaseCollections,
 			'User' | 'Role' | 'SharedCredentials' | 'SharedWorkflow'

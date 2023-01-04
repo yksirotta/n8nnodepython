@@ -226,7 +226,7 @@ class WorkflowRunnerProcess {
 				};
 			});
 
-			void InternalHooksManager.getInstance().onWorkflowBeforeExecute(executionId || '', runData);
+			InternalHooksManager.getInstance().onWorkflowBeforeExecute(executionId || '', runData);
 
 			let result: IRun;
 			try {

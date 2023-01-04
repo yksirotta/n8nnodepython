@@ -152,14 +152,14 @@ export class WorkflowRunner {
 			executionId = await this.runSubprocess(data, loadStaticData, executionId, responsePromise);
 		}
 
-		void InternalHooksManager.getInstance().onWorkflowBeforeExecute(executionId, data);
+		InternalHooksManager.getInstance().onWorkflowBeforeExecute(executionId, data);
 
 		const postExecutePromise = this.activeExecutions.getPostExecutePromise(executionId);
 
 		const externalHooks = ExternalHooks();
 		postExecutePromise
-			.then(async (executionData) => {
-				void InternalHooksManager.getInstance().onWorkflowPostExecute(
+			.then((executionData) => {
+				InternalHooksManager.getInstance().onWorkflowPostExecute(
 					executionId!,
 					data.workflowData,
 					executionData,

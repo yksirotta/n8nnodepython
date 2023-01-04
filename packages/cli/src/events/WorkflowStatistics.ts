@@ -46,7 +46,7 @@ export async function workflowExecutionCompleted(
 		};
 
 		// Send the metrics
-		await InternalHooksManager.getInstance().onFirstProductionWorkflowSuccess(metrics);
+		InternalHooksManager.getInstance().onFirstProductionWorkflowSuccess(metrics);
 	} catch (error) {
 		if (!(error instanceof QueryFailedError)) {
 			throw error;
@@ -101,5 +101,5 @@ export async function nodeFetchedData(
 	}
 
 	// Send metrics to posthog
-	await InternalHooksManager.getInstance().onFirstWorkflowDataLoad(metrics);
+	InternalHooksManager.getInstance().onFirstWorkflowDataLoad(metrics);
 }

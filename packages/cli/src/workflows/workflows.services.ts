@@ -454,7 +454,7 @@ export class WorkflowsService {
 
 		await Db.collections.Workflow.delete(workflowId);
 
-		void InternalHooksManager.getInstance().onWorkflowDeleted(user, workflowId, false);
+		InternalHooksManager.getInstance().onWorkflowDeleted(user, workflowId, false);
 		await ExternalHooks().run('workflow.afterDelete', [workflowId]);
 
 		return sharedWorkflow.workflow;

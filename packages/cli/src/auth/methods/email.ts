@@ -21,7 +21,7 @@ export const handleEmailLogin = async (
 	// so suggest to reset the password to gain access to the instance.
 	const ldapIdentity = user?.authIdentities?.find((i) => i.providerType === 'ldap');
 	if (user && ldapIdentity) {
-		void InternalHooksManager.getInstance().userLoginFailedDueToLdapDisabled({
+		InternalHooksManager.getInstance().userLoginFailedDueToLdapDisabled({
 			user_id: user.id,
 		});
 

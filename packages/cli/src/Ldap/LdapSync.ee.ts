@@ -104,7 +104,7 @@ export class LdapSync {
 		);
 
 		if (usersToDisable.length) {
-			void InternalHooksManager.getInstance().onLdapUsersDisabled({
+			InternalHooksManager.getInstance().onLdapUsersDisabled({
 				reason: 'ldap_update',
 				users: usersToDisable.length,
 				user_ids: usersToDisable,
@@ -144,7 +144,7 @@ export class LdapSync {
 			error: errorMessage,
 		});
 
-		void InternalHooksManager.getInstance().onLdapSyncFinished({
+		InternalHooksManager.getInstance().onLdapSyncFinished({
 			type: !this.intervalId ? 'scheduled' : `manual_${mode}`,
 			succeeded: true,
 			users_synced: usersToCreate.length + usersToUpdate.length + usersToDisable.length,

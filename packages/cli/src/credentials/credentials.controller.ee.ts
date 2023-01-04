@@ -174,7 +174,7 @@ EECredentialsController.put(
 			}
 		});
 
-		void InternalHooksManager.getInstance().onUserSharedCredentials({
+		InternalHooksManager.getInstance().onUserSharedCredentials({
 			user: req.user,
 			credential_name: credential.name,
 			credential_type: credential.type,

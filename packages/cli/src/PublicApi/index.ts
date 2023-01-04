@@ -100,7 +100,7 @@ async function createApiRouter(
 
 						if (!user) return false;
 
-						void InternalHooksManager.getInstance().onUserInvokedApi({
+						InternalHooksManager.getInstance().onUserInvokedApi({
 							user_id: user.id,
 							path: req.path,
 							method: req.method,

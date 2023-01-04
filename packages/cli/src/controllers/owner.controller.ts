@@ -13,7 +13,8 @@ import type { Repository } from 'typeorm';
 import type { ILogger } from 'n8n-workflow';
 import type { Config } from '@/config';
 import { OwnerRequest } from '@/requests';
-import type { IDatabaseCollections, IInternalHooksClass } from '@/Interfaces';
+import type { IDatabaseCollections } from '@/Interfaces';
+import type { InternalHooks } from '@/InternalHooks';
 import type { Settings } from '@db/entities/Settings';
 import type { User } from '@db/entities/User';
 
@@ -23,7 +24,7 @@ export class OwnerController {
 
 	private readonly logger: ILogger;
 
-	private readonly internalHooks: IInternalHooksClass;
+	private readonly internalHooks: InternalHooks;
 
 	private readonly userRepository: Repository<User>;
 
@@ -37,7 +38,7 @@ export class OwnerController {
 	}: {
 		config: Config;
 		logger: ILogger;
-		internalHooks: IInternalHooksClass;
+		internalHooks: InternalHooks;
 		repositories: Pick<IDatabaseCollections, 'User' | 'Settings'>;
 	}) {
 		this.config = config;

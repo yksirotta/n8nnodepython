@@ -372,7 +372,7 @@ function hookFunctionsPush(): IWorkflowExecuteHooks {
 	};
 }
 
-export function hookFunctionsPreExecute(parentProcessMode?: string): IWorkflowExecuteHooks {
+export function hookFunctionsPreExecute(): IWorkflowExecuteHooks {
 	const externalHooks = ExternalHooks();
 
 	return {
@@ -894,10 +894,12 @@ async function executeWorkflow(
 		parentWorkflowSettings?: IWorkflowSettings;
 	},
 ): Promise<Array<INodeExecutionData[] | null> | IWorkflowExecuteProcess> {
+	const internalHooks = InternalHooksManager.getInstance();
 	const externalHooks = ExternalHooks();
 	await externalHooks.init();
 
 	const nodeTypes = NodeTypes();
+	const activeExecutions = ActiveExecutions.getInstance();
 
 	const workflowData =
 		options.loadedWorkflowData ??
@@ -927,10 +929,10 @@ async function executeWorkflow(
 		executionId =
 			options.parentExecutionId !== undefined
 				? options.parentExecutionId
-				: await ActiveExecutions.getInstance().add(runData);
+				: await activeExecutions.add(runData);
 	}
 
-	void InternalHooksManager.getInstance().onWorkflowBeforeExecute(executionId || '', runData);
+	internalHooks.onWorkflowBeforeExecute(executionId || '', runData);
 
 	let data;
 	try {
@@ -1031,21 +1033,15 @@ async function executeWorkflow(
 
 	await externalHooks.run('workflow.postExecute', [data, workflowData, executionId]);
 
-	void InternalHooksManager.getInstance().onWorkflowPostExecute(
-		executionId,
-		workflowData,
-		data,
-		additionalData.userId,
-	);
+	void internalHooks.onWorkflowPostExecute(executionId, workflowData, data, additionalData.userId);
 
 	if (data.finished === true) {
 		// Workflow did finish successfully
-
-		await ActiveExecutions.getInstance().remove(executionId, data);
+		activeExecutions.remove(executionId, data);
 		const returnData = WorkflowHelpers.getDataLastExecutedNodeData(data);
 		return returnData!.data!.main;
 	}
-	await ActiveExecutions.getInstance().remove(executionId, data);
+	activeExecutions.remove(executionId, data);
 	// Workflow did fail
 	const { error } = data.data.resultData;
 	// eslint-disable-next-line @typescript-eslint/no-throw-literal
@@ -1121,8 +1117,8 @@ function getWorkflowHooksIntegrated(
 	optionalParameters?: IWorkflowHooksOptionalParameters,
 ): WorkflowHooks {
 	optionalParameters = optionalParameters || {};
-	const hookFunctions = hookFunctionsSave(optionalParameters.parentProcessMode);
-	const preExecuteFunctions = hookFunctionsPreExecute(optionalParameters.parentProcessMode);
+	const hookFunctions = hookFunctionsSave();
+	const preExecuteFunctions = hookFunctionsPreExecute();
 	for (const key of Object.keys(preExecuteFunctions)) {
 		if (hookFunctions[key] === undefined) {
 			hookFunctions[key] = [];
@@ -1144,7 +1140,7 @@ export function getWorkflowHooksWorkerExecuter(
 ): WorkflowHooks {
 	optionalParameters = optionalParameters || {};
 	const hookFunctions = hookFunctionsSaveWorker();
-	const preExecuteFunctions = hookFunctionsPreExecute(optionalParameters.parentProcessMode);
+	const preExecuteFunctions = hookFunctionsPreExecute();
 	for (const key of Object.keys(preExecuteFunctions)) {
 		if (hookFunctions[key] === undefined) {
 			hookFunctions[key] = [];
@@ -1165,7 +1161,7 @@ export function getWorkflowHooksWorkerMain(
 ): WorkflowHooks {
 	optionalParameters = optionalParameters || {};
 	const hookFunctions = hookFunctionsPush();
-	const preExecuteFunctions = hookFunctionsPreExecute(optionalParameters.parentProcessMode);
+	const preExecuteFunctions = hookFunctionsPreExecute();
 	for (const key of Object.keys(preExecuteFunctions)) {
 		if (hookFunctions[key] === undefined) {
 			hookFunctions[key] = [];
@@ -1173,32 +1169,21 @@ export function getWorkflowHooksWorkerMain(
 		hookFunctions[key]!.push.apply(hookFunctions[key], preExecuteFunctions[key]);
 	}
 
+	const internalHooks = InternalHooksManager.getInstance();
 	// When running with worker mode, main process executes
 	// Only workflowExecuteBefore + workflowExecuteAfter
 	// So to avoid confusion, we are removing other hooks.
-	hookFunctions.nodeExecuteBefore = [];
-	hookFunctions.nodeExecuteAfter = [];
+	hookFunctions.nodeExecuteBefore = [
+		async (nodeName: string) => {
+			internalHooks.onNodeBeforeExecute(executionId, workflowData, nodeName);
+		},
+	];
+	hookFunctions.nodeExecuteAfter = [
+		async (nodeName: string) => {
+			internalHooks.onNodePostExecute(executionId, workflowData, nodeName);
+		},
+	];
 
-	hookFunctions.nodeExecuteBefore.push(async function (
-		this: WorkflowHooks,
-		nodeName: string,
-	): Promise<void> {
-		void InternalHooksManager.getInstance().onNodeBeforeExecute(
-			this.executionId,
-			this.workflowData,
-			nodeName,
-		);
-	});
-	hookFunctions.nodeExecuteAfter.push(async function (
-		this: WorkflowHooks,
-		nodeName: string,
-	): Promise<void> {
-		void InternalHooksManager.getInstance().onNodePostExecute(
-			this.executionId,
-			this.workflowData,
-			nodeName,
-		);
-	});
 	return new WorkflowHooks(hookFunctions, mode, executionId, workflowData, optionalParameters);
 }
 
@@ -1230,27 +1215,17 @@ export function getWorkflowHooksMain(
 		}
 	}
 
+	const { workflowData } = data;
+	const internalHooks = InternalHooksManager.getInstance();
+
 	if (!hookFunctions.nodeExecuteBefore) hookFunctions.nodeExecuteBefore = [];
-	hookFunctions.nodeExecuteBefore?.push(async function (
-		this: WorkflowHooks,
-		nodeName: string,
-	): Promise<void> {
-		void InternalHooksManager.getInstance().onNodeBeforeExecute(
-			this.executionId,
-			this.workflowData,
-			nodeName,
-		);
+	hookFunctions.nodeExecuteBefore?.push(async (nodeName: string) => {
+		internalHooks.onNodeBeforeExecute(executionId, workflowData, nodeName);
 	});
+
 	if (!hookFunctions.nodeExecuteAfter) hookFunctions.nodeExecuteAfter = [];
-	hookFunctions.nodeExecuteAfter.push(async function (
-		this: WorkflowHooks,
-		nodeName: string,
-	): Promise<void> {
-		void InternalHooksManager.getInstance().onNodePostExecute(
-			this.executionId,
-			this.workflowData,
-			nodeName,
-		);
+	hookFunctions.nodeExecuteAfter.push(async (nodeName: string) => {
+		internalHooks.onNodePostExecute(executionId, workflowData, nodeName);
 	});
 
 	return new WorkflowHooks(hookFunctions, data.executionMode, executionId, data.workflowData, {

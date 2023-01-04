@@ -66,7 +66,7 @@ export = {
 				return res.status(404).json({ message: 'Not Found' });
 			}
 
-			void InternalHooksManager.getInstance().onUserRetrievedExecution({
+			InternalHooksManager.getInstance().onUserRetrievedExecution({
 				user_id: req.user.id,
 				public_api: true,
 			});
@@ -116,7 +116,7 @@ export = {
 
 			const count = await getExecutionsCount(filters);
 
-			void InternalHooksManager.getInstance().onUserRetrievedAllExecutions({
+			InternalHooksManager.getInstance().onUserRetrievedAllExecutions({
 				user_id: req.user.id,
 				public_api: true,
 			});

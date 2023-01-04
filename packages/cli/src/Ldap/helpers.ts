@@ -162,7 +162,7 @@ export const updateLdapConfig = async (ldapConfig: LdapConfig): Promise<void> =>
 		const ldapUsers = await getLdapUsers();
 		if (ldapUsers.length) {
 			await deleteAllLdapIdentities();
-			void InternalHooksManager.getInstance().onLdapUsersDisabled({
+			InternalHooksManager.getInstance().onLdapUsersDisabled({
 				reason: 'ldap_update',
 				users: ldapUsers.length,
 				user_ids: ldapUsers.map((user) => user.id),
@@ -185,7 +185,7 @@ export const handleLdapInit = async (): Promise<void> => {
 	if (!isLdapEnabled()) {
 		const ldapUsers = await getLdapUsers();
 		if (ldapUsers.length) {
-			void InternalHooksManager.getInstance().onLdapUsersDisabled({
+			InternalHooksManager.getInstance().onLdapUsersDisabled({
 				reason: 'ldap_feature_deactivated',
 				users: ldapUsers.length,
 				user_ids: ldapUsers.map((user) => user.id),
@@ -238,7 +238,7 @@ export const findAndAuthenticateLdapUser = async (
 		);
 	} catch (e) {
 		if (e instanceof Error) {
-			void InternalHooksManager.getInstance().onLdapLoginSyncFailed({
+			InternalHooksManager.getInstance().onLdapLoginSyncFailed({
 				error: e.message,
 			});
 			Logger.error('LDAP - Error during search', { message: e.message });

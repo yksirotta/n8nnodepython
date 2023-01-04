@@ -1,11 +1,11 @@
 import type { INodeTypes } from 'n8n-workflow';
-import { InternalHooksClass } from '@/InternalHooks';
+import { InternalHooks } from '@/InternalHooks';
 import { Telemetry } from '@/telemetry';
 
 export class InternalHooksManager {
-	private static internalHooksInstance: InternalHooksClass;
+	private static internalHooksInstance: InternalHooks;
 
-	static getInstance(): InternalHooksClass {
+	static getInstance(): InternalHooks {
 		if (this.internalHooksInstance) {
 			return this.internalHooksInstance;
 		}
@@ -13,11 +13,11 @@ export class InternalHooksManager {
 		throw new Error('InternalHooks not initialized');
 	}
 
-	static async init(instanceId: string, nodeTypes: INodeTypes): Promise<InternalHooksClass> {
+	static async init(instanceId: string, nodeTypes: INodeTypes): Promise<InternalHooks> {
 		if (!this.internalHooksInstance) {
 			const telemetry = new Telemetry(instanceId);
 			await telemetry.init();
-			this.internalHooksInstance = new InternalHooksClass(telemetry, instanceId, nodeTypes);
+			this.internalHooksInstance = new InternalHooks(telemetry, instanceId, nodeTypes);
 		}
 
 		return this.internalHooksInstance;

@@ -75,7 +75,7 @@ EEWorkflowController.put(
 			}
 		});
 
-		void InternalHooksManager.getInstance().onWorkflowSharingUpdate(
+		InternalHooksManager.getInstance().onWorkflowSharingUpdate(
 			workflowId,
 			req.user.id,
 			shareWithIds,
@@ -191,7 +191,7 @@ EEWorkflowController.post(
 		}
 
 		await ExternalHooks().run('workflow.afterCreate', [savedWorkflow]);
-		void InternalHooksManager.getInstance().onWorkflowCreated(req.user, newWorkflow, false);
+		InternalHooksManager.getInstance().onWorkflowCreated(req.user, newWorkflow, false);
 
 		return savedWorkflow;
 	}),

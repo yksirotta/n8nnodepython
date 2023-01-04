@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import type RudderStack from '@rudderstack/rudder-sdk-node';
 import type { PostHog } from 'posthog-node';
 import type { ITelemetryTrackProperties } from 'n8n-workflow';
@@ -67,18 +65,14 @@ export class Telemetry {
 	}
 
 	private startPulse() {
-		this.pulseIntervalReference = setInterval(async () => {
-			void this.pulse();
-		}, 6 * 60 * 60 * 1000); // every 6 hours
+		this.pulseIntervalReference = setInterval(() => this.pulse(), 6 * 60 * 60 * 1000); // every 6 hours
 	}
 
-	private async pulse(): Promise<unknown> {
-		if (!this.rudderStack) {
-			return Promise.resolve();
-		}
+	private pulse(): void {
+		if (!this.rudderStack) return;
 
-		const allPromises = Object.keys(this.executionCountsBuffer).map(async (workflowId) => {
-			const promise = this.track(
+		Object.keys(this.executionCountsBuffer).forEach(async (workflowId) => {
+			this.track(
 				'Workflow execution count',
 				{
 					event_version: '2',
@@ -87,23 +81,22 @@ export class Telemetry {
 				},
 				{ withPostHog: true },
 			);
-
-			return promise;
 		});
 
 		this.executionCountsBuffer = {};
 
 		// License info
-		const pulsePacket = {
-			plan_name_current: getLicense().getPlanName(),
-			quota: getLicense().getTriggerLimit(),
-			usage: await LicenseService.getActiveTriggerCount(),
-		};
-		allPromises.push(this.track('pulse', pulsePacket));
-		return Promise.all(allPromises);
+		void LicenseService.getActiveTriggerCount().then((usage) => {
+			const license = getLicense();
+			this.track('pulse', {
+				plan_name_current: license.getPlanName(),
+				quota: license.getTriggerLimit(),
+				usage,
+			});
+		});
 	}
 
-	async trackWorkflowExecution(properties: IExecutionTrackProperties): Promise<void> {
+	trackWorkflowExecution(properties: IExecutionTrackProperties): void {
 		if (this.rudderStack) {
 			const execTime = new Date();
 			const workflowId = properties.workflow_id;
@@ -127,7 +120,7 @@ export class Telemetry {
 			}
 
 			if (!properties.success && properties.error_node_type?.startsWith('n8n-nodes-base')) {
-				void this.track('Workflow execution errored', properties);
+				this.track('Workflow execution errored', properties);
 			}
 		}
 	}
@@ -148,60 +141,49 @@ export class Telemetry {
 		});
 	}
 
-	async identify(traits?: {
+	identify(traits?: {
 		[key: string]: string | number | boolean | object | undefined | null;
-	}): Promise<void> {
-		return new Promise<void>((resolve) => {
-			if (this.rudderStack) {
-				this.rudderStack.identify(
-					{
-						userId: this.instanceId,
-						traits: {
-							...traits,
-							instanceId: this.instanceId,
-						},
-					},
-					resolve,
-				);
-			} else {
-				resolve();
-			}
-		});
+	}): void {
+		if (this.rudderStack) {
+			this.rudderStack.identify({
+				userId: this.instanceId,
+				traits: {
+					...traits,
+					instanceId: this.instanceId,
+				},
+			});
+		}
 	}
 
-	async track(
+	track(
 		eventName: string,
 		properties: ITelemetryTrackProperties = {},
 		{ withPostHog } = { withPostHog: false }, // whether to additionally track with PostHog
-	): Promise<void> {
-		return new Promise<void>((resolve) => {
-			if (this.rudderStack) {
-				const { user_id } = properties;
-				const updatedProperties: ITelemetryTrackProperties = {
-					...properties,
-					instance_id: this.instanceId,
-					version_cli: N8N_VERSION,
-				};
+	): void {
+		if (this.rudderStack) {
+			const { user_id } = properties;
+			const updatedProperties: ITelemetryTrackProperties = {
+				...properties,
+				instance_id: this.instanceId,
+				version_cli: N8N_VERSION,
+			};
 
-				const payload = {
-					userId: `${this.instanceId}${user_id ? `#${user_id}` : ''}`,
-					event: eventName,
-					properties: updatedProperties,
-				};
+			const payload = {
+				userId: `${this.instanceId}${user_id ? `#${user_id}` : ''}`,
+				event: eventName,
+				properties: updatedProperties,
+			};
 
-				if (withPostHog) {
-					this.postHog?.capture({
-						distinctId: payload.userId,
-						sendFeatureFlags: true,
-						...payload,
-					});
-				}
-
-				return this.rudderStack.track(payload, resolve);
+			if (withPostHog) {
+				this.postHog?.capture({
+					distinctId: payload.userId,
+					sendFeatureFlags: true,
+					...payload,
+				});
 			}
 
-			return resolve();
-		});
+			this.rudderStack.track(payload);
+		}
 	}
 
 	async isFeatureFlagEnabled(

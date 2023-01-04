@@ -279,16 +279,16 @@ class MessageEventBus extends EventEmitter {
 	 * Convenience Methods
 	 */
 
-	async sendAuditEvent(options: EventMessageAuditOptions) {
-		await this.send(new EventMessageAudit(options));
+	sendAuditEvent(options: EventMessageAuditOptions) {
+		void this.send(new EventMessageAudit(options));
 	}
 
-	async sendWorkflowEvent(options: EventMessageWorkflowOptions) {
-		await this.send(new EventMessageWorkflow(options));
+	sendWorkflowEvent(options: EventMessageWorkflowOptions) {
+		void this.send(new EventMessageWorkflow(options));
 	}
 
-	async sendNodeEvent(options: EventMessageNodeOptions) {
-		await this.send(new EventMessageNode(options));
+	sendNodeEvent(options: EventMessageNodeOptions) {
+		void this.send(new EventMessageNode(options));
 	}
 }
 

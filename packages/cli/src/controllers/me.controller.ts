@@ -14,12 +14,8 @@ import { Response } from 'express';
 import type { Repository } from 'typeorm';
 import type { ILogger } from 'n8n-workflow';
 import { AuthenticatedRequest, MeRequest } from '@/requests';
-import type {
-	PublicUser,
-	IDatabaseCollections,
-	IExternalHooksClass,
-	IInternalHooksClass,
-} from '@/Interfaces';
+import type { PublicUser, IDatabaseCollections, IExternalHooksClass } from '@/Interfaces';
+import type { InternalHooks } from '@/InternalHooks';
 import { randomBytes } from 'crypto';
 
 @RestController('/me')
@@ -28,7 +24,7 @@ export class MeController {
 
 	private readonly externalHooks: IExternalHooksClass;
 
-	private readonly internalHooks: IInternalHooksClass;
+	private readonly internalHooks: InternalHooks;
 
 	private readonly userRepository: Repository<User>;
 
@@ -40,7 +36,7 @@ export class MeController {
 	}: {
 		logger: ILogger;
 		externalHooks: IExternalHooksClass;
-		internalHooks: IInternalHooksClass;
+		internalHooks: InternalHooks;
 		repositories: Pick<IDatabaseCollections, 'User'>;
 	}) {
 		this.logger = logger;

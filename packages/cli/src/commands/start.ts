@@ -124,7 +124,7 @@ export class Start extends Command {
 				await exitSuccessFully();
 			}, 30000);
 
-			await InternalHooksManager.getInstance().onN8nStop();
+			InternalHooksManager.getInstance().onN8nStop();
 
 			const skipWebhookDeregistration = config.getEnv(
 				'endpoints.skipWebhooksDeregistrationOnShutdown',

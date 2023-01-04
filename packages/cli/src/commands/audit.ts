@@ -67,7 +67,7 @@ export class SecurityAudit extends Command {
 			process.stdout.write(JSON.stringify(result, null, 2));
 		}
 
-		void InternalHooksManager.getInstance().onAuditGeneratedViaCli();
+		InternalHooksManager.getInstance().onAuditGeneratedViaCli();
 	}
 
 	async init() {

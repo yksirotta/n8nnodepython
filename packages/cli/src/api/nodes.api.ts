@@ -123,7 +123,7 @@ nodesController.post(
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : UNKNOWN_FAILURE_REASON;
 
-			void InternalHooksManager.getInstance().onCommunityPackageInstallFinished({
+			InternalHooksManager.getInstance().onCommunityPackageInstallFinished({
 				user: req.user,
 				input_string: name,
 				package_name: parsed.packageName,
@@ -151,7 +151,7 @@ nodesController.post(
 			});
 		});
 
-		void InternalHooksManager.getInstance().onCommunityPackageInstallFinished({
+		InternalHooksManager.getInstance().onCommunityPackageInstallFinished({
 			user: req.user,
 			input_string: name,
 			package_name: parsed.packageName,
@@ -258,7 +258,7 @@ nodesController.delete(
 			});
 		});
 
-		void InternalHooksManager.getInstance().onCommunityPackageDeleteFinished({
+		InternalHooksManager.getInstance().onCommunityPackageDeleteFinished({
 			user: req.user,
 			package_name: name,
 			package_version: installedPackage.installedVersion,
@@ -312,7 +312,7 @@ nodesController.patch(
 				});
 			});
 
-			void InternalHooksManager.getInstance().onCommunityPackageUpdateFinished({
+			InternalHooksManager.getInstance().onCommunityPackageUpdateFinished({
 				user: req.user,
 				package_name: name,
 				package_version_current: previouslyInstalledPackage.installedVersion,

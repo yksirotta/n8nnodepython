@@ -107,7 +107,7 @@ workflowsController.post(
 		}
 
 		await ExternalHooks().run('workflow.afterCreate', [savedWorkflow]);
-		void InternalHooksManager.getInstance().onWorkflowCreated(req.user, newWorkflow, false);
+		InternalHooksManager.getInstance().onWorkflowCreated(req.user, newWorkflow, false);
 
 		return savedWorkflow;
 	}),
