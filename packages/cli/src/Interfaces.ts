@@ -76,8 +76,6 @@ export interface IDatabaseCollections {
 	Workflow: Repository<WorkflowEntity>;
 	Webhook: Repository<WebhookEntity>;
 	Tag: Repository<TagEntity>;
-	Role: Repository<Role>;
-	User: Repository<User>;
 	SharedCredentials: Repository<SharedCredentials>;
 	SharedWorkflow: Repository<SharedWorkflow>;
 	Settings: Repository<Settings>;
@@ -85,6 +83,16 @@ export interface IDatabaseCollections {
 	InstalledNodes: Repository<InstalledNodes>;
 	WorkflowStatistics: Repository<WorkflowStatistics>;
 	EventDestinations: Repository<EventDestinations>;
+
+	/**
+	 * @deprecated Use RoleRepository instead
+	 */
+	Role: Repository<Role>;
+
+	/**
+	 * @deprecated Use UserRepository instead
+	 */
+	User: Repository<User>;
 }
 
 // ----------------------------------

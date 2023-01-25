@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as Db from '@/Db';
 import { LDAP_FEATURE_NAME } from '@/Ldap/constants';
 import { In } from 'typeorm';
@@ -7,8 +8,8 @@ export class Reset extends BaseCommand {
 	static description = '\nResets the database to the default ldap state';
 
 	async run(): Promise<void> {
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		const { AuthIdentity, AuthProviderSyncHistory, Settings, User } = Db.collections;
+		const { AuthIdentity, AuthProviderSyncHistory, Settings } = Db.collections;
+		const { User } = Db.repositories;
 		const ldapIdentities = await AuthIdentity.find({
 			where: { providerType: 'ldap' },
 			select: ['userId'],

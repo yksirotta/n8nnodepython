@@ -9,7 +9,6 @@ import * as Db from '@/Db';
 import * as WorkflowHelpers from '@/WorkflowHelpers';
 import { WorkflowRunner } from '@/WorkflowRunner';
 import type { IWorkflowExecutionDataProcess } from '@/Interfaces';
-import { getInstanceOwner } from '@/UserManagement/UserManagementHelper';
 import { findCliWorkflowStart } from '@/utils';
 import { initEvents } from '@/events';
 import { BaseCommand } from './BaseCommand';
@@ -106,7 +105,7 @@ export class Execute extends BaseCommand {
 
 		const startingNode = findCliWorkflowStart(workflowData.nodes);
 
-		const user = await getInstanceOwner();
+		const user = await Db.repositories.User.findByRoleOrFail('global', 'owner');
 		const runData: IWorkflowExecutionDataProcess = {
 			executionMode: 'cli',
 			startNodes: [startingNode.name],

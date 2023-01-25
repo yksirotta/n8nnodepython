@@ -226,10 +226,7 @@ export class CredentialsService {
 
 		await ExternalHooks().run('credentials.create', [encryptedData]);
 
-		const role = await Db.collections.Role.findOneByOrFail({
-			name: 'owner',
-			scope: 'credential',
-		});
+		const role = await Db.repositories.Role.findCredentialOwnerRoleOrFail();
 
 		const result = await Db.transaction(async (transactionManager) => {
 			const savedCredential = await transactionManager.save<CredentialsEntity>(newCredential);

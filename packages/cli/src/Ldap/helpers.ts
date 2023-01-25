@@ -73,9 +73,8 @@ export const randomPassword = (): string => {
 /**
  * Return the user role to be assigned to LDAP users
  */
-export const getLdapUserRole = async (): Promise<Role> => {
-	return Db.collections.Role.findOneByOrFail({ scope: 'global', name: 'member' });
-};
+export const getLdapUserRole = async (): Promise<Role> =>
+	Db.repositories.Role.findGlobalMemberRoleOrFail();
 
 /**
  * Validate the structure of the LDAP configuration schema
@@ -293,10 +292,7 @@ export const getAuthIdentityByLdapId = async (
 };
 
 export const getUserByEmail = async (email: string): Promise<User | null> => {
-	return Db.collections.User.findOne({
-		where: { email },
-		relations: ['globalRole'],
-	});
+	return Db.repositories.User.findByEmail(email, { includeRole: true });
 };
 
 /**
@@ -453,7 +449,7 @@ export const createLdapAuthIdentity = async (user: User, ldapId: string) => {
 };
 
 export const createLdapUserOnLocalDb = async (role: Role, data: Partial<User>, ldapId: string) => {
-	const user = await Db.collections.User.save({
+	const user = await Db.repositories.User.save({
 		password: randomPassword(),
 		globalRole: role,
 		...data,
@@ -465,7 +461,7 @@ export const createLdapUserOnLocalDb = async (role: Role, data: Partial<User>, l
 export const updateLdapUserOnLocalDb = async (identity: AuthIdentity, data: Partial<User>) => {
 	const userId = identity?.user?.id;
 	if (userId) {
-		await Db.collections.User.update({ id: userId }, data);
+		await Db.repositories.User.update(userId, data);
 	}
 };
 

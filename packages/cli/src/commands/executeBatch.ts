@@ -12,7 +12,6 @@ import * as Db from '@/Db';
 import { WorkflowRunner } from '@/WorkflowRunner';
 import type { IWorkflowDb, IWorkflowExecutionDataProcess } from '@/Interfaces';
 import type { User } from '@db/entities/User';
-import { getInstanceOwner } from '@/UserManagement/UserManagementHelper';
 import { findCliWorkflowStart } from '@/utils';
 import { initEvents } from '@/events';
 import { BaseCommand } from './BaseCommand';
@@ -246,7 +245,7 @@ export class ExecuteBatch extends BaseCommand {
 			ExecuteBatch.shallow = true;
 		}
 
-		ExecuteBatch.instanceOwner = await getInstanceOwner();
+		ExecuteBatch.instanceOwner = await Db.repositories.User.findByRoleOrFail('global', 'owner');
 
 		const query = Db.collections.Workflow.createQueryBuilder('workflows');
 

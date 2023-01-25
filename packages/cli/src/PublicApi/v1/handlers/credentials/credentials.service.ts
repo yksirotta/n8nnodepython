@@ -57,10 +57,7 @@ export async function saveCredential(
 	user: User,
 	encryptedData: ICredentialsDb,
 ): Promise<CredentialsEntity> {
-	const role = await Db.collections.Role.findOneByOrFail({
-		name: 'owner',
-		scope: 'credential',
-	});
+	const role = await Db.repositories.Role.findCredentialOwnerRoleOrFail();
 
 	await ExternalHooks().run('credentials.create', [encryptedData]);
 

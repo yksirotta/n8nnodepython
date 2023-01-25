@@ -26,7 +26,7 @@ import type {
 	MessageEventBusDestinationOptions,
 } from 'n8n-workflow';
 import { MessageEventBusDestinationTypeNames, EventMessageTypeNames } from 'n8n-workflow';
-import type { User } from '../databases/entities/User';
+import type { User } from '@db/entities/User';
 import * as ResponseHelper from '@/ResponseHelper';
 import type { EventMessageNodeOptions } from './EventMessageClasses/EventMessageNode';
 import { EventMessageNode } from './EventMessageClasses/EventMessageNode';

@@ -15,8 +15,7 @@ import {
 	isPostUsersId,
 	isUserManagementEnabled,
 } from '@/UserManagement/UserManagementHelper';
-import type { Repository } from 'typeorm';
-import type { User } from '@db/entities/User';
+import type { UserRepository } from '@db/repositories';
 
 const jwtFromRequest = (req: Request) => {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -68,7 +67,7 @@ export const setupAuthMiddlewares = (
 	app: Application,
 	ignoredEndpoints: Readonly<string[]>,
 	restEndpoint: string,
-	userRepository: Repository<User>,
+	userRepository: UserRepository,
 ) => {
 	// needed for testing; not adding overhead since it directly returns if req.cookies exists
 	app.use(cookieParser());
@@ -100,12 +99,9 @@ export const setupAuthMiddlewares = (
 			return next();
 		}
 
-		// skip authentication if user management is disabled
+		// skip authentication if user management is disabled);
 		if (!isUserManagementEnabled()) {
-			req.user = await userRepository.findOneOrFail({
-				relations: ['globalRole'],
-				where: {},
-			});
+			req.user = await userRepository.findInstanceOwnerOrFail();
 			return next();
 		}
 
