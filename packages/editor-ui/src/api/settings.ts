@@ -5,7 +5,7 @@ import {
 	IN8nUISettings,
 	IN8nPromptResponse,
 } from '../Interface';
-import { makeRestApiRequest, get, post } from '@/utils';
+import { makeRestApiRequest, get, post } from '@/utils/apiUtils';
 import { N8N_IO_BASE_URL, NPM_COMMUNITY_NODE_SEARCH_API_URL } from '@/constants';
 
 export function getSettings(context: IRestApiContext): Promise<IN8nUISettings> {

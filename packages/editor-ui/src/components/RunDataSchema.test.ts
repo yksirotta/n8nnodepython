@@ -2,7 +2,7 @@ import { PiniaVuePlugin } from 'pinia';
 import { createTestingPinia } from '@pinia/testing';
 import { render, cleanup } from '@testing-library/vue';
 import RunDataJsonSchema from '@/components/RunDataSchema.vue';
-import { STORES } from '@/constants';
+import { N8N_IO_BASE_URL, STORES } from '@/constants';
 
 describe('RunDataJsonSchema.vue', () => {
 	const renderOptions = {
@@ -12,7 +12,7 @@ describe('RunDataJsonSchema.vue', () => {
 					settings: {
 						templates: {
 							enabled: true,
-							host: 'https://api.n8n.io/api/',
+							host: N8N_IO_BASE_URL,
 						},
 					},
 				},
