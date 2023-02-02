@@ -73,6 +73,8 @@ export abstract class AbstractServer {
 		this.activeWorkflowRunner = ActiveWorkflowRunner.getInstance();
 	}
 
+	protected setupStaticServer() {}
+
 	private async setupCommonMiddlewares() {
 		const { app } = this;
 
@@ -82,9 +84,6 @@ export abstract class AbstractServer {
 		} = await import('@sentry/node');
 		app.use(requestHandler());
 		app.use(errorHandler());
-
-		// Compress the response data
-		app.use(compression());
 
 		// Make sure that each request has the "parsedUrl" parameter
 		app.use((req, res, next) => {
@@ -421,13 +420,18 @@ export abstract class AbstractServer {
 
 		await new Promise<void>((resolve) => server.listen(PORT, ADDRESS, () => resolve()));
 
+		this.setupStaticServer();
+
+		// Compress all response data
+		app.use(compression());
+
 		await this.setupCommonMiddlewares();
+
 		if (inDevelopment) {
 			this.setupDevMiddlewares();
 		}
 
 		await this.setupHealthCheck();
-
 		await this.configure();
 
 		console.log(`n8n ready on ${ADDRESS}, port ${PORT}`);

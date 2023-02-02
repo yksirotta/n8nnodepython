@@ -184,6 +184,8 @@ class Server extends AbstractServer {
 
 	credentialTypes: ICredentialTypes;
 
+	ignoredEndpoints: Readonly<string[]>;
+
 	constructor() {
 		super();
 
@@ -195,6 +197,23 @@ class Server extends AbstractServer {
 
 		this.presetCredentialsLoaded = false;
 		this.endpointPresetCredentials = config.getEnv('credentials.overwrite.endpoint');
+
+		const publicApiEndpoint = config.getEnv('publicApi.path');
+		const excludeEndpoints = config.getEnv('security.excludeEndpoints');
+
+		this.ignoredEndpoints = [
+			'assets',
+			'healthz',
+			'metrics',
+			'icons',
+			'types',
+			'e2e',
+			this.endpointWebhook,
+			this.endpointWebhookTest,
+			this.endpointPresetCredentials,
+			config.getEnv('publicApi.disabled') ? publicApiEndpoint : '',
+			...excludeEndpoints.split(':'),
+		].filter((u) => !!u);
 
 		if (process.env.E2E_TESTS === 'true') {
 			this.app.use('/e2e', require('./api/e2e.api').e2eController);
@@ -345,10 +364,10 @@ class Server extends AbstractServer {
 		}
 	}
 
-	private registerControllers(ignoredEndpoints: Readonly<string[]>) {
+	private registerControllers() {
 		const { app, externalHooks, activeWorkflowRunner } = this;
 		const repositories = Db.collections;
-		setupAuthMiddlewares(app, ignoredEndpoints, this.restEndpoint, repositories.User);
+		setupAuthMiddlewares(app, this.ignoredEndpoints, this.restEndpoint, repositories.User);
 
 		const logger = LoggerProxy;
 		const internalHooks = InternalHooksManager.getInstance();
@@ -372,6 +391,51 @@ class Server extends AbstractServer {
 		controllers.forEach((controller) => registerController(app, config, controller));
 	}
 
+	override setupStaticServer() {
+		const staticOptions: ServeStaticOptions = {
+			cacheControl: false,
+			setHeaders: (res: express.Response, path: string) => {
+				const isIndex = path === pathJoin(GENERATED_STATIC_DIR, 'index.html');
+				const cacheControl = isIndex
+					? 'no-cache, no-store, must-revalidate'
+					: 'max-age=86400, immutable';
+				res.header('Cache-Control', cacheControl);
+			},
+		};
+
+		if (!config.getEnv('endpoints.disableUi')) {
+			// Make sure that Vue history mode works properly
+			this.app.use(
+				history({
+					rewrites: [
+						{
+							from: new RegExp(
+								`^/(${[this.restEndpoint, ...this.ignoredEndpoints].join('|')})/?.*$`,
+							),
+							to: (context) => {
+								return context.parsedUrl.pathname!.toString();
+							},
+						},
+					],
+				}),
+			);
+
+			this.app.use(
+				'/',
+				express.static(GENERATED_STATIC_DIR, staticOptions),
+				express.static(EDITOR_UI_DIST_DIR, staticOptions),
+			);
+
+			const startTime = new Date().toUTCString();
+			this.app.use('/index.html', (req, res, next) => {
+				res.setHeader('Last-Modified', startTime);
+				next();
+			});
+		} else {
+			this.app.use('/', express.static(GENERATED_STATIC_DIR, staticOptions));
+		}
+	}
+
 	async configure(): Promise<void> {
 		configureMetrics(this.app);
 
@@ -388,24 +452,9 @@ class Server extends AbstractServer {
 		await this.initLicense();
 
 		const publicApiEndpoint = config.getEnv('publicApi.path');
-		const excludeEndpoints = config.getEnv('security.excludeEndpoints');
-
-		const ignoredEndpoints: Readonly<string[]> = [
-			'assets',
-			'healthz',
-			'metrics',
-			'icons',
-			'types',
-			'e2e',
-			this.endpointWebhook,
-			this.endpointWebhookTest,
-			this.endpointPresetCredentials,
-			config.getEnv('publicApi.disabled') ? publicApiEndpoint : '',
-			...excludeEndpoints.split(':'),
-		].filter((u) => !!u);
 
 		// eslint-disable-next-line no-useless-escape
-		const authIgnoreRegex = new RegExp(`^\/(${ignoredEndpoints.join('|')})\/?.*$`);
+		const authIgnoreRegex = new RegExp(`^\/(${this.ignoredEndpoints.join('|')})\/?.*$`);
 
 		// Check for basic auth credentials if activated
 		const basicAuthActive = config.getEnv('security.basicAuth.active');
@@ -588,24 +637,10 @@ class Server extends AbstractServer {
 			push.add(sessionId as string, req, res);
 		});
 
-		// Make sure that Vue history mode works properly
-		this.app.use(
-			history({
-				rewrites: [
-					{
-						from: new RegExp(`^/(${[this.restEndpoint, ...ignoredEndpoints].join('|')})/?.*$`),
-						to: (context) => {
-							return context.parsedUrl.pathname!.toString();
-						},
-					},
-				],
-			}),
-		);
-
 		// ----------------------------------------
 		// User Management
 		// ----------------------------------------
-		this.registerControllers(ignoredEndpoints);
+		this.registerControllers();
 
 		this.app.use(`/${this.restEndpoint}/credentials`, credentialsController);
 
@@ -1415,32 +1450,6 @@ class Server extends AbstractServer {
 					}
 				},
 			);
-		}
-
-		const staticOptions: ServeStaticOptions = {
-			cacheControl: false,
-			setHeaders: (res: express.Response, path: string) => {
-				const isIndex = path === pathJoin(GENERATED_STATIC_DIR, 'index.html');
-				const cacheControl = isIndex
-					? 'no-cache, no-store, must-revalidate'
-					: 'max-age=86400, immutable';
-				res.header('Cache-Control', cacheControl);
-			},
-		};
-		if (!config.getEnv('endpoints.disableUi')) {
-			this.app.use(
-				'/',
-				express.static(GENERATED_STATIC_DIR, staticOptions),
-				express.static(EDITOR_UI_DIST_DIR, staticOptions),
-			);
-
-			const startTime = new Date().toUTCString();
-			this.app.use('/index.html', (req, res, next) => {
-				res.setHeader('Last-Modified', startTime);
-				next();
-			});
-		} else {
-			this.app.use('/', express.static(GENERATED_STATIC_DIR, staticOptions));
 		}
 	}
 }
