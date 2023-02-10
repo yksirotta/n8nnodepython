@@ -7,7 +7,7 @@ import type {
 	INodeTypeDescription,
 } from 'n8n-workflow';
 
-import pdf from 'pdf-parse';
+import { PdfData } from 'pdfdataextract';
 
 export class ReadPDF implements INodeType {
 	description: INodeTypeDescription = {
@@ -53,10 +53,10 @@ export class ReadPDF implements INodeType {
 				}
 
 				const binaryData = await this.helpers.getBinaryDataBuffer(itemIndex, binaryPropertyName);
+				const pdfInfo = await PdfData.extract(binaryData);
 				returnData.push({
 					binary: item.binary,
-
-					json: (await pdf(binaryData)) as unknown as IDataObject,
+					json: pdfInfo as unknown as IDataObject,
 				});
 			} catch (error) {
 				if (this.continueOnFail()) {
