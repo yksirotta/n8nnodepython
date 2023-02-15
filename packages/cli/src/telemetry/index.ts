@@ -8,9 +8,9 @@ import config from '@/config';
 import type { IExecutionTrackProperties } from '@/Interfaces';
 import { getLogger } from '@/Logger';
 import { License } from '@/License';
-import { LicenseService } from '@/license/License.service';
 import { N8N_VERSION } from '@/constants';
 import { Service } from 'typedi';
+import { LicenseService } from '@/services/license.service';
 
 type ExecutionTrackDataKey = 'manual_error' | 'manual_success' | 'prod_error' | 'prod_success';
 
@@ -39,7 +39,11 @@ export class Telemetry {
 
 	private executionCountsBuffer: IExecutionsBuffer = {};
 
-	constructor(private postHog: PostHogClient, private license: License) {}
+	constructor(
+		private postHog: PostHogClient,
+		private license: License,
+		private licenseService: LicenseService,
+	) {}
 
 	setInstanceId(instanceId: string) {
 		this.instanceId = instanceId;
@@ -99,7 +103,7 @@ export class Telemetry {
 		const pulsePacket = {
 			plan_name_current: this.license.getPlanName(),
 			quota: this.license.getTriggerLimit(),
-			usage: await LicenseService.getActiveTriggerCount(),
+			usage: await this.licenseService.getActiveTriggerCount(),
 		};
 		allPromises.push(this.track('pulse', pulsePacket));
 		return Promise.all(allPromises);

@@ -84,6 +84,7 @@ import { registerController } from '@/decorators';
 import {
 	AuthController,
 	LdapController,
+	LicenseController,
 	MeController,
 	NodesController,
 	NodeTypesController,
@@ -131,8 +132,8 @@ import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData'
 import { toHttpNodeParameters } from '@/CurlConverterHelper';
 import { EventBusController } from '@/eventbus/eventBus.controller';
 import { isLogStreamingEnabled } from '@/eventbus/MessageEventBus/MessageEventBusHelper';
-import { licenseController } from './license/license.controller';
 import { Push, setupPushServer, setupPushHandler } from '@/push';
+import { License } from '@/License';
 import { setupAuthMiddlewares } from './middlewares';
 import { initEvents } from './events';
 import {
@@ -157,6 +158,7 @@ import { getSamlLoginLabel, isSamlLoginEnabled, isSamlLicensed } from './sso/sam
 import { SamlController } from './sso/saml/routes/saml.controller.ee';
 import { SamlService } from './sso/saml/saml.service.ee';
 import { LdapManager } from './Ldap/LdapManager.ee';
+import { LicenseService } from './services/license.service';
 
 const exec = promisify(callbackExec);
 
@@ -403,6 +405,10 @@ class Server extends AbstractServer {
 				postHog,
 			}),
 			new SamlController(samlService),
+			new LicenseController(
+				new LicenseService(Container.get(License), repositories.Workflow),
+				internalHooks,
+			),
 		];
 
 		if (isLdapEnabled()) {
@@ -505,11 +511,6 @@ class Server extends AbstractServer {
 		// Workflow
 		// ----------------------------------------
 		this.app.use(`/${this.restEndpoint}/workflows`, workflowsController);
-
-		// ----------------------------------------
-		// License
-		// ----------------------------------------
-		this.app.use(`/${this.restEndpoint}/license`, licenseController);
 
 		// ----------------------------------------
 		// Workflow Statistics
