@@ -1,9 +1,8 @@
 name: Docker Image CI
 
 on:
-  push:
-    tags:
-      - n8n@*
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -19,6 +18,12 @@ jobs:
       - name: Get the version
         id: vars
         run: echo ::set-output name=tag::$(echo ${GITHUB_REF:14})
+
+      - name: Test
+        run: |
+          echo ${{ steps.vars.outputs.tag }}
+          echo ${{ github.event }}
+          echo ${{ github.release }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -44,11 +49,11 @@ jobs:
         with:
           context: ./docker/images/n8n${{ matrix.docker-context }}
           build-args: |
-            N8N_VERSION=${{ steps.vars.outputs.tag }}
+            N8N_VERSION=${{ github.release.tag_name }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/n8n:${{ steps.vars.outputs.tag }}${{ matrix.docker-context }}
+            ${{ secrets.DOCKER_USERNAME }}/n8n:${{ github.release.tag_name }}${{ matrix.docker-context }}
             ${{ secrets.DOCKER_USERNAME }}/n8n:latest${{ matrix.docker-context }}
-            ghcr.io/${{ github.repository_owner }}/n8n:${{ steps.vars.outputs.tag }}${{ matrix.docker-context }}
+            ghcr.io/${{ github.repository_owner }}/n8n:${{ github.release.tag_name }}${{ matrix.docker-context }}
             ghcr.io/${{ github.repository_owner }}/n8n:latest${{ matrix.docker-context }}
