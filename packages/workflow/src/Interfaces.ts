@@ -8,6 +8,15 @@ import type { URLSearchParams } from 'url';
 import type { OptionsWithUri, OptionsWithUrl } from 'request';
 import type { RequestPromiseOptions, RequestPromiseAPI } from 'request-promise-native';
 
+import type {
+	GenericValue,
+	CredentialInformation,
+	IDataObject,
+	ICredentialDataDecryptedObject,
+} from '@n8n_io/nodes-sdk';
+
+export type { GenericValue, CredentialInformation, IDataObject, ICredentialDataDecryptedObject };
+
 import type { IDeferredPromise } from './DeferredPromise';
 import type { Workflow } from './Workflow';
 import type { WorkflowHooks } from './WorkflowHooks';
@@ -350,14 +359,6 @@ export interface ICredentialData {
 	nodesAccess: ICredentialNodeAccess[];
 }
 
-// The encrypted credentials which the nodes can access
-export type CredentialInformation = string | number | boolean | IDataObject | IDataObject[];
-
-// The encrypted credentials which the nodes can access
-export interface ICredentialDataDecryptedObject {
-	[key: string]: CredentialInformation;
-}
-
 // First array index: The output/input-index (if node has multiple inputs/outputs of the same type)
 // Second array index: The different connections (if one node is connected to multiple nodes)
 export type NodeInputConnections = IConnection[][];
@@ -375,12 +376,6 @@ export interface INodeConnections {
 export interface IConnections {
 	// Node name
 	[key: string]: INodeConnections;
-}
-
-export type GenericValue = string | object | number | boolean | undefined | null;
-
-export interface IDataObject {
-	[key: string]: GenericValue | IDataObject | GenericValue[] | IDataObject[];
 }
 
 // export type IExecuteResponsePromiseData = IDataObject;

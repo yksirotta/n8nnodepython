@@ -10,8 +10,5 @@
 		"useUnknownInCatchVariables": false
 	},
 	"include": ["credentials/**/*.ts", "nodes/**/*.ts"],
-	"references": [
-		{ "path": "../workflow/tsconfig.build.json" },
-		{ "path": "../core/tsconfig.build.json" }
-	]
+	"references": [{ "path": "../@n8n_io/nodes-sdk/tsconfig.build.json" }]
 }

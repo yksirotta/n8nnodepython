@@ -732,6 +732,7 @@
     ]
   },
   "devDependencies": {
+    "@n8n_io/nodes-sdk": "workspace:*",
     "@types/amqplib": "^0.10.1",
     "@types/aws4": "^1.5.1",
     "@types/basic-auth": "^1.1.3",

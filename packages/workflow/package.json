@@ -39,6 +39,7 @@
     "dist/**/*"
   ],
   "devDependencies": {
+    "@n8n_io/nodes-sdk": "workspace:*",
     "@types/crypto-js": "^4.1.1",
     "@types/deep-equal": "^1.0.1",
     "@types/express": "^4.17.6",
