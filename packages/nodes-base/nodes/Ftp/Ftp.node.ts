@@ -9,8 +9,8 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	JsonObject,
-} from 'n8n-workflow';
-import { BINARY_ENCODING, NodeApiError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { BINARY_ENCODING, NodeApiError } from '@n8n_io/nodes-sdk';
 import { createWriteStream } from 'fs';
 import { basename, dirname } from 'path';
 import type { Readable } from 'stream';

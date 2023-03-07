@@ -1,4 +1,4 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { ICredentialType, INodeProperties } from '@n8n_io/nodes-sdk';
 
 const scopes = ['identity', 'edit', 'history', 'mysubreddits', 'read', 'save', 'submit'];
 

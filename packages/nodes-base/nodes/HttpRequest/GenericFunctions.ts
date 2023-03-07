@@ -1,4 +1,4 @@
-import type { IDataObject, INodeExecutionData, IOAuth2Options } from 'n8n-workflow';
+import type { IDataObject, INodeExecutionData, IOAuth2Options } from '@n8n_io/nodes-sdk';
 import type { OptionsWithUri } from 'request-promise-native';
 
 export type IAuthDataSanitizeKeys = {

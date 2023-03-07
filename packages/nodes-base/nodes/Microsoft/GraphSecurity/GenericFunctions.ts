@@ -1,5 +1,5 @@
-import type { IExecuteFunctions, IDataObject, JsonObject } from 'n8n-workflow';
-import { NodeApiError, NodeOperationError } from 'n8n-workflow';
+import type { IExecuteFunctions, IDataObject, JsonObject } from '@n8n_io/nodes-sdk';
+import { NodeApiError, NodeOperationError } from '@n8n_io/nodes-sdk';
 
 import type { OptionsWithUri } from 'request';
 

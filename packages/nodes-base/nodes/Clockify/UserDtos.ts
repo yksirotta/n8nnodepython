@@ -1,4 +1,4 @@
-import type { IDataObject } from 'n8n-workflow';
+import type { IDataObject } from '@n8n_io/nodes-sdk';
 import type { IMembershipDto } from './CommonDtos';
 
 enum UserStatusEnum {

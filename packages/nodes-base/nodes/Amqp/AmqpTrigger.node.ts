@@ -7,8 +7,8 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	ITriggerResponse,
-} from 'n8n-workflow';
-import { deepCopy, jsonParse, NodeOperationError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { deepCopy, jsonParse, NodeOperationError } from '@n8n_io/nodes-sdk';
 
 export class AmqpTrigger implements INodeType {
 	description: INodeTypeDescription = {

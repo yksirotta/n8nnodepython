@@ -2,7 +2,7 @@ import type {
 	ILoadOptionsFunctions,
 	INodeListSearchItems,
 	INodeListSearchResult,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 import { sortLoadOptions } from '../helpers/utils';
 import { googleApiRequest } from '../transport';
 

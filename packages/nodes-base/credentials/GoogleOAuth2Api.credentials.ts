@@ -1,4 +1,4 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { ICredentialType, INodeProperties } from '@n8n_io/nodes-sdk';
 
 export class GoogleOAuth2Api implements ICredentialType {
 	name = 'googleOAuth2Api';

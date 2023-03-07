@@ -1,5 +1,5 @@
-import type { IExecuteFunctions, INodeExecutionData, JsonObject } from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+import type { IExecuteFunctions, INodeExecutionData, JsonObject } from '@n8n_io/nodes-sdk';
+import { NodeApiError } from '@n8n_io/nodes-sdk';
 
 import * as customer from './customer';
 import * as ticket from './ticket';

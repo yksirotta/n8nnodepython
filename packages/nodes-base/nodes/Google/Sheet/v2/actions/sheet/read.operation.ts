@@ -1,4 +1,4 @@
-import type { IExecuteFunctions, IDataObject, INodeExecutionData } from 'n8n-workflow';
+import type { IExecuteFunctions, IDataObject, INodeExecutionData } from '@n8n_io/nodes-sdk';
 import type { GoogleSheet } from '../../helpers/GoogleSheet';
 import {
 	getRangeString,

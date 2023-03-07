@@ -3,8 +3,8 @@ import type {
 	IDataObject,
 	IExecuteFunctions,
 	INodeExecutionData,
-} from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { NodeOperationError } from '@n8n_io/nodes-sdk';
 
 import type {
 	IMongoCredentials,

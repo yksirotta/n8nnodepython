@@ -4,8 +4,8 @@ import type {
 	INodeParameters,
 	INodeType,
 	INodeTypeDescription,
-} from 'n8n-workflow';
-import { deepCopy } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { deepCopy } from '@n8n_io/nodes-sdk';
 
 import set from 'lodash.set';
 

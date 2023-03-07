@@ -5,8 +5,8 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	IDataObject,
-} from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { NodeOperationError } from '@n8n_io/nodes-sdk';
 import { placeholder } from './placeholder';
 import { getResolvables, getValue } from './utils';
 import type { IValueData } from './types';

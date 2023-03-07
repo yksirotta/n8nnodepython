@@ -1,4 +1,4 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { ICredentialType, INodeProperties } from '@n8n_io/nodes-sdk';
 
 // https://developer.raindrop.io/v1/authentication
 

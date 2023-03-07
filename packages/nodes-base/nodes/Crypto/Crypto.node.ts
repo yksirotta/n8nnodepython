@@ -8,8 +8,8 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	JsonObject,
-} from 'n8n-workflow';
-import { deepCopy } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { deepCopy } from '@n8n_io/nodes-sdk';
 
 import type { BinaryToTextEncoding } from 'crypto';
 import { createHash, createHmac, createSign, getHashes, randomBytes } from 'crypto';

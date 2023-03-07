@@ -4,7 +4,7 @@ import type {
 	IDataObject,
 	IHookFunctions,
 	IWebhookFunctions,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 import { beeminderApiRequest, beeminderApiRequestAllItems } from './GenericFunctions';
 

@@ -8,7 +8,7 @@ import type {
 	ILoadOptionsFunctions,
 	IHookFunctions,
 	IWebhookFunctions,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 export function getAuthenticationType(data: string): 'accessToken' | 'apiKey' {
 	// The access token is a JWT, so it will always include dots to separate

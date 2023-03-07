@@ -6,7 +6,7 @@ import type {
 	IDataObject,
 	IHookFunctions,
 	IWebhookFunctions,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 const BEEMINDER_URI = 'https://www.beeminder.com/api/v1';
 

@@ -7,8 +7,8 @@ import type {
 	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
-} from 'n8n-workflow';
-import { deepCopy } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { deepCopy } from '@n8n_io/nodes-sdk';
 import gm from 'gm';
 import { file } from 'tmp-promise';
 import { parse as pathParse } from 'path';

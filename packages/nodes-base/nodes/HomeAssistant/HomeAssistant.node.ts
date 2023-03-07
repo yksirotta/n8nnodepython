@@ -9,7 +9,7 @@ import type {
 	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 import { configOperations } from './ConfigDescription';
 

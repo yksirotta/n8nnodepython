@@ -4,7 +4,7 @@ import type {
 	IHttpRequestOptions,
 	INodeProperties,
 	JsonObject,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 export const contactOperations: INodeProperties[] = [
 	{

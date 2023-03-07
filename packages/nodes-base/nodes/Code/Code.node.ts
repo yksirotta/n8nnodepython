@@ -3,7 +3,7 @@ import type {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 import { getSandboxContext, Sandbox } from './Sandbox';
 import { standardizeOutput } from './utils';
 import type { CodeNodeMode } from './utils';

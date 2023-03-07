@@ -1,4 +1,4 @@
-import type { AllEntities, Entity, PropertiesOf } from 'n8n-workflow';
+import type { AllEntities, Entity, PropertiesOf } from '@n8n_io/nodes-sdk';
 
 export const ROW_NUMBER = 'row_number';
 

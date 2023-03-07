@@ -4,7 +4,7 @@ import * as getAll from './getAll';
 import * as update from './update';
 import * as upload from './upload';
 
-import type { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from '@n8n_io/nodes-sdk';
 
 export { del, download, getAll, update, upload };
 

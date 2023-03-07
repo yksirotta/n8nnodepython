@@ -13,8 +13,8 @@ import type {
 	INodeTypeBaseDescription,
 	INodeTypeDescription,
 	ITriggerResponse,
-} from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { NodeOperationError } from '@n8n_io/nodes-sdk';
 
 import type { ImapSimple, ImapSimpleOptions, Message } from 'imap-simple';
 import { connect as imapConnect, getParts } from 'imap-simple';

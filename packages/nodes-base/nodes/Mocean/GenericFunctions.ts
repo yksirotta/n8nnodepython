@@ -1,5 +1,5 @@
-import type { IExecuteFunctions, IHookFunctions, IDataObject, JsonObject } from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+import type { IExecuteFunctions, IHookFunctions, IDataObject, JsonObject } from '@n8n_io/nodes-sdk';
+import { NodeApiError } from '@n8n_io/nodes-sdk';
 
 /**
  * Make an API request to Twilio

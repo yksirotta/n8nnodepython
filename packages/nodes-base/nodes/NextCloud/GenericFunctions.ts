@@ -1,4 +1,4 @@
-import type { IExecuteFunctions, IHookFunctions } from 'n8n-workflow';
+import type { IExecuteFunctions, IHookFunctions } from '@n8n_io/nodes-sdk';
 
 import type { OptionsWithUri } from 'request';
 

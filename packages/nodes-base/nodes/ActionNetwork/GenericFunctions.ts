@@ -1,4 +1,4 @@
-import type { IDataObject, IExecuteFunctions, ILoadOptionsFunctions } from 'n8n-workflow';
+import type { IDataObject, IExecuteFunctions, ILoadOptionsFunctions } from '@n8n_io/nodes-sdk';
 
 import type { OptionsWithUri } from 'request';
 

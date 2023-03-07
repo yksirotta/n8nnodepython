@@ -5,7 +5,7 @@ import type {
 	INodeType,
 	INodeTypeBaseDescription,
 	INodeTypeDescription,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 import { listSearch, loadOptions } from './methods';
 import { router } from './actions/router';
 import { versionDescription } from './actions/versionDescription';

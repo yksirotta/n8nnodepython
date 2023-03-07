@@ -3,7 +3,7 @@ import type {
 	ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 export class TypeformApi implements ICredentialType {
 	name = 'typeformApi';

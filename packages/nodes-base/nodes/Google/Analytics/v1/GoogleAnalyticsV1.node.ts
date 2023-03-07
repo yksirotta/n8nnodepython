@@ -8,7 +8,7 @@ import type {
 	INodeType,
 	INodeTypeBaseDescription,
 	INodeTypeDescription,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 import { reportFields, reportOperations } from './ReportDescription';
 import { userActivityFields, userActivityOperations } from './UserActivityDescription';

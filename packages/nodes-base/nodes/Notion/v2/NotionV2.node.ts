@@ -7,8 +7,8 @@ import type {
 	INodeType,
 	INodeTypeBaseDescription,
 	INodeTypeDescription,
-} from 'n8n-workflow';
-import { jsonParse, NodeApiError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { jsonParse, NodeApiError } from '@n8n_io/nodes-sdk';
 
 import type { SortData, FileRecord } from '../GenericFunctions';
 import {

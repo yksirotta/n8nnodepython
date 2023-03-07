@@ -1,4 +1,4 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { ICredentialType, INodeProperties } from '@n8n_io/nodes-sdk';
 
 export class SentryIoOAuth2Api implements ICredentialType {
 	name = 'sentryIoOAuth2Api';

@@ -7,8 +7,8 @@ import type {
 	IWebhookFunctions,
 	IHttpRequestOptions,
 	JsonObject,
-} from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { NodeApiError } from '@n8n_io/nodes-sdk';
 
 export async function awsApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions,

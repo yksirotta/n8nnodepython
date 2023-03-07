@@ -10,7 +10,7 @@ type TSeaTableServerEdition = 'enterprise edition';
 // ----------------------------------
 
 import type { IDtableMetadataColumn, IDtableMetadataTable, TDtableViewColumn } from './Interfaces';
-import type { ICredentialDataDecryptedObject } from 'n8n-workflow';
+import type { ICredentialDataDecryptedObject } from '@n8n_io/nodes-sdk';
 
 type TInheritColumnTypeTime = 'ctime' | 'mtime';
 type TInheritColumnTypeUser = 'creator' | 'last-modifier';

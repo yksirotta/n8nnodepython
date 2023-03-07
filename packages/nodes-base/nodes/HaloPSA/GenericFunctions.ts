@@ -8,8 +8,8 @@ import type {
 	ILoadOptionsFunctions,
 	IPollFunctions,
 	JsonObject,
-} from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { NodeApiError } from '@n8n_io/nodes-sdk';
 
 import type { OptionsWithUri } from 'request';
 

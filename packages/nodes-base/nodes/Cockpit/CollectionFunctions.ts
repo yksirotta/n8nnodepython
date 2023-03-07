@@ -3,8 +3,8 @@ import type {
 	IExecuteSingleFunctions,
 	ILoadOptionsFunctions,
 	IDataObject,
-} from 'n8n-workflow';
-import { jsonParse } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { jsonParse } from '@n8n_io/nodes-sdk';
 import type { ICollection } from './CollectionInterface';
 import { cockpitApiRequest } from './GenericFunctions';
 

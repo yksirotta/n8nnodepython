@@ -8,8 +8,8 @@ import type {
 	IHookFunctions,
 	ILoadOptionsFunctions,
 	IWebhookFunctions,
-} from 'n8n-workflow';
-import { BINARY_ENCODING, NodeApiError, NodeOperationError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { BINARY_ENCODING, NodeApiError, NodeOperationError } from '@n8n_io/nodes-sdk';
 
 function getEnvironment(env: string) {
 	return {

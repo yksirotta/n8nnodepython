@@ -7,7 +7,7 @@ import type {
 	IDataObject,
 	ILoadOptionsFunctions,
 	INodePropertyOptions,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 /**
  * Make an API request to Stripe

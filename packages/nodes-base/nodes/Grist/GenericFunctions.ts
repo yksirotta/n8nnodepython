@@ -5,8 +5,8 @@ import type {
 	IExecuteFunctions,
 	ILoadOptionsFunctions,
 	JsonObject,
-} from 'n8n-workflow';
-import { NodeApiError, NodeOperationError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { NodeApiError, NodeOperationError } from '@n8n_io/nodes-sdk';
 
 import type {
 	GristCredentials,

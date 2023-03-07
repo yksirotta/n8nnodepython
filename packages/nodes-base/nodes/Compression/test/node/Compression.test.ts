@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-loop-func */
 import type { WorkflowTestData } from '../../../../test/nodes/types';
-import type { IDataObject } from 'n8n-workflow';
+import type { IDataObject } from '@n8n_io/nodes-sdk';
 
 import {
 	getResultNodeData,

@@ -4,7 +4,7 @@ import type {
 	IN8nHttpFullResponse,
 	INodeExecutionData,
 	INodeProperties,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 async function processCampaignSearchResponse(
 	this: IExecuteSingleFunctions,

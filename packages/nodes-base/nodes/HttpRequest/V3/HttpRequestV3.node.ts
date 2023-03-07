@@ -9,8 +9,14 @@ import type {
 	INodeTypeBaseDescription,
 	INodeTypeDescription,
 	JsonObject,
-} from 'n8n-workflow';
-import { BINARY_ENCODING, jsonParse, NodeApiError, NodeOperationError, sleep } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import {
+	BINARY_ENCODING,
+	jsonParse,
+	NodeApiError,
+	NodeOperationError,
+	sleep,
+} from '@n8n_io/nodes-sdk';
 
 import type { OptionsWithUri } from 'request-promise-native';
 

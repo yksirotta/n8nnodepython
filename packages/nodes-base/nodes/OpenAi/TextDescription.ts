@@ -1,4 +1,4 @@
-import type { INodeExecutionData, INodeProperties } from 'n8n-workflow';
+import type { INodeExecutionData, INodeProperties } from '@n8n_io/nodes-sdk';
 
 export const textOperations: INodeProperties[] = [
 	{

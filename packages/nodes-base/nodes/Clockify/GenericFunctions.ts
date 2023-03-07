@@ -5,7 +5,7 @@ import type {
 	ILoadOptionsFunctions,
 	IPollFunctions,
 	IDataObject,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 export async function clockifyApiRequest(
 	this: ILoadOptionsFunctions | IPollFunctions | IExecuteFunctions,

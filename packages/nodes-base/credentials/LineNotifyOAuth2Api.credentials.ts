@@ -1,4 +1,4 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { ICredentialType, INodeProperties } from '@n8n_io/nodes-sdk';
 
 export class LineNotifyOAuth2Api implements ICredentialType {
 	name = 'lineNotifyOAuth2Api';

@@ -9,8 +9,8 @@ import type {
 	INodeProperties,
 	IWebhookFunctions,
 	JsonObject,
-} from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { NodeApiError } from '@n8n_io/nodes-sdk';
 
 import upperFirst from 'lodash.upperfirst';
 

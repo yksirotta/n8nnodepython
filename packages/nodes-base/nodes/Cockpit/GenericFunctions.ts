@@ -4,8 +4,8 @@ import type {
 	IExecuteSingleFunctions,
 	ILoadOptionsFunctions,
 	JsonObject,
-} from 'n8n-workflow';
-import { jsonParse, NodeApiError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { jsonParse, NodeApiError } from '@n8n_io/nodes-sdk';
 import type { OptionsWithUri } from 'request';
 
 export async function cockpitApiRequest(

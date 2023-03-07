@@ -1,7 +1,7 @@
 import type { OptionsWithUri } from 'request';
 
-import type { IDataObject, IExecuteFunctions, IHookFunctions, JsonObject } from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+import type { IDataObject, IExecuteFunctions, IHookFunctions, JsonObject } from '@n8n_io/nodes-sdk';
+import { NodeApiError } from '@n8n_io/nodes-sdk';
 
 /**
  * Make an API request to Dropbox

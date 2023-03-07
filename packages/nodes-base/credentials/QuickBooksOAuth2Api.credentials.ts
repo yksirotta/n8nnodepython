@@ -1,4 +1,4 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { ICredentialType, INodeProperties } from '@n8n_io/nodes-sdk';
 
 // https://developer.intuit.com/app/developer/qbo/docs/develop/authentication-and-authorization
 

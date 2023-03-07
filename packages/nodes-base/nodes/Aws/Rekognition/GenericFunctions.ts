@@ -9,7 +9,7 @@ import type {
 	ILoadOptionsFunctions,
 	IWebhookFunctions,
 	IHttpRequestOptions,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 import { pascalCase } from 'change-case';
 

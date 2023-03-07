@@ -1,5 +1,5 @@
-import type { INodeTypeBaseDescription, IVersionedNodeType } from 'n8n-workflow';
-import { VersionedNodeType } from 'n8n-workflow';
+import type { INodeTypeBaseDescription, IVersionedNodeType } from '@n8n_io/nodes-sdk';
+import { VersionedNodeType } from '@n8n_io/nodes-sdk';
 
 import { EmailSendV1 } from './v1/EmailSendV1.node';
 import { EmailSendV2 } from './v2/EmailSendV2.node';

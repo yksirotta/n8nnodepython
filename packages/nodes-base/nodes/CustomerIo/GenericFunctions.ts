@@ -5,7 +5,7 @@ import type {
 	IDataObject,
 	IHttpRequestMethods,
 	IHttpRequestOptions,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 import get from 'lodash.get';
 

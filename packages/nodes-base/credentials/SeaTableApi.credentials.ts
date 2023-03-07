@@ -1,4 +1,4 @@
-import type { ICredentialType, INodeProperties, INodePropertyOptions } from 'n8n-workflow';
+import type { ICredentialType, INodeProperties, INodePropertyOptions } from '@n8n_io/nodes-sdk';
 
 import moment from 'moment-timezone';
 

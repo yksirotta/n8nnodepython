@@ -1,4 +1,4 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { ICredentialType, INodeProperties } from '@n8n_io/nodes-sdk';
 
 export class EventbriteOAuth2Api implements ICredentialType {
 	name = 'eventbriteOAuth2Api';

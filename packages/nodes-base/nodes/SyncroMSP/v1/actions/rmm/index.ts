@@ -4,7 +4,7 @@ import * as create from './create';
 import * as del from './del';
 import * as mute from './mute';
 
-import type { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from '@n8n_io/nodes-sdk';
 
 export { getAll, get, mute, del as delete, create };
 

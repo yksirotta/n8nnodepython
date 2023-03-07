@@ -3,7 +3,7 @@ import type {
 	IDataObject,
 	INodeExecutionData,
 	INodeProperties,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 import type { IData, IDimension, IMetric } from '../../helpers/Interfaces';
 import {
 	checkDuplicates,

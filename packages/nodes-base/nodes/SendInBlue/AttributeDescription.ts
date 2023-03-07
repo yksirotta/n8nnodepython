@@ -3,7 +3,7 @@ import type {
 	IHttpRequestOptions,
 	INodeProperties,
 	JsonObject,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 import { SendInBlueNode } from './GenericFunctions';
 
 export const attributeOperations: INodeProperties[] = [

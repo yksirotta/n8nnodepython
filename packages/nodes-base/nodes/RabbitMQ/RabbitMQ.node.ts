@@ -10,8 +10,8 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	JsonObject,
-} from 'n8n-workflow';
-import { NodeApiError, NodeOperationError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { NodeApiError, NodeOperationError } from '@n8n_io/nodes-sdk';
 
 import { rabbitmqConnectExchange, rabbitmqConnectQueue } from './GenericFunctions';
 

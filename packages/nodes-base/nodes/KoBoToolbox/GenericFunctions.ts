@@ -7,7 +7,7 @@ import type {
 	INodeExecutionData,
 	INodePropertyOptions,
 	IWebhookFunctions,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 import set from 'lodash.set';
 import concat from 'lodash.concat';

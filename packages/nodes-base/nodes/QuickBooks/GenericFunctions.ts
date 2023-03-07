@@ -6,8 +6,8 @@ import type {
 	INodeExecutionData,
 	INodePropertyOptions,
 	JsonObject,
-} from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { NodeApiError } from '@n8n_io/nodes-sdk';
 
 import type { CustomField, GeneralAddress, Ref } from './descriptions/Shared.interface';
 

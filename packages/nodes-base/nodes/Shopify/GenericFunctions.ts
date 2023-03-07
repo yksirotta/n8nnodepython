@@ -7,7 +7,7 @@ import type {
 	IHookFunctions,
 	ILoadOptionsFunctions,
 	IOAuth2Options,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 import { snakeCase } from 'change-case';
 

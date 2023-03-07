@@ -1,5 +1,5 @@
 import type { OptionsWithUri } from 'request';
-import type { IExecuteFunctions, IHookFunctions, ILoadOptionsFunctions } from 'n8n-workflow';
+import type { IExecuteFunctions, IHookFunctions, ILoadOptionsFunctions } from '@n8n_io/nodes-sdk';
 
 /**
  * Make an API request to Twake

@@ -4,7 +4,7 @@ import type {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 import { upleadApiRequest } from './GenericFunctions';
 import { companyFields, companyOperations } from './CompanyDesciption';
 import { personFields, personOperations } from './PersonDescription';

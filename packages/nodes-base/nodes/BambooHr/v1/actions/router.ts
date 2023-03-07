@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import type { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
+import type { IExecuteFunctions, INodeExecutionData } from '@n8n_io/nodes-sdk';
 
 import * as employee from './employee';
 import * as employeeDocument from './employeeDocument';

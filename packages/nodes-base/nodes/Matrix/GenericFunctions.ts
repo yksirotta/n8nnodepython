@@ -6,8 +6,8 @@ import type {
 	IExecuteSingleFunctions,
 	ILoadOptionsFunctions,
 	JsonObject,
-} from 'n8n-workflow';
-import { NodeApiError, NodeOperationError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { NodeApiError, NodeOperationError } from '@n8n_io/nodes-sdk';
 
 import { v4 as uuid } from 'uuid';
 

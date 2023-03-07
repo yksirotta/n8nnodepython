@@ -3,7 +3,7 @@ import type {
 	IExecuteSingleFunctions,
 	ILoadOptionsFunctions,
 	IDataObject,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 import type { IForm } from './FormInterface';
 import { cockpitApiRequest } from './GenericFunctions';
 

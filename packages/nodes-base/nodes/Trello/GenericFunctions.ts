@@ -5,7 +5,7 @@ import type {
 	IExecuteFunctions,
 	IHookFunctions,
 	ILoadOptionsFunctions,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 /**
  * Make an API request to Trello

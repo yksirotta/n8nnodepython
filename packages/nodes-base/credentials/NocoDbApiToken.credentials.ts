@@ -1,4 +1,4 @@
-import type { IAuthenticateGeneric, ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { IAuthenticateGeneric, ICredentialType, INodeProperties } from '@n8n_io/nodes-sdk';
 
 export class NocoDbApiToken implements ICredentialType {
 	name = 'nocoDbApiToken';

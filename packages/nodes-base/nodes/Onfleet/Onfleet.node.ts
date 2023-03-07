@@ -7,7 +7,7 @@ import type {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 import { taskFields, taskOperations } from './descriptions/TaskDescription';
 

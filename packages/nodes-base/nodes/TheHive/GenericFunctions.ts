@@ -5,8 +5,8 @@ import type {
 	IHookFunctions,
 	ILoadOptionsFunctions,
 	IDataObject,
-} from 'n8n-workflow';
-import { jsonParse } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { jsonParse } from '@n8n_io/nodes-sdk';
 
 import moment from 'moment';
 import { Eq } from './QueryFunctions';

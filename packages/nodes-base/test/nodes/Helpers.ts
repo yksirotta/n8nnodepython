@@ -23,7 +23,7 @@ import {
 	LoggerProxy,
 	NodeHelpers,
 	WorkflowHooks,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 import { executeWorkflow } from './ExecuteWorkflow';
 import { WorkflowTestData } from './types';
 import path from 'path';

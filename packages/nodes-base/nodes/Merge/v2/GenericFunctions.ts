@@ -4,7 +4,7 @@ import type {
 	IDataObject,
 	INodeExecutionData,
 	IPairedItemData,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 import assign from 'lodash.assign';
 import assignWith from 'lodash.assignwith';

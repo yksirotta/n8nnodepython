@@ -1,11 +1,11 @@
-import { BINARY_ENCODING } from 'n8n-workflow';
+import { BINARY_ENCODING } from '@n8n_io/nodes-sdk';
 import type {
 	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 export class ShopifyApi implements ICredentialType {
 	name = 'shopifyApi';

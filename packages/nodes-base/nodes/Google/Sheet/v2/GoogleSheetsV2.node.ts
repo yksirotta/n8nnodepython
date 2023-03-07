@@ -3,7 +3,7 @@ import type {
 	INodeType,
 	INodeTypeBaseDescription,
 	INodeTypeDescription,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 import { versionDescription } from './actions/versionDescription';
 import { credentialTest, listSearch, loadOptions } from './methods';
 import { router } from './actions/router';

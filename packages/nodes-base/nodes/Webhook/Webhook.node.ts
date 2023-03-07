@@ -6,8 +6,8 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	IWebhookResponseData,
-} from 'n8n-workflow';
-import { BINARY_ENCODING, NodeOperationError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { BINARY_ENCODING, NodeOperationError } from '@n8n_io/nodes-sdk';
 
 import fs from 'fs';
 import stream from 'stream';

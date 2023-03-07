@@ -5,8 +5,8 @@ import type {
 	IExecuteFunctions,
 	ILoadOptionsFunctions,
 	JsonObject,
-} from 'n8n-workflow';
-import { BINARY_ENCODING, NodeApiError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { BINARY_ENCODING, NodeApiError } from '@n8n_io/nodes-sdk';
 
 export async function freshdeskApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,

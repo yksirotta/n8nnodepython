@@ -3,8 +3,8 @@ import type {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
-} from 'n8n-workflow';
-import { jsonParse, NodeOperationError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { jsonParse, NodeOperationError } from '@n8n_io/nodes-sdk';
 
 const errorObjectPlaceholder = `{
 	"code": "404",

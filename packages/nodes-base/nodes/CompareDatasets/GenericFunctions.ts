@@ -1,4 +1,4 @@
-import type { IDataObject, INodeExecutionData } from 'n8n-workflow';
+import type { IDataObject, INodeExecutionData } from '@n8n_io/nodes-sdk';
 
 import difference from 'lodash.difference';
 import get from 'lodash.get';

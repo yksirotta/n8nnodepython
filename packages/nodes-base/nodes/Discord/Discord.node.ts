@@ -3,8 +3,8 @@ import type {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
-} from 'n8n-workflow';
-import { jsonParse, NodeApiError, NodeOperationError, sleep } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { jsonParse, NodeApiError, NodeOperationError, sleep } from '@n8n_io/nodes-sdk';
 
 import type { DiscordAttachment, DiscordWebhook } from './Interfaces';
 export class Discord implements INodeType {

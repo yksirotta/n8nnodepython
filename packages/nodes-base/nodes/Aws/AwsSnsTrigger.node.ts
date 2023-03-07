@@ -7,8 +7,8 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	IWebhookResponseData,
-} from 'n8n-workflow';
-import { jsonParse, NodeOperationError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { jsonParse, NodeOperationError } from '@n8n_io/nodes-sdk';
 
 import { awsApiRequestSOAP } from './GenericFunctions';
 

@@ -3,7 +3,7 @@ import type {
 	ICredentialTestRequest,
 	ICredentialType,
 	NodePropertyTypes,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 export class DropcontactApi implements ICredentialType {
 	name = 'dropcontactApi';

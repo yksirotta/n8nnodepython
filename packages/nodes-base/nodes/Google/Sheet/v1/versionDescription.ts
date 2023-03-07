@@ -1,5 +1,5 @@
 /* eslint-disable n8n-nodes-base/node-filename-against-convention */
-import type { INodeTypeDescription } from 'n8n-workflow';
+import type { INodeTypeDescription } from '@n8n_io/nodes-sdk';
 
 export const versionDescription: INodeTypeDescription = {
 	displayName: 'Google Sheets ',

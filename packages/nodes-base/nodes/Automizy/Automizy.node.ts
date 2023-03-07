@@ -7,7 +7,7 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	NodeExecutionWithMetadata,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 import { automizyApiRequest, automizyApiRequestAllItems } from './GenericFunctions';
 

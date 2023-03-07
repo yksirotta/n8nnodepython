@@ -1,4 +1,4 @@
-import type { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from '@n8n_io/nodes-sdk';
 
 export const fileUploadDescription: INodeProperties[] = [
 	{

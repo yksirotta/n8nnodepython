@@ -1,4 +1,4 @@
-import type { IDataObject } from 'n8n-workflow';
+import type { IDataObject } from '@n8n_io/nodes-sdk';
 
 export function isObject(maybe: unknown): maybe is { [key: string]: unknown } {
 	return typeof maybe === 'object' && maybe !== null && !Array.isArray(maybe);

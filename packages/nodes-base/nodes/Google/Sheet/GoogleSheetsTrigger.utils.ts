@@ -1,4 +1,4 @@
-import type { IDataObject, IPollFunctions } from 'n8n-workflow';
+import type { IDataObject, IPollFunctions } from '@n8n_io/nodes-sdk';
 import { apiRequest } from './v2/transport';
 import type { SheetDataRow, SheetRangeData } from './v2/helpers/GoogleSheets.types';
 

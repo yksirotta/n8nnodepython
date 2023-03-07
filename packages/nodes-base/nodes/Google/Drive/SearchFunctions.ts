@@ -1,4 +1,4 @@
-import type { ILoadOptionsFunctions, INodeListSearchResult } from 'n8n-workflow';
+import type { ILoadOptionsFunctions, INodeListSearchResult } from '@n8n_io/nodes-sdk';
 import { googleApiRequest } from './GenericFunctions';
 
 interface GoogleDriveFilesItem {

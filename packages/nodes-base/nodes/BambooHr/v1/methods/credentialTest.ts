@@ -4,7 +4,7 @@ import type {
 	ICredentialTestFunctions,
 	IHttpRequestOptions,
 	INodeCredentialTestResult,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 async function validateCredentials(
 	this: ICredentialTestFunctions,

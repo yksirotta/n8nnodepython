@@ -6,7 +6,7 @@ import type {
 	ILoadOptionsFunctions,
 	IDataObject,
 	IHookFunctions,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 export async function mailjetApiRequest(
 	this: IExecuteFunctions | IExecuteSingleFunctions | IHookFunctions | ILoadOptionsFunctions,

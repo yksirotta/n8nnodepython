@@ -1,4 +1,4 @@
-import type { ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
+import type { ILoadOptionsFunctions, INodePropertyOptions } from '@n8n_io/nodes-sdk';
 import { sortLoadOptions } from '../helpers/utils';
 import { googleApiRequest } from '../transport';
 

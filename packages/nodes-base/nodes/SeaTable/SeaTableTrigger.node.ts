@@ -5,7 +5,7 @@ import type {
 	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 import { getColumns, rowFormatColumns, seaTableApiRequest, simplify } from './GenericFunctions';
 

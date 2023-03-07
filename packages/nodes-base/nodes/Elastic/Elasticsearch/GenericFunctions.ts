@@ -1,7 +1,7 @@
 import type { OptionsWithUri } from 'request';
 
-import type { IExecuteFunctions, IDataObject, JsonObject } from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+import type { IExecuteFunctions, IDataObject, JsonObject } from '@n8n_io/nodes-sdk';
+import { NodeApiError } from '@n8n_io/nodes-sdk';
 
 import type { ElasticsearchApiCredentials } from './types';
 

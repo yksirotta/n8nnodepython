@@ -5,7 +5,7 @@ import * as getByEmail from './getByEmail';
 import * as getById from './getById';
 import * as invite from './invite';
 
-import type { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from '@n8n_io/nodes-sdk';
 
 export { create, deactive, getAll, getByEmail, getById, invite };
 

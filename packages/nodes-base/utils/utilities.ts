@@ -1,5 +1,5 @@
-import type { IDataObject, IDisplayOptions, INodeProperties } from 'n8n-workflow';
-import { jsonParse } from 'n8n-workflow';
+import type { IDataObject, IDisplayOptions, INodeProperties } from '@n8n_io/nodes-sdk';
+import { jsonParse } from '@n8n_io/nodes-sdk';
 
 import { isEqual, isNull, merge } from 'lodash';
 

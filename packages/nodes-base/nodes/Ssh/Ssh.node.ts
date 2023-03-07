@@ -4,8 +4,8 @@ import type {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
-} from 'n8n-workflow';
-import { BINARY_ENCODING } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { BINARY_ENCODING } from '@n8n_io/nodes-sdk';
 
 import { rm, writeFile } from 'fs/promises';
 

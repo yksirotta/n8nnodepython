@@ -2,7 +2,7 @@ import type {
 	ILoadOptionsFunctions,
 	INodeListSearchItems,
 	INodeListSearchResult,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 import { githubApiRequest } from './GenericFunctions';
 
 type UserSearchItem = {

@@ -7,8 +7,8 @@ import type {
 	INodeTypeDescription,
 	IWebhookFunctions,
 	IWebhookResponseData,
-} from 'n8n-workflow';
-import { BINARY_ENCODING, WAIT_TIME_UNLIMITED, NodeOperationError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { BINARY_ENCODING, WAIT_TIME_UNLIMITED, NodeOperationError } from '@n8n_io/nodes-sdk';
 
 import fs from 'fs';
 import stream from 'stream';

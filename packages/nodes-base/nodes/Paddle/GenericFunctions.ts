@@ -8,8 +8,8 @@ import type {
 	ILoadOptionsFunctions,
 	IWebhookFunctions,
 	IDataObject,
-} from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { NodeApiError } from '@n8n_io/nodes-sdk';
 
 export async function paddleApiRequest(
 	this:

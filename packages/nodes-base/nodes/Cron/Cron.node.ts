@@ -4,8 +4,8 @@ import type {
 	INodeTypeDescription,
 	ITriggerResponse,
 	TriggerTime,
-} from 'n8n-workflow';
-import { NodeHelpers, toCronExpression } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { NodeHelpers, toCronExpression } from '@n8n_io/nodes-sdk';
 
 import { CronJob } from 'cron';
 

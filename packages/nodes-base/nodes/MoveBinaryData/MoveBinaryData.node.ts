@@ -11,14 +11,14 @@ import type {
 	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 import {
 	BINARY_ENCODING,
 	deepCopy,
 	jsonParse,
 	NodeOperationError,
 	fileTypeFromMimeType,
-} from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
 
 import iconv from 'iconv-lite';
 iconv.encodingExists('utf8');

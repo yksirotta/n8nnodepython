@@ -9,8 +9,8 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	IWebhookResponseData,
-} from 'n8n-workflow';
-import { jsonParse } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { jsonParse } from '@n8n_io/nodes-sdk';
 
 import { jotformApiRequest } from './GenericFunctions';
 

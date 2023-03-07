@@ -7,8 +7,8 @@ import type {
 	IHookFunctions,
 	IWebhookFunctions,
 	JsonObject,
-} from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+} from '@n8n_io/nodes-sdk';
+import { NodeApiError } from '@n8n_io/nodes-sdk';
 
 import type { IMessage } from './MessageInterface';
 import type { IStream } from './StreamInterface';

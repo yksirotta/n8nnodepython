@@ -1,4 +1,4 @@
-import type { INodeProperties, INodePropertyOptions } from 'n8n-workflow';
+import type { INodeProperties, INodePropertyOptions } from '@n8n_io/nodes-sdk';
 
 export const resource = {
 	name: 'Locale',
