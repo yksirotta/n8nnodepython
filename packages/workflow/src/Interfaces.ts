@@ -1731,16 +1731,45 @@ export interface IWorkflowCredentials {
 	};
 }
 
-export interface IWorkflowExecuteHooks {
-	[key: string]: Array<(...args: any[]) => Promise<void>> | undefined;
-	nodeExecuteAfter?: Array<
-		(nodeName: string, data: ITaskData, executionData: IRunExecutionData) => Promise<void>
-	>;
-	nodeExecuteBefore?: Array<(nodeName: string) => Promise<void>>;
-	workflowExecuteAfter?: Array<(data: IRun, newStaticData: IDataObject) => Promise<void>>;
-	workflowExecuteBefore?: Array<(workflow: Workflow, data: IRunExecutionData) => Promise<void>>;
-	sendResponse?: Array<(response: IExecuteResponsePromiseData) => Promise<void>>;
+namespace WorkflowExecuteHooks {
+	export type NodeFetchedDataFn = (
+		this: WorkflowHooks,
+		workflowId: string,
+		node: INode,
+	) => Promise<void>;
+	export type NodeExecuteAfterFn = (
+		this: WorkflowHooks,
+		nodeName: string,
+		data: ITaskData,
+		executionData: IRunExecutionData,
+	) => Promise<void>;
+	export type NodeExecuteBeforeFn = (this: WorkflowHooks, nodeName: string) => Promise<void>;
+	export type WorkflowExecuteAfterFn = (
+		this: WorkflowHooks,
+		data: IRun,
+		newStaticData: IDataObject,
+	) => Promise<void>;
+	export type WorkflowExecuteBeforeFn = (
+		this: WorkflowHooks,
+		workflow: Workflow,
+		data: IRunExecutionData,
+	) => Promise<void>;
+	export type SendResponseFn = (
+		this: WorkflowHooks,
+		response: IExecuteResponsePromiseData,
+	) => Promise<void>;
 }
+
+export interface IWorkflowExecuteHooks {
+	nodeFetchedData?: WorkflowExecuteHooks.NodeFetchedDataFn[];
+	nodeExecuteAfter?: WorkflowExecuteHooks.NodeExecuteAfterFn[];
+	nodeExecuteBefore?: WorkflowExecuteHooks.NodeExecuteBeforeFn[];
+	workflowExecuteAfter?: WorkflowExecuteHooks.WorkflowExecuteAfterFn[];
+	workflowExecuteBefore?: WorkflowExecuteHooks.WorkflowExecuteBeforeFn[];
+	sendResponse?: WorkflowExecuteHooks.SendResponseFn[];
+}
+
+export type WorkflowExecuteHookName = keyof IWorkflowExecuteHooks;
 
 export interface IWorkflowExecuteAdditionalData {
 	credentialsHelper: ICredentialsHelper;

@@ -23,6 +23,7 @@ import type {
 	FeatureFlags,
 	IUserSettings,
 	IHttpRequestMethods,
+	WorkflowExecuteHookName,
 } from 'n8n-workflow';
 
 import type { ActiveWorkflowRunner } from '@/ActiveWorkflowRunner';
@@ -636,9 +637,8 @@ export interface IWorkflowErrorData {
 }
 
 export interface IProcessMessageDataHook {
-	hook: string;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	parameters: any[];
+	hook: WorkflowExecuteHookName;
+	parameters: unknown[];
 }
 
 export interface IWorkflowExecutionDataProcess {

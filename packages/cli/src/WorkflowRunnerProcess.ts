@@ -26,6 +26,7 @@ import type {
 	IWorkflowExecuteHooks,
 	IWorkflowSettings,
 	NodeOperationError,
+	WorkflowExecuteHookName,
 	WorkflowExecuteMode,
 } from 'n8n-workflow';
 import {
@@ -368,11 +369,12 @@ class WorkflowRunnerProcess {
 
 		const preExecuteFunctions = WorkflowExecuteAdditionalData.hookFunctionsPreExecute();
 
-		for (const key of Object.keys(preExecuteFunctions)) {
-			if (hookFunctions[key] === undefined) {
-				hookFunctions[key] = [];
-			}
-			hookFunctions[key]!.push.apply(hookFunctions[key], preExecuteFunctions[key]);
+		let key: WorkflowExecuteHookName;
+		for (key in preExecuteFunctions) {
+			// if (hookFunctions[key] === undefined) hookFunctions[key] = [];
+			// hookFunctions[key]!.push.apply(hookFunctions[key], preExecuteFunctions[key]);
+			// @ts-ignore
+			hookFunctions[key] = [...(hookFunctions[key] ?? []), preExecuteFunctions[key]];
 		}
 
 		return new WorkflowHooks(

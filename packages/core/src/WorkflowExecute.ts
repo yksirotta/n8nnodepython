@@ -30,6 +30,7 @@ import type {
 	NodeApiError,
 	NodeOperationError,
 	Workflow,
+	WorkflowExecuteHookName,
 	WorkflowExecuteMode,
 } from 'n8n-workflow';
 import { LoggerProxy as Logger, WorkflowOperationError } from 'n8n-workflow';
@@ -295,15 +296,9 @@ export class WorkflowExecute {
 
 	/**
 	 * Executes the hook with the given name
-	 *
 	 */
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	async executeHook(hookName: string, parameters: any[]): Promise<void> {
-		if (this.additionalData.hooks === undefined) {
-			return;
-		}
-
-		return this.additionalData.hooks.executeHookFunctions(hookName, parameters);
+	async executeHook(hookName: WorkflowExecuteHookName, parameters: unknown[]): Promise<void> {
+		return this.additionalData.hooks?.executeHookFunctions(hookName, parameters);
 	}
 
 	/**

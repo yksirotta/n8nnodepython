@@ -28,6 +28,7 @@ import type {
 	IWorkflowSettings,
 	WorkflowExecuteMode,
 	ExecutionStatus,
+	WorkflowExecuteHookName,
 } from 'n8n-workflow';
 import {
 	ErrorReporterProxy as ErrorReporter,
@@ -1170,6 +1171,22 @@ export async function getBase(
 	};
 }
 
+function getHooksFunctions(
+	parentProcessMode: string | undefined,
+	...fns: Array<(parentProcessMode?: string) => IWorkflowExecuteHooks>
+): IWorkflowExecuteHooks {
+	const returnValue: IWorkflowExecuteHooks = {};
+	for (const fn of fns) {
+		const hooks = fn(parentProcessMode);
+		let key: WorkflowExecuteHookName;
+		for (key in hooks) {
+			// @ts-ignore
+			returnValue[key] = [...(returnValue[key] ?? []), hooks[key]];
+		}
+	}
+	return returnValue;
+}
+
 /**
  * Returns WorkflowHooks instance for running integrated workflows
  * (Workflows which get started inside of another workflow)
@@ -1181,14 +1198,11 @@ function getWorkflowHooksIntegrated(
 	optionalParameters?: IWorkflowHooksOptionalParameters,
 ): WorkflowHooks {
 	optionalParameters = optionalParameters || {};
-	const hookFunctions = hookFunctionsSave(optionalParameters.parentProcessMode);
-	const preExecuteFunctions = hookFunctionsPreExecute(optionalParameters.parentProcessMode);
-	for (const key of Object.keys(preExecuteFunctions)) {
-		if (hookFunctions[key] === undefined) {
-			hookFunctions[key] = [];
-		}
-		hookFunctions[key]!.push.apply(hookFunctions[key], preExecuteFunctions[key]);
-	}
+	const hookFunctions = getHooksFunctions(
+		optionalParameters.parentProcessMode,
+		hookFunctionsSave,
+		hookFunctionsPreExecute,
+	);
 	return new WorkflowHooks(hookFunctions, mode, executionId, workflowData, optionalParameters);
 }
 
@@ -1203,14 +1217,11 @@ export function getWorkflowHooksWorkerExecuter(
 	optionalParameters?: IWorkflowHooksOptionalParameters,
 ): WorkflowHooks {
 	optionalParameters = optionalParameters || {};
-	const hookFunctions = hookFunctionsSaveWorker();
-	const preExecuteFunctions = hookFunctionsPreExecute(optionalParameters.parentProcessMode);
-	for (const key of Object.keys(preExecuteFunctions)) {
-		if (hookFunctions[key] === undefined) {
-			hookFunctions[key] = [];
-		}
-		hookFunctions[key]!.push.apply(hookFunctions[key], preExecuteFunctions[key]);
-	}
+	const hookFunctions = getHooksFunctions(
+		optionalParameters.parentProcessMode,
+		hookFunctionsSaveWorker,
+		hookFunctionsPreExecute,
+	);
 	return new WorkflowHooks(hookFunctions, mode, executionId, workflowData, optionalParameters);
 }
 
@@ -1224,14 +1235,11 @@ export function getWorkflowHooksWorkerMain(
 	optionalParameters?: IWorkflowHooksOptionalParameters,
 ): WorkflowHooks {
 	optionalParameters = optionalParameters || {};
-	const hookFunctions = hookFunctionsPush();
-	const preExecuteFunctions = hookFunctionsPreExecute(optionalParameters.parentProcessMode);
-	for (const key of Object.keys(preExecuteFunctions)) {
-		if (hookFunctions[key] === undefined) {
-			hookFunctions[key] = [];
-		}
-		hookFunctions[key]!.push.apply(hookFunctions[key], preExecuteFunctions[key]);
-	}
+	const hookFunctions = getHooksFunctions(
+		optionalParameters.parentProcessMode,
+		hookFunctionsPush,
+		hookFunctionsPreExecute,
+	);
 
 	// When running with worker mode, main process executes
 	// Only workflowExecuteBefore + workflowExecuteAfter
@@ -1251,24 +1259,9 @@ export function getWorkflowHooksMain(
 	executionId: string,
 	isMainProcess = false,
 ): WorkflowHooks {
-	const hookFunctions = hookFunctionsSave();
-	const pushFunctions = hookFunctionsPush();
-	for (const key of Object.keys(pushFunctions)) {
-		if (hookFunctions[key] === undefined) {
-			hookFunctions[key] = [];
-		}
-		hookFunctions[key]!.push.apply(hookFunctions[key], pushFunctions[key]);
-	}
-
-	if (isMainProcess) {
-		const preExecuteFunctions = hookFunctionsPreExecute();
-		for (const key of Object.keys(preExecuteFunctions)) {
-			if (hookFunctions[key] === undefined) {
-				hookFunctions[key] = [];
-			}
-			hookFunctions[key]!.push.apply(hookFunctions[key], preExecuteFunctions[key]);
-		}
-	}
+	const hookFns = [hookFunctionsSave, hookFunctionsPush];
+	if (isMainProcess) hookFns.push(hookFunctionsPreExecute);
+	const hookFunctions = getHooksFunctions(undefined, ...hookFns);
 
 	if (!hookFunctions.nodeExecuteBefore) hookFunctions.nodeExecuteBefore = [];
 	if (!hookFunctions.nodeExecuteAfter) hookFunctions.nodeExecuteAfter = [];

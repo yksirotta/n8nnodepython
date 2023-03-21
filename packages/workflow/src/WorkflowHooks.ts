@@ -2,6 +2,7 @@ import type {
 	IWorkflowBase,
 	IWorkflowExecuteHooks,
 	IWorkflowHooksOptionalParameters,
+	WorkflowExecuteHookName,
 	WorkflowExecuteMode,
 } from './Interfaces';
 
@@ -37,12 +38,12 @@ export class WorkflowHooks {
 		this.retryOf = optionalParameters.retryOf ?? undefined;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	async executeHookFunctions(hookName: string, parameters: any[]) {
-		if (this.hookFunctions[hookName] !== undefined && Array.isArray(this.hookFunctions[hookName])) {
-			for (const hookFunction of this.hookFunctions[hookName]!) {
-				await hookFunction.apply(this, parameters);
-			}
+	async executeHookFunctions(hookName: WorkflowExecuteHookName, parameters: unknown[]) {
+		const hooks = this.hookFunctions[hookName] ?? [];
+		for (const hookFunction of hooks) {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore
+			await hookFunction?.apply(this, parameters);
 		}
 	}
 }
