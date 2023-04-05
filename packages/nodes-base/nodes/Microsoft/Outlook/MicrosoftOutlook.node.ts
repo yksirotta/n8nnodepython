@@ -695,7 +695,8 @@ export class MicrosoftOutlook implements INodeType {
 
 								const data = dataBuffer.subarray(bytesUploaded, nextChunk);
 
-								responseData = await this.helpers.request(uploadUrl, {
+								responseData = await this.helpers.request({
+									url: uploadUrl,
 									method: 'PUT',
 									headers: {
 										'Content-Type': 'application/octet-stream',

@@ -179,6 +179,19 @@ describe('NodeExecuteFunctions', () => {
 			expect(hooks.executeHookFunctions).not.toHaveBeenCalled();
 		});
 
+		test('should throw if the response status is 404', async () => {
+			nock(baseUrl).get('/test').reply(404, 'Not Found');
+			try {
+				await proxyRequestToAxios(workflow, additionalData, node, `${baseUrl}/test`);
+			} catch (error) {
+				expect(error.statusCode).toEqual(404);
+				expect(error.request).toBeUndefined();
+				expect(error.config).toBeUndefined();
+				expect(error.message).toEqual('404 - "Not Found"');
+			}
+			expect(hooks.executeHookFunctions).not.toHaveBeenCalled();
+		});
+
 		test('should not throw if the response status is 404, but `simple` option is set to `false`', async () => {
 			nock(baseUrl).get('/test').reply(404, 'Not Found');
 			const response = await proxyRequestToAxios(workflow, additionalData, node, {

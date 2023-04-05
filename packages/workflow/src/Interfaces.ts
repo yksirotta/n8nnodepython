@@ -691,7 +691,7 @@ export interface NodeHelperFunctions {
 }
 
 export interface RequestHelperFunctions {
-	request(uriOrObject: string | IDataObject | any, options?: IDataObject): Promise<any>;
+	request(uriOrObject: string | IDataObject | any): Promise<any>;
 	requestWithAuthentication(
 		this: IAllExecuteFunctions,
 		credentialsType: string,
