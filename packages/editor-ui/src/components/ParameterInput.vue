@@ -113,18 +113,18 @@
 					@valueChanged="valueChangedDebounced"
 				/>
 
-				<div
-					v-else-if="editorType"
-					class="readonly-code clickable ph-no-capture"
-					@click="displayEditDialog()"
-				>
-					<code-node-editor
-						v-if="!codeEditDialogVisible"
-						:value="value"
-						:language="editorLanguage"
-						:isReadOnly="true"
-					/>
-				</div>
+				<js-editor
+					v-else-if="editorType === 'jsEditor'"
+					:value="value"
+					:isReadOnly="isReadOnly"
+					@valueChanged="valueChangedDebounced"
+				/>
+
+				<json-editor
+					v-else-if="parameter.type === 'json'"
+					:value="value"
+					@valueChanged="valueChangedDebounced"
+				/>
 
 				<n8n-input
 					v-else
@@ -376,6 +376,8 @@ import ExpressionParameterInput from '@/components/ExpressionParameterInput.vue'
 import TextEdit from '@/components/TextEdit.vue';
 import CodeNodeEditor from '@/components/CodeNodeEditor/CodeNodeEditor.vue';
 import HtmlEditor from '@/components/HtmlEditor/HtmlEditor.vue';
+import JsEditor from '@/components/JsEditor/JsEditor.vue';
+import JsonEditor from '@/components/JsonEditor/JsonEditor.vue';
 import SqlEditor from '@/components/SqlEditor/SqlEditor.vue';
 import { externalHooks } from '@/mixins/externalHooks';
 import { nodeHelpers } from '@/mixins/nodeHelpers';
@@ -400,6 +402,8 @@ export default defineComponent({
 	components: {
 		CodeNodeEditor,
 		HtmlEditor,
+		JsEditor,
+		JsonEditor,
 		SqlEditor,
 		ExpressionEdit,
 		ExpressionParameterInput,
