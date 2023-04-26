@@ -1008,6 +1008,7 @@ export type NodePropertyTypes =
 	| 'fixedCollection'
 	| 'hidden'
 	| 'json'
+	| 'sql'
 	| 'notice'
 	| 'multiOptions'
 	| 'number'
@@ -1031,7 +1032,7 @@ export interface ILoadOptions {
 	};
 }
 
-export interface INodePropertyTypeOptions {
+interface BasePropertyTypeOptions {
 	alwaysOpenEditWindow?: boolean; // Supported by: json
 	codeAutocomplete?: CodeAutocompleteTypes; // Supported by: string
 	editor?: EditorType; // Supported by: string
@@ -1053,6 +1054,13 @@ export interface INodePropertyTypeOptions {
 	[key: string]: any;
 }
 
+export interface SqlPropertyTypeOptions extends BasePropertyTypeOptions {
+	editor: 'sqlEditor';
+	sqlDialect?: SQLDialect;
+}
+
+export type INodePropertyTypeOptions = BasePropertyTypeOptions | SqlPropertyTypeOptions;
+
 export interface IDisplayOptions {
 	hide?: {
 		[key: string]: NodeParameterValue[] | undefined;
@@ -1062,7 +1070,7 @@ export interface IDisplayOptions {
 	};
 }
 
-export interface INodeProperties {
+interface BaseNodeProperty {
 	displayName: string;
 	name: string;
 	type: NodePropertyTypes;
@@ -1084,6 +1092,16 @@ export interface INodeProperties {
 	modes?: INodePropertyMode[];
 	requiresDataPath?: 'single' | 'multiple';
 }
+
+export interface SqlNodeProperty extends BaseNodeProperty {
+	type: 'sql';
+	typeOptions: SqlPropertyTypeOptions;
+}
+
+export type INodeProperties =
+	| BaseNodeProperty
+	| SqlNodeProperty
+	| (BaseNodeProperty & SqlNodeProperty);
 
 export interface INodePropertyModeTypeOptions {
 	searchListMethod?: string; // Supported by: options
