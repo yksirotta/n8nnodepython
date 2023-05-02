@@ -16,15 +16,15 @@ import { InternalHooks } from '@/InternalHooks';
 import { mockInstance } from '../integration/shared/utils';
 import { UserService } from '@/user/user.service';
 
-jest.mock('@/Db', () => {
-	return {
-		collections: {
-			WorkflowStatistics: mock<WorkflowStatisticsRepository>({
-				metadata: { tableName: 'workflow_statistics' },
-			}),
-		},
-	};
-});
+// jest.mock('@/Db', () => {
+// 	return {
+// 		collections: {
+// 			WorkflowStatistics: mock<WorkflowStatisticsRepository>({
+// 				metadata: { tableName: 'workflow_statistics' },
+// 			}),
+// 		},
+// 	};
+// });
 
 jest.spyOn(UserService, 'updateUserSettings').mockImplementation();
 
@@ -38,6 +38,7 @@ describe('Events', () => {
 	const workflowStatisticsRepository = Db.collections.WorkflowStatistics as ReturnType<
 		typeof mock<WorkflowStatisticsRepository>
 	>;
+	jest.spyOn(workflowStatisticsRepository, 'insert');
 
 	beforeAll(() => {
 		config.set('diagnostics.enabled', true);
