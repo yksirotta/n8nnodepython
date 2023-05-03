@@ -190,9 +190,8 @@
 
 			<div v-else-if="editMode.enabled" :class="$style.editMode">
 				<div :class="[$style.editModeBody, 'ignore-key-press']">
-					<code-node-editor
+					<json-editor
 						:value="editMode.value"
-						language="json"
 						@valueChanged="ndvStore.setOutputPanelEditModeValue($event)"
 					/>
 				</div>
@@ -501,12 +500,12 @@ import {
 import BinaryDataDisplay from '@/components/BinaryDataDisplay.vue';
 import WarningTooltip from '@/components/WarningTooltip.vue';
 import NodeErrorView from '@/components/Error/NodeErrorView.vue';
+import JsonEditor from '@/components/CodeEditor/JsonEditor.vue';
 
 import { externalHooks } from '@/mixins/externalHooks';
 import { genericHelpers } from '@/mixins/genericHelpers';
 import { nodeHelpers } from '@/mixins/nodeHelpers';
 import { pinData } from '@/mixins/pinData';
-import CodeNodeEditor from '@/components/CodeNodeEditor/CodeNodeEditor.vue';
 import { dataPinningEventBus } from '@/event-bus';
 import { clearJsonKey, executionDataToJson, stringSizeInBytes } from '@/utils';
 import { isEmpty } from '@/utils';
@@ -530,7 +529,7 @@ export default mixins(externalHooks, genericHelpers, nodeHelpers, pinData).exten
 		BinaryDataDisplay,
 		NodeErrorView,
 		WarningTooltip,
-		CodeNodeEditor,
+		JsonEditor,
 		RunDataTable,
 		RunDataJson,
 		RunDataSchema,
@@ -1577,7 +1576,6 @@ export default mixins(externalHooks, genericHelpers, nodeHelpers, pinData).exten
 
 .editMode {
 	height: 100%;
-	max-height: calc(100% - var(--spacing-3xl));
 	display: flex;
 	flex-direction: column;
 	justify-content: stretch;
@@ -1627,7 +1625,7 @@ export default mixins(externalHooks, genericHelpers, nodeHelpers, pinData).exten
 
 <style lang="scss" scoped>
 .run-data {
-	.code-node-editor {
+	.json-editor {
 		height: 100%;
 	}
 }

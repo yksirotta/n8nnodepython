@@ -57,19 +57,31 @@
 					visible
 					append-to-body
 					:close-on-click-modal="false"
-					width="80%"
+					class="editor-modal"
 					:title="`${$locale.baseText('codeEdit.edit')} ${$locale
 						.nodeText()
 						.inputLabelDisplayName(parameter, path)}`"
 					:before-close="closeCodeEditDialog"
 				>
 					<div class="ignore-key-press">
-						<code-node-editor
+						<js-editor
+							v-if="editorType === 'jsEditor'"
 							:value="value"
-							:defaultValue="parameter.default"
-							:language="editorLanguage"
 							:isReadOnly="isReadOnly"
-							@valueChanged="expressionUpdated"
+							@valueChanged="valueChangedDebounced"
+						/>
+						<json-editor
+							v-else-if="editorType === 'jsonEditor'"
+							:value="value"
+							:isReadOnly="isReadOnly"
+							@valueChanged="valueChangedDebounced"
+						/>
+						<sql-editor
+							v-else-if="editorType === 'sqlEditor'"
+							:query="node.parameters.query"
+							:dialect="getArgument('sqlDialect')"
+							:isReadOnly="isReadOnly"
+							@valueChanged="valueChangedDebounced"
 						/>
 					</div>
 				</el-dialog>
@@ -85,17 +97,16 @@
 				></text-edit>
 
 				<code-node-editor
-					v-if="editorType === 'codeNodeEditor' && isCodeNode(node)"
+					v-if="editorType === 'codeNodeEditor'"
 					:mode="node.parameters.mode"
-					:value="node.parameters.jsCode"
+					:value="node.parameters.code"
 					:defaultValue="parameter.default"
 					:language="editorLanguage"
 					:isReadOnly="isReadOnly"
-					@valueChanged="valueChangedDebounced"
 				/>
 
 				<html-editor
-					v-else-if="editorType === 'htmlEditor'"
+					v-if="editorType === 'htmlEditor'"
 					:html="node.parameters.html"
 					:isReadOnly="isReadOnly"
 					:rows="getArgument('rows')"
@@ -104,23 +115,13 @@
 					@valueChanged="valueChangedDebounced"
 				/>
 
-				<sql-editor
-					v-else-if="editorType === 'sqlEditor'"
-					:query="node.parameters.query"
-					:dialect="getArgument('sqlDialect')"
-					:isReadOnly="isReadOnly"
-					@valueChanged="valueChangedDebounced"
-				/>
-
-				<div
-					v-else-if="editorType"
-					class="readonly-code clickable ph-no-capture"
-					@click="displayEditDialog()"
-				>
-					<code-node-editor
-						v-if="!codeEditDialogVisible"
-						:value="value"
-						:language="editorLanguage"
+				<div v-else-if="editorType" class="readonly-code clickable" @click="displayEditDialog()">
+					<js-editor v-if="editorType === 'jsEditor'" :value="value" :isReadOnly="true" />
+					<json-editor v-else-if="editorType === 'jsonEditor'" :value="value" :isReadOnly="true" />
+					<sql-editor
+						v-else-if="editorType === 'sqlEditor'"
+						:query="node.parameters.query"
+						:dialect="getArgument('sqlDialect')"
 						:isReadOnly="true"
 					/>
 				</div>
@@ -352,6 +353,7 @@ import { get } from 'lodash-es';
 
 import type { INodeUi, INodeUpdatePropertiesInformation } from '@/Interface';
 import type {
+	EditorType,
 	ILoadOptions,
 	INodeParameters,
 	INodePropertyOptions,
@@ -359,7 +361,6 @@ import type {
 	INodeProperties,
 	INodePropertyCollection,
 	NodeParameterValueType,
-	EditorType,
 	CodeNodeEditorLanguage,
 } from 'n8n-workflow';
 import { NodeHelpers } from 'n8n-workflow';
@@ -376,7 +377,9 @@ import ExpressionParameterInput from '@/components/ExpressionParameterInput.vue'
 import TextEdit from '@/components/TextEdit.vue';
 import CodeNodeEditor from '@/components/CodeNodeEditor/CodeNodeEditor.vue';
 import HtmlEditor from '@/components/HtmlEditor/HtmlEditor.vue';
-import SqlEditor from '@/components/SqlEditor/SqlEditor.vue';
+import JsEditor from '@/components/CodeEditor/JsEditor.vue';
+import JsonEditor from '@/components/CodeEditor/JsonEditor.vue';
+import SqlEditor from '@/components/CodeEditor/SqlEditor.vue';
 import { externalHooks } from '@/mixins/externalHooks';
 import { nodeHelpers } from '@/mixins/nodeHelpers';
 import { showMessage } from '@/mixins/showMessage';
@@ -384,7 +387,7 @@ import { workflowHelpers } from '@/mixins/workflowHelpers';
 import { hasExpressionMapping, isValueExpression, isResourceLocatorValue } from '@/utils';
 
 import mixins from 'vue-typed-mixins';
-import { CODE_NODE_TYPE, CUSTOM_API_CALL_KEY, HTML_NODE_TYPE } from '@/constants';
+import { CUSTOM_API_CALL_KEY, HTML_NODE_TYPE } from '@/constants';
 import type { PropType } from 'vue';
 import { debounceHelper } from '@/mixins/debounce';
 import { mapStores } from 'pinia';
@@ -408,6 +411,8 @@ export default mixins(
 	components: {
 		CodeNodeEditor,
 		HtmlEditor,
+		JsEditor,
+		JsonEditor,
 		SqlEditor,
 		ExpressionEdit,
 		ExpressionParameterInput,
@@ -656,7 +661,7 @@ export default mixins(
 				return 'textarea';
 			}
 
-			if (this.editorType === 'code') {
+			if (this.editorType === 'codeNodeEditor') {
 				return 'textarea';
 			}
 
@@ -740,11 +745,11 @@ export default mixins(
 			return [];
 		},
 		editorType(): EditorType {
-			return this.getArgument('editor') as EditorType;
+			if (this.parameter.type === 'json') return 'jsonEditor';
+			return this.getArgument<EditorType>('editor');
 		},
 		editorLanguage(): CodeNodeEditorLanguage {
-			if (this.editorType === 'json' || this.parameter.type === 'json') return 'json';
-			return 'javaScript';
+			return this.getArgument<CodeNodeEditorLanguage>('editorLanguage') ?? 'javaScript';
 		},
 		parameterOptions():
 			| Array<INodePropertyOptions | INodeProperties | INodePropertyCollection>
@@ -934,7 +939,7 @@ export default mixins(
 				this.textEditDialogVisible = true;
 			}
 		},
-		getArgument(argumentName: string): string | number | boolean | undefined {
+		getArgument<T = string | number | boolean | undefined>(argumentName: string): T {
 			return this.parameter.typeOptions?.[argumentName];
 		},
 		expressionUpdated(value: string) {
@@ -982,9 +987,6 @@ export default mixins(
 			});
 
 			this.$emit('focus');
-		},
-		isCodeNode(node: INodeUi): boolean {
-			return node.type === CODE_NODE_TYPE;
 		},
 		isHtmlNode(node: INodeUi): boolean {
 			return node.type === HTML_NODE_TYPE;
@@ -1222,10 +1224,8 @@ export default mixins(
 </style>
 
 <style lang="scss">
-.ql-editor {
-	padding: 6px;
-	line-height: 26px;
-	background-color: #f0f0f0;
+.editor-modal [role='dialog'] {
+	max-width: 1000px;
 }
 
 .droppable {

@@ -28,7 +28,6 @@ import { Compartment, EditorState } from '@codemirror/state';
 import type { ViewUpdate } from '@codemirror/view';
 import { EditorView } from '@codemirror/view';
 import { javascript } from '@codemirror/lang-javascript';
-import { json } from '@codemirror/lang-json';
 
 import { readOnlyEditorExtensions, writableEditorExtensions } from './baseExtensions';
 import { linterExtension } from './linter';
@@ -129,11 +128,9 @@ export default mixins(linterExtension, completerExtension, workflowHelpers).exte
 			if (!this.editor) return;
 
 			const linter = this.createLinter(this.language);
-			if (linter) {
-				this.editor.dispatch({
-					effects: this.linterCompartment.reconfigure(linter),
-				});
-			}
+			this.editor.dispatch({
+				effects: this.linterCompartment.reconfigure(linter),
+			});
 		},
 		refreshPlaceholder() {
 			if (!this.editor) return;
@@ -210,9 +207,7 @@ export default mixins(linterExtension, completerExtension, workflowHelpers).exte
 
 		if (!isReadOnly) {
 			const linter = this.createLinter(language);
-			if (linter) {
-				extensions.push(this.linterCompartment.of(linter));
-			}
+			extensions.push(this.linterCompartment.of(linter));
 
 			extensions.push(
 				...writableEditorExtensions,
@@ -235,9 +230,6 @@ export default mixins(linterExtension, completerExtension, workflowHelpers).exte
 		}
 
 		switch (language) {
-			case 'json':
-				extensions.push(json());
-				break;
 			case 'javaScript':
 				extensions.push(javascript(), this.autocompletionExtension());
 				break;

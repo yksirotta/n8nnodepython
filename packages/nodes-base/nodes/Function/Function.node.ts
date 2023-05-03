@@ -39,7 +39,7 @@ export class Function implements INodeType {
 				typeOptions: {
 					alwaysOpenEditWindow: true,
 					codeAutocomplete: 'function',
-					editor: 'code',
+					editor: 'codeNodeEditor',
 					rows: 10,
 				},
 				type: 'string',

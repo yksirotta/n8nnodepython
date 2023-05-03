@@ -52,5 +52,5 @@ $input.item.json.myNewField = 1;
 return $input.item;
 `.trim();
 
-export const CODE_LANGUAGES = ['javaScript', 'json'] as const;
+export const CODE_LANGUAGES = ['javaScript'] as const;
 export const CODE_MODES = ['runOnceForAllItems', 'runOnceForEachItem'] as const;

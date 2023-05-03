@@ -70,7 +70,6 @@ const JSON_PARAM: INodeProperties = {
 	type: 'json',
 	typeOptions: {
 		alwaysOpenEditWindow: true,
-		editor: 'code',
 	},
 	default: '',
 };

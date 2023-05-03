@@ -1019,8 +1019,8 @@ export type NodePropertyTypes =
 
 export type CodeAutocompleteTypes = 'function' | 'functionItem';
 
-export type EditorType = 'code' | 'codeNodeEditor' | 'htmlEditor' | 'sqlEditor' | 'json';
-export type CodeNodeEditorLanguage = 'javaScript' | 'json'; //| 'python' | 'sql';
+export type EditorType = 'codeNodeEditor' | 'htmlEditor' | 'sqlEditor' | 'jsonEditor' | 'jsEditor';
+export type CodeNodeEditorLanguage = 'javaScript'; //| 'python';
 export type SQLDialect = 'mssql' | 'mysql' | 'postgres';
 
 export interface ILoadOptions {

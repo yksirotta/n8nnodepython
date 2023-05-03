@@ -110,9 +110,8 @@ export class ExecuteWorkflow implements INodeType {
 			{
 				displayName: 'Workflow JSON',
 				name: 'workflowJson',
-				type: 'string',
+				type: 'json',
 				typeOptions: {
-					editor: 'json',
 					rows: 10,
 				},
 				displayOptions: {

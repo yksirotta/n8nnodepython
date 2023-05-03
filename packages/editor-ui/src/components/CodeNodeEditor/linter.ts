@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import type { Diagnostic } from '@codemirror/lint';
 import { linter as createLinter } from '@codemirror/lint';
-import { jsonParseLinter } from '@codemirror/lang-json';
 import * as esprima from 'esprima-next';
 
 import {
@@ -21,10 +20,7 @@ export const linterExtension = (Vue as CodeNodeEditorMixin).extend({
 			switch (language) {
 				case 'javaScript':
 					return createLinter(this.lintSource, { delay: DEFAULT_LINTER_DELAY_IN_MS });
-				case 'json':
-					return createLinter(jsonParseLinter());
 			}
-			return undefined;
 		},
 
 		lintSource(editorView: EditorView): Diagnostic[] {
