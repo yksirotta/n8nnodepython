@@ -31,6 +31,9 @@ patchedDependencies:
   typedi@0.10.0:
     hash: syy565ld7euwcedfbmx53j2qc4
     path: patches/typedi@0.10.0.patch
+  typeorm@0.3.12:
+    hash: bx7rcoukggdov2kvs26bgajn3m
+    path: patches/typeorm@0.3.12.patch
 
 importers:
 
@@ -459,7 +462,7 @@ importers:
         version: 0.10.0(patch_hash=syy565ld7euwcedfbmx53j2qc4)
       typeorm:
         specifier: ^0.3.12
-        version: 0.3.12(ioredis@5.2.4)(mysql2@2.3.3)(pg@8.8.0)(sqlite3@5.1.6)
+        version: 0.3.12(patch_hash=bx7rcoukggdov2kvs26bgajn3m)(ioredis@5.2.4)(mysql2@2.3.3)(pg@8.8.0)(sqlite3@5.1.6)
       uuid:
         specifier: ^8.3.2
         version: 8.3.2
@@ -21857,7 +21860,7 @@ packages:
     dev: false
     patched: true
 
-  /typeorm@0.3.12(ioredis@5.2.4)(mysql2@2.3.3)(pg@8.8.0)(sqlite3@5.1.6):
+  /typeorm@0.3.12(patch_hash=bx7rcoukggdov2kvs26bgajn3m)(ioredis@5.2.4)(mysql2@2.3.3)(pg@8.8.0)(sqlite3@5.1.6):
     resolution: {integrity: sha512-sYSxBmCf1nJLLTcYtwqZ+lQIRtLPyUoO93rHTOKk9vJCyT4UfRtU7oRsJvfvKP3nnZTD1hzz2SEy2zwPEN6OyA==}
     engines: {node: '>= 12.9.0'}
     hasBin: true
@@ -21939,6 +21942,7 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: false
+    patched: true
 
   /typescript@5.0.3:
     resolution: {integrity: sha512-xv8mOEDnigb/tN9PSMTwSEqAnUvkoXMQlicOb0IUVDBSQCgBSaAAROUZYy2IcUy5qU6XajK5jjjO7TMWqBTKZA==}
