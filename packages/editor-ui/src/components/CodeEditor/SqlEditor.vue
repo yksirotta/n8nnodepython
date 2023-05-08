@@ -2,28 +2,19 @@
 	<div ref="sqlEditor" class="ph-no-capture sql-editor"></div>
 </template>
 
-<script lang="ts">
-import type { PropType } from 'vue';
-import { defineComponent } from 'vue';
-import { autocompletion } from '@codemirror/autocomplete';
-import { indentWithTab, history, redo } from '@codemirror/commands';
-import { foldGutter, indentOnInput } from '@codemirror/language';
-import { lintGutter } from '@codemirror/lint';
-import type { Extension } from '@codemirror/state';
-import { EditorState } from '@codemirror/state';
-import type { ViewUpdate } from '@codemirror/view';
-import {
-	dropCursor,
-	EditorView,
-	highlightActiveLine,
-	highlightActiveLineGutter,
-	keymap,
-	lineNumbers,
-} from '@codemirror/view';
+<script setup lang="ts">
+import { ref } from 'vue';
 import { MSSQL, MySQL, PostgreSQL, sql, StandardSQL } from '@codemirror/lang-sql';
 import type { SQLDialect } from 'n8n-workflow';
+import { expressionInputHandler } from '@/plugins/codemirror/inputHandlers/expression.inputHandler';
+import useEditor from './useEditor';
 
-import { codeEditorTheme } from './theme';
+type SQLEditorProps = {
+	value: string;
+	dialect: SQLDialect;
+	isReadOnly?: boolean;
+	rows?: number;
+};
 
 const SQL_DIALECTS = {
 	standard: StandardSQL,
@@ -32,64 +23,37 @@ const SQL_DIALECTS = {
 	postgres: PostgreSQL,
 } as const;
 
-export default defineComponent({
-	name: 'sql-editor',
-	props: {
-		query: {
-			type: String,
-			required: true,
-		},
-		dialect: {
-			type: String as PropType<SQLDialect>,
-			default: 'standard',
-		},
-		isReadOnly: {
-			type: Boolean,
-			default: false,
-		},
-	},
-	data() {
-		return {
-			editor: {} as EditorView,
-		};
-	},
-	computed: {
-		doc(): string {
-			return this.editor.state.doc.toString();
-		},
-	},
+const sqlEditor = ref<HTMLDivElement>();
+const { value, dialect, isReadOnly, rows } = withDefaults(defineProps<SQLEditorProps>(), {
+	isReadOnly: false,
+	rows: 3,
+});
 
-	mounted() {
-		const { isReadOnly } = this;
-		const dialect = SQL_DIALECTS[this.dialect as SQLDialect] ?? SQL_DIALECTS.standard;
-		const extensions: Extension[] = [
-			sql({ dialect, upperCaseKeywords: true }),
-			lineNumbers(),
-			EditorView.lineWrapping,
-			EditorState.readOnly.of(isReadOnly),
-			EditorView.editable.of(isReadOnly),
-			codeEditorTheme({ isReadOnly }),
-		];
+const emit = defineEmits<{
+	(event: 'valueChanged', value: string | undefined): void;
+}>();
 
-		if (!isReadOnly) {
-			extensions.push(
-				history(),
-				lintGutter(),
-				keymap.of([indentWithTab, { key: 'Mod-Shift-z', run: redo }]),
-				autocompletion(),
-				indentOnInput(),
-				highlightActiveLine(),
-				highlightActiveLineGutter(),
-				foldGutter(),
-				dropCursor(),
-				EditorView.updateListener.of((viewUpdate: ViewUpdate) => {
-					if (!viewUpdate.docChanged) return;
-					this.$emit('valueChanged', this.doc);
-				}),
-			);
-		}
-		const state = EditorState.create({ doc: this.query, extensions });
-		this.editor = new EditorView({ parent: this.$refs.sqlEditor as HTMLDivElement, state });
+useEditor({
+	container: sqlEditor,
+	emit,
+	value,
+	isReadOnly,
+	rows,
+	extensions: {
+		base: [
+			sql({
+				dialect: SQL_DIALECTS[dialect as SQLDialect] ?? SQL_DIALECTS.standard,
+				upperCaseKeywords: true,
+			}),
+		],
+		writable: [expressionInputHandler()],
 	},
 });
+</script>
+
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { expressionManager } from '@/mixins/expressionManager';
+
+export default defineComponent({ mixins: [expressionManager] });
 </script>

@@ -97,7 +97,7 @@
 
 				<html-editor
 					v-else-if="editorType === 'htmlEditor'"
-					:html="value"
+					:value="value"
 					:isReadOnly="isReadOnly"
 					:rows="getArgument('rows')"
 					:disableExpressionColoring="!isHtmlNode(node)"
@@ -107,7 +107,7 @@
 
 				<sql-editor
 					v-else-if="editorType === 'sqlEditor'"
-					:query="value"
+					:value="value"
 					:dialect="getArgument('sqlDialect')"
 					:isReadOnly="isReadOnly"
 					@valueChanged="valueChangedDebounced"
