@@ -1,14 +1,14 @@
 <template>
-	<div ref="sqlEditor" class="ph-no-capture"></div>
+	<div ref="jsonEditor" class="ph-no-capture json-editor"></div>
 </template>
 
 <script lang="ts">
-import type { PropType } from 'vue';
 import { defineComponent } from 'vue';
 import { autocompletion } from '@codemirror/autocomplete';
 import { indentWithTab, history, redo } from '@codemirror/commands';
 import { foldGutter, indentOnInput } from '@codemirror/language';
-import { lintGutter } from '@codemirror/lint';
+import { json, jsonParseLinter } from '@codemirror/lang-json';
+import { lintGutter, linter as createLinter } from '@codemirror/lint';
 import type { Extension } from '@codemirror/state';
 import { EditorState } from '@codemirror/state';
 import type { ViewUpdate } from '@codemirror/view';
@@ -20,28 +20,15 @@ import {
 	keymap,
 	lineNumbers,
 } from '@codemirror/view';
-import { MSSQL, MySQL, PostgreSQL, sql, StandardSQL } from '@codemirror/lang-sql';
-import type { SQLDialect } from 'n8n-workflow';
 
-import { codeNodeEditorTheme } from '../CodeNodeEditor/theme';
-
-const SQL_DIALECTS = {
-	standard: StandardSQL,
-	mssql: MSSQL,
-	mysql: MySQL,
-	postgres: PostgreSQL,
-} as const;
+import { codeEditorTheme } from './theme';
 
 export default defineComponent({
-	name: 'sql-editor',
+	name: 'json-editor',
 	props: {
-		query: {
+		value: {
 			type: String,
 			required: true,
-		},
-		dialect: {
-			type: String as PropType<SQLDialect>,
-			default: 'standard',
 		},
 		isReadOnly: {
 			type: Boolean,
@@ -58,22 +45,20 @@ export default defineComponent({
 			return this.editor.state.doc.toString();
 		},
 	},
-
 	mounted() {
-		const dialect = SQL_DIALECTS[this.dialect as SQLDialect] ?? SQL_DIALECTS.standard;
+		const { isReadOnly } = this;
 		const extensions: Extension[] = [
-			sql({ dialect, upperCaseKeywords: true }),
-			codeNodeEditorTheme({ maxHeight: false }),
+			json(),
 			lineNumbers(),
 			EditorView.lineWrapping,
-			lintGutter(),
-			EditorState.readOnly.of(this.isReadOnly),
+			EditorState.readOnly.of(isReadOnly),
+			EditorView.editable.of(!isReadOnly),
+			codeEditorTheme({ isReadOnly }),
 		];
-
-		if (this.isReadOnly) {
-			extensions.push(EditorView.editable.of(this.isReadOnly));
-		} else {
+		if (!isReadOnly) {
 			extensions.push(
+				createLinter(jsonParseLinter()),
+				lintGutter(),
 				history(),
 				keymap.of([indentWithTab, { key: 'Mod-Shift-z', run: redo }]),
 				autocompletion(),
@@ -88,8 +73,10 @@ export default defineComponent({
 				}),
 			);
 		}
-		const state = EditorState.create({ doc: this.query, extensions });
-		this.editor = new EditorView({ parent: this.$refs.sqlEditor as HTMLDivElement, state });
+		const state = EditorState.create({ doc: this.value, extensions });
+
+		const parent = this.$refs.jsonEditor as HTMLDivElement;
+		this.editor = new EditorView({ parent, state });
 	},
 });
 </script>

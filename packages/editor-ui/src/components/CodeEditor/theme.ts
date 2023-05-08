@@ -27,18 +27,16 @@ const BASE_STYLING = {
 	},
 };
 
-const cssStyleDeclaration = getComputedStyle(document.documentElement);
-
 interface ThemeSettings {
 	isReadOnly?: boolean;
 }
 
-export const codeNodeEditorTheme = ({ isReadOnly }: ThemeSettings) => [
+export const codeEditorTheme = ({ isReadOnly }: ThemeSettings) => [
 	EditorView.theme({
 		'&': {
 			'font-size': BASE_STYLING.fontSize,
-			border: cssStyleDeclaration.getPropertyValue('--border-base'),
-			borderRadius: cssStyleDeclaration.getPropertyValue('--border-radius-base'),
+			border: 'var(--border-base)',
+			borderRadius: 'var(--border-radius-base)',
 			backgroundColor: 'var(--color-code-background)',
 			color: 'var(--color-code-foreground)',
 			height: '100%',
@@ -79,12 +77,12 @@ export const codeNodeEditorTheme = ({ isReadOnly }: ThemeSettings) => [
 		},
 		'.cm-scroller': {
 			overflow: 'auto',
-			maxHeight: '100%',
+			maxHeight: '350px',
 			...(isReadOnly ? {} : { minHeight: '4em' }),
 		},
 		'.cm-diagnosticAction': {
 			backgroundColor: BASE_STYLING.diagnosticButton.backgroundColor,
-			color: cssStyleDeclaration.getPropertyValue('--color-primary'),
+			color: 'var(--color-primary)',
 			lineHeight: BASE_STYLING.diagnosticButton.lineHeight,
 			textDecoration: BASE_STYLING.diagnosticButton.textDecoration,
 			marginLeft: BASE_STYLING.diagnosticButton.marginLeft,

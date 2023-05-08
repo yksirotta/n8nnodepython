@@ -1,13 +1,13 @@
 <template>
-	<div ref="jsEditor" class="ph-no-capture js-editor"></div>
+	<div ref="sqlEditor" class="ph-no-capture sql-editor"></div>
 </template>
 
 <script lang="ts">
+import type { PropType } from 'vue';
 import { defineComponent } from 'vue';
 import { autocompletion } from '@codemirror/autocomplete';
 import { indentWithTab, history, redo } from '@codemirror/commands';
 import { foldGutter, indentOnInput } from '@codemirror/language';
-import { javascript } from '@codemirror/lang-javascript';
 import { lintGutter } from '@codemirror/lint';
 import type { Extension } from '@codemirror/state';
 import { EditorState } from '@codemirror/state';
@@ -20,15 +20,28 @@ import {
 	keymap,
 	lineNumbers,
 } from '@codemirror/view';
+import { MSSQL, MySQL, PostgreSQL, sql, StandardSQL } from '@codemirror/lang-sql';
+import type { SQLDialect } from 'n8n-workflow';
 
-import { codeNodeEditorTheme } from '../CodeNodeEditor/theme';
+import { codeEditorTheme } from './theme';
+
+const SQL_DIALECTS = {
+	standard: StandardSQL,
+	mssql: MSSQL,
+	mysql: MySQL,
+	postgres: PostgreSQL,
+} as const;
 
 export default defineComponent({
-	name: 'js-editor',
+	name: 'sql-editor',
 	props: {
-		value: {
+		query: {
 			type: String,
 			required: true,
+		},
+		dialect: {
+			type: String as PropType<SQLDialect>,
+			default: 'standard',
 		},
 		isReadOnly: {
 			type: Boolean,
@@ -45,20 +58,23 @@ export default defineComponent({
 			return this.editor.state.doc.toString();
 		},
 	},
+
 	mounted() {
 		const { isReadOnly } = this;
+		const dialect = SQL_DIALECTS[this.dialect as SQLDialect] ?? SQL_DIALECTS.standard;
 		const extensions: Extension[] = [
-			javascript(),
+			sql({ dialect, upperCaseKeywords: true }),
 			lineNumbers(),
 			EditorView.lineWrapping,
 			EditorState.readOnly.of(isReadOnly),
-			EditorView.editable.of(!isReadOnly),
-			codeNodeEditorTheme({ isReadOnly }),
+			EditorView.editable.of(isReadOnly),
+			codeEditorTheme({ isReadOnly }),
 		];
+
 		if (!isReadOnly) {
 			extensions.push(
-				lintGutter(),
 				history(),
+				lintGutter(),
 				keymap.of([indentWithTab, { key: 'Mod-Shift-z', run: redo }]),
 				autocompletion(),
 				indentOnInput(),
@@ -72,10 +88,8 @@ export default defineComponent({
 				}),
 			);
 		}
-		const state = EditorState.create({ doc: this.value, extensions });
-
-		const parent = this.$refs.jsEditor as HTMLDivElement;
-		this.editor = new EditorView({ parent, state });
+		const state = EditorState.create({ doc: this.query, extensions });
+		this.editor = new EditorView({ parent: this.$refs.sqlEditor as HTMLDivElement, state });
 	},
 });
 </script>
