@@ -1,5 +1,5 @@
 import vue from '@vitejs/plugin-vue';
-import { resolve } from 'path';
+import { resolve, join } from 'path';
 import { defineConfig, mergeConfig } from 'vite';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 
@@ -73,7 +73,7 @@ const plugins = [
 	icons({
 		compiler: 'vue3',
 	}),
-	vue()
+	vue(),
 ];
 
 const { SENTRY_AUTH_TOKEN: authToken, RELEASE: release } = process.env;
@@ -125,6 +125,11 @@ export default mergeConfig(
 						...renderChunks(),
 					},
 				},
+			},
+		},
+		server: {
+			fs: {
+				allow: [join(__dirname, '..')],
 			},
 		},
 	}),
