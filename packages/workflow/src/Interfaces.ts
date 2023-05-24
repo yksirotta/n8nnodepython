@@ -816,26 +816,7 @@ export interface ILoadOptionsFunctions extends FunctionsBase {
 	helpers: RequestHelperFunctions;
 }
 
-export interface IPollFunctions
-	extends FunctionsBaseWithRequiredKeys<'getMode' | 'getActivationMode'> {
-	__emit(
-		data: INodeExecutionData[][],
-		responsePromise?: IDeferredPromise<IExecuteResponsePromiseData>,
-		donePromise?: IDeferredPromise<IRun>,
-	): void;
-	__emitError(error: Error, responsePromise?: IDeferredPromise<IExecuteResponsePromiseData>): void;
-	getNodeParameter(
-		parameterName: string,
-		fallbackValue?: any,
-		options?: IGetNodeParameterOptions,
-	): NodeParameterValueType | object;
-	helpers: RequestHelperFunctions &
-		BaseHelperFunctions &
-		BinaryHelperFunctions &
-		JsonHelperFunctions;
-}
-
-export interface ITriggerFunctions
+interface PollOrTriggerFunction
 	extends FunctionsBaseWithRequiredKeys<'getMode' | 'getActivationMode'> {
 	emit(
 		data: INodeExecutionData[][],
@@ -853,6 +834,13 @@ export interface ITriggerFunctions
 		BinaryHelperFunctions &
 		JsonHelperFunctions;
 }
+
+export interface IPollFunctions extends Omit<PollOrTriggerFunction, 'emit' | 'emitError'> {
+	__emit: PollOrTriggerFunction['emit'];
+	__emitError: PollOrTriggerFunction['emitError'];
+}
+
+export type ITriggerFunctions = PollOrTriggerFunction;
 
 export interface IHookFunctions
 	extends FunctionsBaseWithRequiredKeys<'getMode' | 'getActivationMode'> {
