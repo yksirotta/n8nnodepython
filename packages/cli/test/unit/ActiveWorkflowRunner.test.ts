@@ -50,29 +50,28 @@ const generateWorkflows = (count: number): WorkflowEntity[] => {
 
 	for (let i = 0; i < count; i++) {
 		const workflow = new WorkflowEntity();
-		Object.assign(workflow, {
-			id: i + 1,
-			name: randomName(),
-			active: true,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-			nodes: [
-				{
-					parameters: {
-						rule: {
-							interval: [{}],
-						},
+		workflow.id = String(i + 1);
+		workflow.name = randomName();
+		workflow.active = true;
+		workflow.createdAt = new Date();
+		workflow.updatedAt = new Date();
+		workflow.nodes = [
+			{
+				parameters: {
+					rule: {
+						interval: [{}],
 					},
-					id: uuid(),
-					name: 'Schedule Trigger',
-					type: 'n8n-nodes-base.scheduleTrigger',
-					typeVersion: 1,
-					position: [900, 460],
 				},
-			],
-			connections: {},
-			tags: [],
-		});
+				id: uuid(),
+				name: 'Schedule Trigger',
+				type: 'n8n-nodes-base.scheduleTrigger',
+				typeVersion: 1,
+				position: [900, 460],
+			},
+		];
+		workflow.connections = {};
+		workflow.tags = [];
+
 		const sharedWorkflow = new SharedWorkflow();
 		sharedWorkflow.workflowId = workflow.id;
 		sharedWorkflow.role = ownerRole;
@@ -95,11 +94,10 @@ jest.mock('@/Db', () => {
 		collections: {
 			Workflow: {
 				find: jest.fn(async () => generateWorkflows(databaseActiveWorkflowsCount)),
-				findOne: jest.fn(async (searchParams) => {
-					return databaseActiveWorkflowsList.find(
-						(workflow) => workflow.id.toString() === searchParams.where.id.toString(),
-					);
-				}),
+				findOne: jest.fn(
+					async ({ where }) =>
+						databaseActiveWorkflowsList.find((workflow) => workflow.id === where.id) ?? null,
+				),
 				update: jest.fn(),
 				createQueryBuilder: jest.fn(() => {
 					const fakeQueryBuilder = {

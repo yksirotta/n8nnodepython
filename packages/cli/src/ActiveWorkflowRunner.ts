@@ -350,7 +350,7 @@ export class ActiveWorkflowRunner {
 				select: ['id'],
 				where: { active: true },
 			});
-			return activeWorkflows.map((workflow) => workflow.id.toString());
+			return activeWorkflows.map((workflow) => workflow.id);
 		} else {
 			const active = await Db.collections.Workflow.find({
 				select: ['id'],
@@ -366,7 +366,7 @@ export class ActiveWorkflowRunner {
 				select: ['workflowId'],
 				where,
 			});
-			return shared.map((id) => id.workflowId.toString());
+			return shared.map((id) => id.workflowId);
 		}
 	}
 
