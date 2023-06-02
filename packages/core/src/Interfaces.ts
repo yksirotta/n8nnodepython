@@ -34,8 +34,9 @@ export interface IWorkflowData {
 	triggerResponses?: ITriggerResponse[];
 }
 
+export type BinaryDataBackend = 'default' | 'filesystem';
 export interface IBinaryDataConfig {
-	mode: 'default' | 'filesystem';
+	mode: BinaryDataBackend;
 	availableModes: string;
 	localStoragePath: string;
 	binaryDataTTL: number;
@@ -44,20 +45,22 @@ export interface IBinaryDataConfig {
 
 export interface IBinaryDataManager {
 	init(startPurger: boolean): Promise<void>;
-	getFileSize(filePath: string): Promise<number>;
-	copyBinaryFile(filePath: string, executionId: string): Promise<string>;
-	storeBinaryMetadata(identifier: string, metadata: BinaryMetadata): Promise<void>;
-	getBinaryMetadata(identifier: string): Promise<BinaryMetadata>;
-	storeBinaryData(binaryData: Buffer | Readable, executionId: string): Promise<string>;
-	retrieveBinaryDataByIdentifier(identifier: string): Promise<Buffer>;
-	getBinaryPath(identifier: string): string;
-	getBinaryStream(identifier: string, chunkSize?: number): Readable;
-	markDataForDeletionByExecutionId(executionId: string): Promise<void>;
-	deleteMarkedFiles(): Promise<unknown>;
-	deleteBinaryDataByIdentifier(identifier: string): Promise<void>;
-	duplicateBinaryDataByIdentifier(binaryDataId: string, prefix: string): Promise<string>;
-	deleteBinaryDataByExecutionIds(executionIds: string[]): Promise<string[]>;
-	persistBinaryDataForExecutionId(executionId: string): Promise<void>;
+
+	getMetadata(identifier: string): Promise<BinaryMetadata>;
+	storeMetadata(identifier: string, metadata: BinaryMetadata): Promise<void>;
+
+	getPath(identifier: string): string;
+	getSize(filePath: string): Promise<number>;
+	readAsBuffer(identifier: string): Promise<Buffer>;
+	readAsStream(identifier: string, chunkSize?: number): Readable;
+	store(binaryData: Buffer | Readable, executionId: string): Promise<string>;
+	clone(binaryDataId: string, prefix: string): Promise<string>;
+	copyFromFile(filePath: string, executionId: string): Promise<string>;
+	delete(identifier: string): Promise<void>;
+	deleteMany(executionIds: string[]): Promise<string[]>;
+
+	flagForDeletion(executionId: string): Promise<void>;
+	removeDeletionFlag(executionId: string): Promise<void>;
 }
 
 export namespace n8n {

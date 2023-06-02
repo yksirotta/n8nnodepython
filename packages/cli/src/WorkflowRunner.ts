@@ -6,7 +6,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import type { IProcessMessage } from 'n8n-core';
-import { WorkflowExecute } from 'n8n-core';
+import { BinaryDataManager, WorkflowExecute } from 'n8n-core';
 
 import type {
 	ExecutionError,
@@ -204,6 +204,8 @@ export class WorkflowRunner {
 					executionData,
 					data.userId,
 				);
+
+				await BinaryDataManager.getInstance().persistBinaryDataForExecutionId(executionId!);
 			})
 			.catch((error) => {
 				ErrorReporter.error(error);

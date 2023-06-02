@@ -1079,6 +1079,8 @@ async function executeWorkflow(
 
 	void internalHooks.onWorkflowPostExecute(executionId, workflowData, data, additionalData.userId);
 
+	await BinaryDataManager.getInstance().persistBinaryDataForExecutionId(executionId);
+
 	if (data.finished === true) {
 		// Workflow did finish successfully
 

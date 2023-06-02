@@ -254,6 +254,7 @@ class WorkflowRunnerProcess {
 					result,
 					additionalData.userId,
 				);
+				await BinaryDataManager.getInstance().persistBinaryDataForExecutionId(executionId);
 				await sendToParentProcess('finishExecution', { executionId, result });
 				delete this.childExecutions[executionId];
 			} catch (e) {
