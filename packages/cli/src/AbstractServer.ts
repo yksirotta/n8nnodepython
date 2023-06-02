@@ -83,10 +83,17 @@ export abstract class AbstractServer {
 
 		// Augment errors sent to Sentry
 		const {
-			Handlers: { requestHandler, errorHandler },
+			startTransaction,
+			Handlers: { requestHandler, errorHandler, tracingHandler },
 		} = await import('@sentry/node');
 		app.use(requestHandler());
+		app.use(tracingHandler());
 		app.use(errorHandler());
+		const transaction = startTransaction({
+			op: 'transaction',
+			name: 'My Transaction',
+		});
+		transaction.finish();
 	}
 
 	private async setupCommonMiddlewares() {
