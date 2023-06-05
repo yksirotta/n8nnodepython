@@ -43,7 +43,7 @@ import type {
 	IWorkflowExecutionDataProcessWithExecution,
 } from '@/Interfaces';
 import { NodeTypes } from '@/NodeTypes';
-import type { Job, JobData, JobQueue, JobResponse } from '@/Queue';
+import type { Job, JobData, JobResponse } from '@/Queue';
 import { Queue } from '@/Queue';
 import * as ResponseHelper from '@/ResponseHelper';
 import * as WebhookHelpers from '@/WebhookHelpers';
@@ -63,7 +63,7 @@ export class WorkflowRunner {
 
 	push: Push;
 
-	jobQueue: JobQueue;
+	queue: Queue;
 
 	constructor() {
 		this.push = Container.get(Push);
@@ -167,11 +167,10 @@ export class WorkflowRunner {
 		await initErrorHandling();
 
 		if (executionsMode === 'queue') {
-			const queue = Container.get(Queue);
-			this.jobQueue = queue.getBullObjectInstance();
+			this.queue = Container.get(Queue);
 		}
 
-		if (executionsMode === 'queue' && data.executionMode !== 'manual') {
+		if (executionsMode === 'queue') {
 			// Do not run "manual" executions in bull because sending events to the
 			// frontend would not be possible
 			executionId = await this.enqueueExecution(
@@ -433,6 +432,7 @@ export class WorkflowRunner {
 		const jobData: JobData = {
 			executionId,
 			loadStaticData: !!loadStaticData,
+			sessionId: data.sessionId,
 		};
 
 		let priority = 100;
@@ -450,7 +450,7 @@ export class WorkflowRunner {
 		let job: Job;
 		let hooks: WorkflowHooks;
 		try {
-			job = await this.jobQueue.add(jobData, jobOptions);
+			job = await this.queue.add(jobData, jobOptions);
 
 			console.log(`Started with job ID: ${job.id.toString()} (Execution ID: ${executionId})`);
 
@@ -458,7 +458,10 @@ export class WorkflowRunner {
 				data.executionMode,
 				executionId,
 				data.workflowData,
-				{ retryOf: data.retryOf ? data.retryOf.toString() : undefined },
+				{
+					sessionId: data.sessionId,
+					retryOf: data.retryOf ? data.retryOf.toString() : undefined,
+				},
 			);
 
 			// Normally also workflow should be supplied here but as it only used for sending
@@ -523,7 +526,7 @@ export class WorkflowRunner {
 
 					const watchDog: Promise<object> = new Promise((res) => {
 						watchDogInterval = setInterval(async () => {
-							const currentJob = await this.jobQueue.getJob(job.id);
+							const currentJob = await this.queue.getJob(job.id);
 							// When null means job is finished (not found in queue)
 							if (currentJob === null) {
 								// Mimic worker's success message

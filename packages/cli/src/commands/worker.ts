@@ -88,7 +88,7 @@ export class Worker extends BaseCommand {
 	}
 
 	async runJob(job: Job, nodeTypes: INodeTypes): Promise<JobResponse> {
-		const { executionId, loadStaticData } = job.data;
+		const { executionId, loadStaticData, sessionId } = job.data;
 		const executionDb = await Db.collections.Execution.findOneBy({ id: executionId });
 
 		if (!executionDb) {
@@ -156,7 +156,10 @@ export class Worker extends BaseCommand {
 			currentExecutionDb.mode,
 			job.data.executionId,
 			currentExecutionDb.workflowData,
-			{ retryOf: currentExecutionDb.retryOf as string },
+			{
+				retryOf: currentExecutionDb.retryOf as string,
+				sessionId,
+			},
 		);
 
 		try {
