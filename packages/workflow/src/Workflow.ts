@@ -61,6 +61,18 @@ function dedupe<T>(arr: T[]): T[] {
 	return [...new Set(arr)];
 }
 
+export interface WorkflowParams {
+	id?: string;
+	name?: string;
+	nodes: INode[];
+	connections: IConnections;
+	active: boolean;
+	nodeTypes: INodeTypes;
+	staticData?: IDataObject;
+	settings?: IWorkflowSettings;
+	pinData?: IPinData;
+}
+
 export class Workflow {
 	id: string | undefined;
 
@@ -86,18 +98,7 @@ export class Workflow {
 
 	pinData?: IPinData;
 
-	// constructor(id: string | undefined, nodes: INode[], connections: IConnections, active: boolean, nodeTypes: INodeTypes, staticData?: IDataObject, settings?: IWorkflowSettings) {
-	constructor(parameters: {
-		id?: string;
-		name?: string;
-		nodes: INode[];
-		connections: IConnections;
-		active: boolean;
-		nodeTypes: INodeTypes;
-		staticData?: IDataObject;
-		settings?: IWorkflowSettings;
-		pinData?: IPinData;
-	}) {
+	constructor(parameters: WorkflowParams) {
 		this.id = parameters.id;
 		this.name = parameters.name;
 		this.nodeTypes = parameters.nodeTypes;

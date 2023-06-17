@@ -1,44 +1,47 @@
 import type { IRun, WorkflowExecuteMode } from 'n8n-workflow';
 import { LoggerProxy } from 'n8n-workflow';
 import { mock } from 'jest-mock-extended';
+import {
+	QueryFailedError,
+	type DataSource,
+	type EntityManager,
+	type EntityMetadata,
+} from 'typeorm';
 
 import config from '@/config';
-import * as Db from '@/Db';
-import { User } from '@db/entities/User';
-import { StatisticsNames } from '@db/entities/WorkflowStatistics';
+import type { User } from '@db/entities/User';
 import type { WorkflowStatistics } from '@db/entities/WorkflowStatistics';
-import type { WorkflowStatisticsRepository } from '@db/repositories';
-import { nodeFetchedData, workflowExecutionCompleted } from '@/events/WorkflowStatistics';
-import * as UserManagementHelper from '@/UserManagement/UserManagementHelper';
+import { WorkflowStatisticsRepository } from '@db/repositories';
+import { EventsService } from '@/services/events.service';
 import { getLogger } from '@/Logger';
 import { InternalHooks } from '@/InternalHooks';
+import type { UserService } from '@/services/user.service';
 
-import { mockInstance } from '../integration/shared/utils';
-import { UserService } from '@/user/user.service';
-import { WorkflowEntity } from '@/databases/entities/WorkflowEntity';
+import { mockInstance } from '../../integration/shared/utils';
 
-jest.mock('@/Db', () => {
-	return {
-		collections: {
-			WorkflowStatistics: mock<WorkflowStatisticsRepository>({
-				metadata: { tableName: 'workflow_statistics' },
-			}),
-		},
-	};
-});
-
-jest.spyOn(UserService, 'updateUserSettings').mockImplementation();
-
-describe('Events', () => {
+describe('EventsService', () => {
 	const dbType = config.getEnv('database.type');
-	const fakeUser = Object.assign(new User(), { id: 'abcde-fghij' });
+	const fakeUser = mock<User>({ id: 'abcde-fghij' });
+
+	const userService = mock<UserService>();
 	const internalHooks = mockInstance(InternalHooks);
+	const entityManager = mock<EntityManager>();
+	const dataSource = mock<DataSource>({
+		manager: entityManager,
+		getMetadata: () =>
+			mock<EntityMetadata>({
+				tableName: 'workflow_statistics',
+			}),
+	});
 
-	jest.spyOn(UserManagementHelper, 'getWorkflowOwner').mockResolvedValue(fakeUser);
+	Object.assign(entityManager, { connection: dataSource });
 
-	const workflowStatisticsRepository = Db.collections.WorkflowStatistics as ReturnType<
-		typeof mock<WorkflowStatisticsRepository>
-	>;
+	const eventsService = new EventsService(
+		userService,
+		new WorkflowStatisticsRepository(dataSource),
+	);
+
+	userService.getWorkflowOwner.mockResolvedValue(fakeUser);
 
 	beforeAll(() => {
 		config.set('diagnostics.enabled', true);
@@ -52,24 +55,17 @@ describe('Events', () => {
 	});
 
 	beforeEach(() => {
-		if (dbType === 'sqlite') {
-			workflowStatisticsRepository.findOne.mockClear();
-		} else {
-			workflowStatisticsRepository.query.mockClear();
-		}
-
+		jest.clearAllMocks();
 		internalHooks.onFirstProductionWorkflowSuccess.mockClear();
 		internalHooks.onFirstWorkflowDataLoad.mockClear();
 	});
 
 	const mockDBCall = (count = 1) => {
 		if (dbType === 'sqlite') {
-			workflowStatisticsRepository.findOne.mockResolvedValueOnce(
-				mock<WorkflowStatistics>({ count }),
-			);
+			entityManager.findOne.mockResolvedValueOnce(mock<WorkflowStatistics>({ count }));
 		} else {
 			const result = dbType === 'postgresdb' ? [{ count }] : { affectedRows: count };
-			workflowStatisticsRepository.query.mockImplementationOnce(async (query) =>
+			entityManager.query.mockImplementationOnce(async (query) =>
 				query.startsWith('INSERT INTO') ? result : null,
 			);
 		}
@@ -96,7 +92,7 @@ describe('Events', () => {
 			};
 			mockDBCall();
 
-			await workflowExecutionCompleted(workflow, runData);
+			await eventsService.workflowExecutionCompleted(workflow, runData);
 			expect(internalHooks.onFirstProductionWorkflowSuccess).toBeCalledTimes(1);
 			expect(internalHooks.onFirstProductionWorkflowSuccess).toHaveBeenNthCalledWith(1, {
 				user_id: fakeUser.id,
@@ -122,7 +118,7 @@ describe('Events', () => {
 				mode: 'internal' as WorkflowExecuteMode,
 				startedAt: new Date(),
 			};
-			await workflowExecutionCompleted(workflow, runData);
+			await eventsService.workflowExecutionCompleted(workflow, runData);
 			expect(internalHooks.onFirstProductionWorkflowSuccess).toBeCalledTimes(0);
 		});
 
@@ -145,7 +141,7 @@ describe('Events', () => {
 				startedAt: new Date(),
 			};
 			mockDBCall(2);
-			await workflowExecutionCompleted(workflow, runData);
+			await eventsService.workflowExecutionCompleted(workflow, runData);
 			expect(internalHooks.onFirstProductionWorkflowSuccess).toBeCalledTimes(0);
 		});
 	});
@@ -162,7 +158,7 @@ describe('Events', () => {
 				position: [0, 0] as [number, number],
 				parameters: {},
 			};
-			await nodeFetchedData(workflowId, node);
+			await eventsService.nodeFetchedData(workflowId, node);
 			expect(internalHooks.onFirstWorkflowDataLoad).toBeCalledTimes(1);
 			expect(internalHooks.onFirstWorkflowDataLoad).toHaveBeenNthCalledWith(1, {
 				user_id: fakeUser.id,
@@ -189,7 +185,7 @@ describe('Events', () => {
 					},
 				},
 			};
-			await nodeFetchedData(workflowId, node);
+			await eventsService.nodeFetchedData(workflowId, node);
 			expect(internalHooks.onFirstWorkflowDataLoad).toBeCalledTimes(1);
 			expect(internalHooks.onFirstWorkflowDataLoad).toHaveBeenNthCalledWith(1, {
 				user_id: fakeUser.id,
@@ -203,15 +199,7 @@ describe('Events', () => {
 
 		test('should not send metrics for entries that already have the flag set', async () => {
 			// Fetch data for workflow 2 which is set up to not be altered in the mocks
-			workflowStatisticsRepository.findOne.mockImplementationOnce(async () => {
-				return {
-					count: 1,
-					name: StatisticsNames.dataLoaded,
-					latestEvent: new Date(),
-					workflowId: '2',
-					workflow: new WorkflowEntity(),
-				};
-			});
+			entityManager.insert.mockRejectedValueOnce(new QueryFailedError('', undefined, ''));
 			const workflowId = '1';
 			const node = {
 				id: 'abcde',
@@ -221,7 +209,7 @@ describe('Events', () => {
 				position: [0, 0] as [number, number],
 				parameters: {},
 			};
-			await nodeFetchedData(workflowId, node);
+			await eventsService.nodeFetchedData(workflowId, node);
 			expect(internalHooks.onFirstWorkflowDataLoad).toBeCalledTimes(0);
 		});
 	});

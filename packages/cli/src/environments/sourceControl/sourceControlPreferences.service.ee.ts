@@ -4,21 +4,23 @@ import type { ValidationError } from 'class-validator';
 import { validate } from 'class-validator';
 import { readFileSync as fsReadFileSync, existsSync as fsExistsSync } from 'fs';
 import { writeFile as fsWriteFile, rm as fsRm } from 'fs/promises';
+import path from 'path';
+
+import { UserSettings } from 'n8n-core';
+import { LoggerProxy, jsonParse } from 'n8n-workflow';
+
 import {
 	generateSshKeyPair,
 	isSourceControlLicensed,
 	sourceControlFoldersExistCheck,
 } from './sourceControlHelper.ee';
-import { UserSettings } from 'n8n-core';
-import { LoggerProxy, jsonParse } from 'n8n-workflow';
-import * as Db from '@/Db';
 import {
 	SOURCE_CONTROL_SSH_FOLDER,
 	SOURCE_CONTROL_GIT_FOLDER,
 	SOURCE_CONTROL_SSH_KEY_NAME,
 	SOURCE_CONTROL_PREFERENCES_DB_KEY,
 } from './constants';
-import path from 'path';
+import { SettingsRepository } from '@/databases/repositories';
 
 @Service()
 export class SourceControlPreferencesService {
@@ -30,7 +32,7 @@ export class SourceControlPreferencesService {
 
 	private gitFolder: string;
 
-	constructor() {
+	constructor(private readonly settingsRepository: SettingsRepository) {
 		const userFolder = UserSettings.getUserN8nFolderPath();
 		this.sshFolder = path.join(userFolder, SOURCE_CONTROL_SSH_FOLDER);
 		this.gitFolder = path.join(userFolder, SOURCE_CONTROL_GIT_FOLDER);
@@ -145,7 +147,7 @@ export class SourceControlPreferencesService {
 		if (saveToDb) {
 			const settingsValue = JSON.stringify(this._sourceControlPreferences);
 			try {
-				await Db.collections.Settings.save({
+				await this.settingsRepository.save({
 					key: SOURCE_CONTROL_PREFERENCES_DB_KEY,
 					value: settingsValue,
 					loadOnStartup: true,
@@ -160,7 +162,7 @@ export class SourceControlPreferencesService {
 	async loadFromDbAndApplySourceControlPreferences(): Promise<
 		SourceControlPreferences | undefined
 	> {
-		const loadedPreferences = await Db.collections.Settings.findOne({
+		const loadedPreferences = await this.settingsRepository.findOne({
 			where: { key: SOURCE_CONTROL_PREFERENCES_DB_KEY },
 		});
 		if (loadedPreferences) {

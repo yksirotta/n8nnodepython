@@ -1,4 +1,5 @@
 import pick from 'lodash/pick';
+
 import { Authorized, Get, Post, Put, RestController } from '@/decorators';
 import { getLdapConfig, getLdapSynchronizations, updateLdapConfig } from '@/Ldap/helpers';
 import { LdapService } from '@/Ldap/LdapService.ee';
@@ -12,9 +13,9 @@ import { InternalHooks } from '@/InternalHooks';
 @RestController('/ldap')
 export class LdapController {
 	constructor(
-		private ldapService: LdapService,
-		private ldapSync: LdapSync,
-		private internalHooks: InternalHooks,
+		private readonly ldapService: LdapService,
+		private readonly ldapSync: LdapSync,
+		private readonly internalHooks: InternalHooks,
 	) {}
 
 	@Get('/config')

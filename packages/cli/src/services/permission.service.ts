@@ -6,21 +6,36 @@ import {
 } from 'n8n-workflow';
 import type { FindOptionsWhere } from 'typeorm';
 import { In } from 'typeorm';
-import * as Db from '@/Db';
+import { Service } from 'typedi';
+
 import config from '@/config';
 import type { SharedCredentials } from '@db/entities/SharedCredentials';
-import { getRoleId, getWorkflowOwner, isSharingEnabled } from './UserManagementHelper';
-import { WorkflowsService } from '@/workflows/workflows.services';
-import { UserService } from '@/user/user.service';
+import {
+	RoleRepository,
+	SharedCredentialsRepository,
+	SharedWorkflowRepository,
+	UserRepository,
+} from '@/databases/repositories';
+import { UserService } from '@/services/user.service';
+import { isSharingEnabled } from '@/UserManagement/UserManagementHelper';
 
-export class PermissionChecker {
+@Service()
+export class PermissionService {
+	constructor(
+		private readonly userService: UserService,
+		private readonly roleRepository: RoleRepository,
+		private readonly sharedCredentialsRepository: SharedCredentialsRepository,
+		private readonly sharedWorkflowRepository: SharedWorkflowRepository,
+		private readonly userRepository: UserRepository,
+	) {}
+
 	/**
 	 * Check if a user is permitted to execute a workflow.
 	 */
-	static async check(workflow: Workflow, userId: string) {
+	async check(workflow: Workflow, userId: string) {
 		// allow if no nodes in this workflow use creds
 
-		const credIdsToNodes = PermissionChecker.mapCredIdsToNodes(workflow);
+		const credIdsToNodes = this.mapCredIdsToNodes(workflow);
 
 		const workflowCredIds = Object.keys(credIdsToNodes);
 
@@ -28,7 +43,7 @@ export class PermissionChecker {
 
 		// allow if requesting user is instance owner
 
-		const user = await Db.collections.User.findOneOrFail({
+		const user = await this.userRepository.findOneOrFail({
 			where: { id: userId },
 			relations: ['globalRole'],
 		});
@@ -41,7 +56,7 @@ export class PermissionChecker {
 		let workflowUserIds = [userId];
 
 		if (workflow.id && isSharingEnabled()) {
-			const workflowSharings = await Db.collections.SharedWorkflow.find({
+			const workflowSharings = await this.sharedWorkflowRepository.find({
 				relations: ['workflow'],
 				where: { workflowId: workflow.id },
 				select: ['userId'],
@@ -53,10 +68,10 @@ export class PermissionChecker {
 
 		if (!isSharingEnabled()) {
 			// If credential sharing is not enabled, get only credentials owned by this user
-			credentialsWhere.roleId = await getRoleId('credential', 'owner');
+			credentialsWhere.roleId = await this.roleRepository.findRoleIdOrFail('credential', 'owner');
 		}
 
-		const credentialSharings = await Db.collections.SharedCredentials.find({
+		const credentialSharings = await this.sharedCredentialsRepository.find({
 			where: credentialsWhere,
 		});
 
@@ -76,7 +91,7 @@ export class PermissionChecker {
 		});
 	}
 
-	static async checkSubworkflowExecutePolicy(
+	async checkSubworkflowExecutePolicy(
 		subworkflow: Workflow,
 		userId: string,
 		parentWorkflowId?: string,
@@ -101,7 +116,7 @@ export class PermissionChecker {
 			policy = 'workflowsFromSameOwner';
 		}
 
-		const subworkflowOwner = await getWorkflowOwner(subworkflow.id);
+		const subworkflowOwner = await this.userService.getWorkflowOwner(subworkflow.id);
 
 		const errorToThrow = new SubworkflowOperationError(
 			`Target workflow ID ${subworkflow.id ?? ''} may not be called`,
@@ -129,20 +144,23 @@ export class PermissionChecker {
 		}
 
 		if (policy === 'workflowsFromSameOwner') {
-			const user = await UserService.get({ id: userId });
+			const user = await this.userRepository.get({ id: userId });
 			if (!user) {
 				throw new WorkflowOperationError(
 					'Fatal error: user not found. Please contact the system administrator.',
 				);
 			}
-			const sharing = await WorkflowsService.getSharing(user, subworkflow.id, ['role', 'user']);
+			const sharing = await this.sharedWorkflowRepository.getSharing(user, subworkflow.id, [
+				'role',
+				'user',
+			]);
 			if (!sharing || sharing.role.name !== 'owner') {
 				throw errorToThrow;
 			}
 		}
 	}
 
-	private static mapCredIdsToNodes(workflow: Workflow) {
+	private mapCredIdsToNodes(workflow: Workflow) {
 		return Object.values(workflow.nodes).reduce<{ [credentialId: string]: INode[] }>(
 			(map, node) => {
 				if (node.disabled || !node.credentials) return map;

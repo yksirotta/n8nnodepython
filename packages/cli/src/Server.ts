@@ -96,19 +96,17 @@ import {
 	TagsController,
 	TranslationController,
 	UsersController,
+	WorkflowStatisticsController,
 } from '@/controllers';
 
 import { executionsController } from '@/executions/executions.controller';
-import { workflowStatsController } from '@/api/workflowStats.api';
 import { isApiEnabled, loadPublicApiVersions } from '@/PublicApi';
 import {
-	getInstanceBaseUrl,
 	isEmailSetUp,
 	isSharingEnabled,
 	isUserManagementEnabled,
 	whereClause,
 } from '@/UserManagement/UserManagementHelper';
-import { UserManagementMailer } from '@/UserManagement/email';
 import * as Db from '@/Db';
 import type {
 	ICredentialsDb,
@@ -128,7 +126,6 @@ import { LoadNodesAndCredentials } from '@/LoadNodesAndCredentials';
 import { NodeTypes } from '@/NodeTypes';
 import * as ResponseHelper from '@/ResponseHelper';
 import { WaitTracker } from '@/WaitTracker';
-import * as WebhookHelpers from '@/WebhookHelpers';
 import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData';
 import { toHttpNodeParameters } from '@/CurlConverterHelper';
 import { EventBusController } from '@/eventbus/eventBus.controller';
@@ -136,7 +133,6 @@ import { isLogStreamingEnabled } from '@/eventbus/MessageEventBus/MessageEventBu
 import { licenseController } from './license/license.controller';
 import { Push, setupPushServer, setupPushHandler } from '@/push';
 import { setupAuthMiddlewares } from './middlewares';
-import { initEvents } from './events';
 import {
 	getLdapLoginLabel,
 	handleLdapInit,
@@ -169,9 +165,9 @@ import {
 import { isSourceControlLicensed } from '@/environments/sourceControl/sourceControlHelper.ee';
 import { SourceControlService } from '@/environments/sourceControl/sourceControl.service.ee';
 import { SourceControlController } from '@/environments/sourceControl/sourceControl.controller.ee';
-import { SourceControlPreferencesService } from './environments/sourceControl/sourceControlPreferences.service.ee';
-import { ExecutionRepository } from './databases/repositories';
-import type { ExecutionEntity } from './databases/entities/ExecutionEntity';
+import { ExecutionRepository } from '@db/repositories';
+import type { ExecutionEntity } from '@db/entities/ExecutionEntity';
+import { URLService } from '@/services/url.service';
 
 const exec = promisify(callbackExec);
 
@@ -203,7 +199,7 @@ export class Server extends AbstractServer {
 		this.app.set('view engine', 'handlebars');
 		this.app.set('views', TEMPLATES_DIR);
 
-		const urlBaseWebhook = WebhookHelpers.getWebhookBaseUrl();
+		const urlBaseWebhook = Container.get(URLService).webhookBaseUrl;
 		const telemetrySettings: ITelemetrySettings = {
 			enabled: config.getEnv('diagnostics.enabled'),
 		};
@@ -221,7 +217,7 @@ export class Server extends AbstractServer {
 		}
 
 		// Define it here to avoid calling the function multiple times
-		const instanceBaseUrl = getInstanceBaseUrl();
+		const instanceBaseUrl = Container.get(URLService).instanceBaseUrl;
 
 		this.frontendSettings = {
 			endpointWebhook: this.endpointWebhook,
@@ -391,9 +387,6 @@ export class Server extends AbstractServer {
 			saml_enabled: isSamlCurrentAuthenticationMethod(),
 		};
 
-		// Set up event handling
-		initEvents();
-
 		if (inDevelopment && process.env.N8N_DEV_RELOAD === 'true') {
 			const { reloadNodesAndCredentials } = await import('@/ReloadNodesAndCredentials');
 			await reloadNodesAndCredentials(this.loadNodesAndCredentials, this.nodeTypes, this.push);
@@ -459,60 +452,34 @@ export class Server extends AbstractServer {
 	}
 
 	private registerControllers(ignoredEndpoints: Readonly<string[]>) {
-		const { app, externalHooks, activeWorkflowRunner, nodeTypes } = this;
-		const repositories = Db.collections;
-		setupAuthMiddlewares(app, ignoredEndpoints, this.restEndpoint, repositories.User);
-
-		const logger = LoggerProxy;
-		const internalHooks = Container.get(InternalHooks);
-		const mailer = Container.get(UserManagementMailer);
-		const postHog = this.postHog;
-		const samlService = Container.get(SamlService);
-		const sourceControlService = Container.get(SourceControlService);
-		const sourceControlPreferencesService = Container.get(SourceControlPreferencesService);
+		setupAuthMiddlewares(this.app, ignoredEndpoints, this.restEndpoint, Db.collections.User);
 
 		const controllers: object[] = [
-			new EventBusController(),
-			new AuthController({ config, internalHooks, repositories, logger, postHog }),
-			new OwnerController({ config, internalHooks, repositories, logger }),
-			new MeController({ externalHooks, internalHooks, repositories, logger }),
-			new NodeTypesController({ config, nodeTypes }),
-			new PasswordResetController({
-				config,
-				externalHooks,
-				internalHooks,
-				mailer,
-				repositories,
-				logger,
-			}),
-			new TagsController({ config, repositories, externalHooks }),
-			new TranslationController(config, this.credentialTypes),
-			new UsersController({
-				config,
-				mailer,
-				externalHooks,
-				internalHooks,
-				repositories,
-				activeWorkflowRunner,
-				logger,
-				postHog,
-			}),
-			new SamlController(samlService),
-			new SourceControlController(sourceControlService, sourceControlPreferencesService),
+			Container.get(EventBusController),
+			Container.get(AuthController),
+			Container.get(OwnerController),
+			Container.get(MeController),
+			Container.get(NodeTypesController),
+			Container.get(PasswordResetController),
+			Container.get(TagsController),
+			Container.get(TranslationController),
+			Container.get(UsersController),
+			Container.get(SamlController),
+			Container.get(SourceControlController),
+			Container.get(WorkflowStatisticsController),
 		];
 
 		if (isLdapEnabled()) {
+			const internalHooks = Container.get(InternalHooks);
 			const { service, sync } = LdapManager.getInstance();
 			controllers.push(new LdapController(service, sync, internalHooks));
 		}
 
 		if (config.getEnv('nodes.communityPackages.enabled')) {
-			controllers.push(
-				new NodesController(config, this.loadNodesAndCredentials, this.push, internalHooks),
-			);
+			controllers.push(Container.get(NodesController));
 		}
 
-		controllers.forEach((controller) => registerController(app, config, controller));
+		controllers.forEach((controller) => registerController(this.app, config, controller));
 	}
 
 	async configure(): Promise<void> {
@@ -613,11 +580,6 @@ export class Server extends AbstractServer {
 		// License
 		// ----------------------------------------
 		this.app.use(`/${this.restEndpoint}/license`, licenseController);
-
-		// ----------------------------------------
-		// Workflow Statistics
-		// ----------------------------------------
-		this.app.use(`/${this.restEndpoint}/workflow-stats`, workflowStatsController);
 
 		// ----------------------------------------
 		// SAML
@@ -940,7 +902,7 @@ export class Server extends AbstractServer {
 				};
 
 				const oauthRequestData = {
-					oauth_callback: `${WebhookHelpers.getWebhookBaseUrl()}${
+					oauth_callback: `${Container.get(URLService).webhookBaseUrl}${
 						this.restEndpoint
 					}/oauth1-credential/callback?cid=${credentialId}`,
 				};

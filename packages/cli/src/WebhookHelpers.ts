@@ -17,8 +17,9 @@ import type express from 'express';
 import get from 'lodash/get';
 import stream from 'stream';
 import { promisify } from 'util';
+import { Container } from 'typedi';
 
-import { BinaryDataManager, NodeExecuteFunctions, eventEmitter } from 'n8n-core';
+import { BinaryDataManager, NodeExecuteFunctions } from 'n8n-core';
 
 import type {
 	IBinaryData,
@@ -51,7 +52,6 @@ import type {
 	IWorkflowDb,
 	IWorkflowExecutionDataProcess,
 } from '@/Interfaces';
-import * as GenericHelpers from '@/GenericHelpers';
 import * as ResponseHelper from '@/ResponseHelper';
 import * as WorkflowHelpers from '@/WorkflowHelpers';
 import { WorkflowRunner } from '@/WorkflowRunner';
@@ -59,8 +59,8 @@ import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData'
 import { ActiveExecutions } from '@/ActiveExecutions';
 import type { User } from '@db/entities/User';
 import type { WorkflowEntity } from '@db/entities/WorkflowEntity';
-import { getWorkflowOwner } from '@/UserManagement/UserManagementHelper';
-import { Container } from 'typedi';
+import { UserService } from '@/services/user.service';
+import { EventsService } from '@/services/events.service';
 
 const pipeline = promisify(stream.pipeline);
 
@@ -176,7 +176,7 @@ export async function executeWebhook(
 		user = (workflowData as WorkflowEntity).shared[0].user;
 	} else {
 		try {
-			user = await getWorkflowOwner(workflowData.id);
+			user = await Container.get(UserService).getWorkflowOwner(workflowData.id);
 		} catch (error) {
 			throw new ResponseHelper.NotFoundError('Cannot find workflow');
 		}
@@ -243,7 +243,7 @@ export async function executeWebhook(
 				NodeExecuteFunctions,
 				executionMode,
 			);
-			eventEmitter.emit(eventEmitter.types.nodeFetchedData, workflow.id, workflowStartNode);
+			Container.get(EventsService).emit('nodeFetchedData', workflow.id, workflowStartNode);
 		} catch (err) {
 			// Send error response to webhook caller
 			const errorMessage = 'Workflow Webhook Error: Workflow could not be started!';
@@ -693,24 +693,4 @@ export async function executeWebhook(
 
 		throw new ResponseHelper.InternalServerError(e.message);
 	}
-}
-
-/**
- * Returns the base URL of the webhooks
- *
- */
-export function getWebhookBaseUrl() {
-	let urlBaseWebhook = GenericHelpers.getBaseUrl();
-
-	// We renamed WEBHOOK_TUNNEL_URL to WEBHOOK_URL. This is here to maintain
-	// backward compatibility. Will be deprecated and removed in the future.
-	if (process.env.WEBHOOK_TUNNEL_URL !== undefined || process.env.WEBHOOK_URL !== undefined) {
-		// @ts-ignore
-		urlBaseWebhook = process.env.WEBHOOK_TUNNEL_URL || process.env.WEBHOOK_URL;
-	}
-	if (!urlBaseWebhook.endsWith('/')) {
-		urlBaseWebhook += '/';
-	}
-
-	return urlBaseWebhook;
 }

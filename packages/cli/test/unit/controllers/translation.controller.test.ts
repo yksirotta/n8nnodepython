@@ -1,6 +1,8 @@
 import { mock } from 'jest-mock-extended';
-import type { ICredentialTypes } from 'n8n-workflow';
-import type { Config } from '@/config';
+import type { ICredentialTypes, ILogger } from 'n8n-workflow';
+import { LoggerProxy } from 'n8n-workflow';
+
+import config from '@/config';
 import type { TranslationRequest } from '@/controllers/translation.controller';
 import {
 	TranslationController,
@@ -9,9 +11,10 @@ import {
 import { BadRequestError } from '@/ResponseHelper';
 
 describe('TranslationController', () => {
-	const config = mock<Config>();
 	const credentialTypes = mock<ICredentialTypes>();
-	const controller = new TranslationController(config, credentialTypes);
+	const controller = new TranslationController(credentialTypes);
+
+	LoggerProxy.init(mock<ILogger>());
 
 	describe('getCredentialTranslation', () => {
 		it('should throw 400 on invalid credential types', async () => {
@@ -27,7 +30,7 @@ describe('TranslationController', () => {
 		it('should return translation json on valid credential types', async () => {
 			const credentialType = 'credential-type';
 			const req = mock<TranslationRequest.Credential>({ query: { credentialType } });
-			config.getEnv.calledWith('defaultLocale').mockReturnValue('de');
+			config.set('defaultLocale', 'de');
 			credentialTypes.recognizes.calledWith(credentialType).mockReturnValue(true);
 			const response = { translation: 'string' };
 			jest.mock(`${CREDENTIAL_TRANSLATIONS_DIR}/de/credential-type.json`, () => response, {

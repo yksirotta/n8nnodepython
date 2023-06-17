@@ -1,15 +1,14 @@
 import validator from 'validator';
 import { In } from 'typeorm';
-import type { ILogger } from 'n8n-workflow';
-import { ErrorReporterProxy as ErrorReporter } from 'n8n-workflow';
-import { User } from '@db/entities/User';
-import { SharedCredentials } from '@db/entities/SharedCredentials';
-import { SharedWorkflow } from '@db/entities/SharedWorkflow';
+import { Response } from 'express';
+import { plainToInstance } from 'class-transformer';
+import { Service } from 'typedi';
+import { ErrorReporterProxy as ErrorReporter, LoggerProxy as logger } from 'n8n-workflow';
+
+import config from '@/config';
 import { Authorized, NoAuthRequired, Delete, Get, Post, RestController, Patch } from '@/decorators';
 import {
 	addInviteLinkToUser,
-	generateUserInviteUrl,
-	getInstanceBaseUrl,
 	hashPassword,
 	isEmailSetUp,
 	sanitizeUser,
@@ -18,90 +17,45 @@ import {
 } from '@/UserManagement/UserManagementHelper';
 import { issueCookie } from '@/auth/jwt';
 import { BadRequestError, InternalServerError, NotFoundError } from '@/ResponseHelper';
-import { Response } from 'express';
-import type { Config } from '@/config';
 import { UserRequest, UserSettingsUpdatePayload } from '@/requests';
-import type { UserManagementMailer } from '@/UserManagement/email';
-import type {
-	PublicUser,
-	IDatabaseCollections,
-	IExternalHooksClass,
-	IInternalHooksClass,
-	ITelemetryUserDeletionData,
-} from '@/Interfaces';
-import type { ActiveWorkflowRunner } from '@/ActiveWorkflowRunner';
+import { UserManagementMailer } from '@/UserManagement/email';
+import type { PublicUser, ITelemetryUserDeletionData } from '@/Interfaces';
+import { ActiveWorkflowRunner } from '@/ActiveWorkflowRunner';
 import { AuthIdentity } from '@db/entities/AuthIdentity';
-import type { PostHogClient } from '@/posthog';
-import { userManagementEnabledMiddleware } from '../middlewares/userManagementEnabled';
-import { isSamlLicensedAndEnabled } from '../sso/saml/samlHelpers';
-import type {
+import { User } from '@db/entities/User';
+import { SharedCredentials } from '@db/entities/SharedCredentials';
+import { SharedWorkflow } from '@db/entities/SharedWorkflow';
+import {
 	RoleRepository,
 	SharedCredentialsRepository,
 	SharedWorkflowRepository,
 	UserRepository,
 } from '@db/repositories';
-import { UserService } from '../user/user.service';
-import { plainToInstance } from 'class-transformer';
+import { PostHogClient } from '@/posthog';
+import { userManagementEnabledMiddleware } from '@/middlewares/userManagementEnabled';
+import { isSamlLicensedAndEnabled } from '@/sso/saml/samlHelpers';
+import { UserService } from '@/services/user.service';
+import { URLService } from '@/services/url.service';
+import { ExternalHooks } from '@/ExternalHooks';
+import { InternalHooks } from '@/InternalHooks';
 
+@Service()
 @Authorized(['global', 'owner'])
 @RestController('/users')
 export class UsersController {
-	private config: Config;
-
-	private logger: ILogger;
-
-	private externalHooks: IExternalHooksClass;
-
-	private internalHooks: IInternalHooksClass;
-
-	private userRepository: UserRepository;
-
-	private roleRepository: RoleRepository;
-
-	private sharedCredentialsRepository: SharedCredentialsRepository;
-
-	private sharedWorkflowRepository: SharedWorkflowRepository;
-
-	private activeWorkflowRunner: ActiveWorkflowRunner;
-
-	private mailer: UserManagementMailer;
-
-	private postHog?: PostHogClient;
-
-	constructor({
-		config,
-		logger,
-		externalHooks,
-		internalHooks,
-		repositories,
-		activeWorkflowRunner,
-		mailer,
-		postHog,
-	}: {
-		config: Config;
-		logger: ILogger;
-		externalHooks: IExternalHooksClass;
-		internalHooks: IInternalHooksClass;
-		repositories: Pick<
-			IDatabaseCollections,
-			'User' | 'Role' | 'SharedCredentials' | 'SharedWorkflow'
-		>;
-		activeWorkflowRunner: ActiveWorkflowRunner;
-		mailer: UserManagementMailer;
-		postHog?: PostHogClient;
-	}) {
-		this.config = config;
-		this.logger = logger;
-		this.externalHooks = externalHooks;
-		this.internalHooks = internalHooks;
-		this.userRepository = repositories.User;
-		this.roleRepository = repositories.Role;
-		this.sharedCredentialsRepository = repositories.SharedCredentials;
-		this.sharedWorkflowRepository = repositories.SharedWorkflow;
-		this.activeWorkflowRunner = activeWorkflowRunner;
-		this.mailer = mailer;
-		this.postHog = postHog;
-	}
+	constructor(
+		private readonly externalHooks: ExternalHooks,
+		private readonly internalHooks: InternalHooks,
+		private readonly userRepository: UserRepository,
+		private readonly roleRepository: RoleRepository,
+		private readonly sharedCredentialsRepository: SharedCredentialsRepository,
+		private readonly sharedWorkflowRepository: SharedWorkflowRepository,
+		private readonly activeWorkflowRunner: ActiveWorkflowRunner,
+		private readonly mailer: UserManagementMailer,
+		private readonly userService: UserService,
+		private readonly urlService: URLService,
+		private readonly postHog?: PostHogClient,
+	) {}
 
 	/**
 	 * Send email invite(s) to one or multiple users and create user shell(s).
@@ -109,7 +63,7 @@ export class UsersController {
 	@Post('/', { middlewares: [userManagementEnabledMiddleware] })
 	async sendEmailInvites(req: UserRequest.Invite) {
 		if (isSamlLicensedAndEnabled()) {
-			this.logger.debug(
+			logger.debug(
 				'SAML is enabled, so users are managed by the Identity Provider and cannot be added through invites',
 			);
 			throw new BadRequestError(
@@ -117,15 +71,15 @@ export class UsersController {
 			);
 		}
 
-		if (!this.config.getEnv('userManagement.isInstanceOwnerSetUp')) {
-			this.logger.debug(
+		if (!config.getEnv('userManagement.isInstanceOwnerSetUp')) {
+			logger.debug(
 				'Request to send email invite(s) to user(s) failed because the owner account is not set up',
 			);
 			throw new BadRequestError('You must set up your own account before inviting others');
 		}
 
 		if (!Array.isArray(req.body)) {
-			this.logger.debug(
+			logger.debug(
 				'Request to send email invite(s) to user(s) failed because the payload is not an array',
 				{
 					payload: req.body,
@@ -146,7 +100,7 @@ export class UsersController {
 			}
 
 			if (!validator.isEmail(invite.email)) {
-				this.logger.debug('Invalid email in payload', { invalidEmail: invite.email });
+				logger.debug('Invalid email in payload', { invalidEmail: invite.email });
 				throw new BadRequestError(
 					`Request to send email invite(s) to user(s) failed because of an invalid email address: ${invite.email}`,
 				);
@@ -157,7 +111,7 @@ export class UsersController {
 		const role = await this.roleRepository.findGlobalMemberRole();
 
 		if (!role) {
-			this.logger.error(
+			logger.error(
 				'Request to send email invite(s) to user(s) failed because no global member role was found in database',
 			);
 			throw new InternalServerError('Members role not found in database - inconsistent state');
@@ -178,7 +132,7 @@ export class UsersController {
 		const usersToSetUp = Object.keys(createUsers).filter((email) => createUsers[email] === null);
 		const total = usersToSetUp.length;
 
-		this.logger.debug(total > 1 ? `Creating ${total} user shells...` : 'Creating 1 user shell...');
+		logger.debug(total > 1 ? `Creating ${total} user shells...` : 'Creating 1 user shell...');
 
 		try {
 			await this.userRepository.manager.transaction(async (transactionManager) =>
@@ -196,16 +150,16 @@ export class UsersController {
 			);
 		} catch (error) {
 			ErrorReporter.error(error);
-			this.logger.error('Failed to create user shells', { userShells: createUsers });
+			logger.error('Failed to create user shells', { userShells: createUsers });
 			throw new InternalServerError('An error occurred during user creation');
 		}
 
-		this.logger.debug('Created user shell(s) successfully', { userId: req.user.id });
-		this.logger.verbose(total > 1 ? `${total} user shells created` : '1 user shell created', {
+		logger.debug('Created user shell(s) successfully', { userId: req.user.id });
+		logger.verbose(total > 1 ? `${total} user shells created` : '1 user shell created', {
 			userShells: createUsers,
 		});
 
-		const baseUrl = getInstanceBaseUrl();
+		const baseUrl = this.urlService.instanceBaseUrl;
 
 		const usersPendingSetup = Object.entries(createUsers).filter(([email, id]) => id && email);
 
@@ -217,7 +171,7 @@ export class UsersController {
 					// This should never happen since those are removed from the list before reaching this point
 					throw new InternalServerError('User ID is missing for user with email address');
 				}
-				const inviteAcceptUrl = generateUserInviteUrl(req.user.id, id);
+				const inviteAcceptUrl = this.urlService.generateUserInviteUrl(req.user.id, id);
 				const resp: {
 					user: { id: string | null; email: string; inviteAcceptUrl: string; emailSent: boolean };
 					error?: string;
@@ -257,7 +211,7 @@ export class UsersController {
 							message_type: 'New user invite',
 							public_api: false,
 						});
-						this.logger.error('Failed to send email', {
+						logger.error('Failed to send email', {
 							userId: req.user.id,
 							inviteAcceptUrl,
 							domain: baseUrl,
@@ -272,7 +226,7 @@ export class UsersController {
 
 		await this.externalHooks.run('user.invited', [usersToSetUp]);
 
-		this.logger.debug(
+		logger.debug(
 			usersPendingSetup.length > 1
 				? `Sent ${usersPendingSetup.length} invite emails successfully`
 				: 'Sent 1 invite email successfully',
@@ -293,7 +247,7 @@ export class UsersController {
 		const { inviterId, firstName, lastName, password } = req.body;
 
 		if (!inviterId || !inviteeId || !firstName || !lastName || !password) {
-			this.logger.debug(
+			logger.debug(
 				'Request to fill out a user shell failed because of missing properties in payload',
 				{ payload: req.body },
 			);
@@ -308,7 +262,7 @@ export class UsersController {
 		});
 
 		if (users.length !== 2) {
-			this.logger.debug(
+			logger.debug(
 				'Request to fill out a user shell failed because the inviter ID and/or invitee ID were not found in database',
 				{
 					inviterId,
@@ -321,7 +275,7 @@ export class UsersController {
 		const invitee = users.find((user) => user.id === inviteeId) as User;
 
 		if (invitee.password) {
-			this.logger.debug(
+			logger.debug(
 				'Request to fill out a user shell failed because the invite had already been accepted',
 				{ inviteeId },
 			);
@@ -366,10 +320,8 @@ export class UsersController {
 		if (!user) {
 			throw new NotFoundError('User not found');
 		}
-		const link = await UserService.generatePasswordResetUrl(user);
-		return {
-			link,
-		};
+		const link = await this.userService.generatePasswordResetUrl(user);
+		return { link };
 	}
 
 	@Authorized(['global', 'owner'])
@@ -379,7 +331,7 @@ export class UsersController {
 
 		const id = req.params.id;
 
-		await UserService.updateUserSettings(id, payload);
+		await this.userRepository.updateUserSettings(id, payload);
 
 		const user = await this.userRepository.findOneOrFail({
 			select: ['settings'],
@@ -397,7 +349,7 @@ export class UsersController {
 		const { id: idToDelete } = req.params;
 
 		if (req.user.id === idToDelete) {
-			this.logger.debug(
+			logger.debug(
 				'Request to delete a user failed because it attempted to delete the requesting user',
 				{ userId: req.user.id },
 			);
@@ -554,28 +506,28 @@ export class UsersController {
 		const { id: idToReinvite } = req.params;
 
 		if (!isEmailSetUp()) {
-			this.logger.error('Request to reinvite a user failed because email sending was not set up');
+			logger.error('Request to reinvite a user failed because email sending was not set up');
 			throw new InternalServerError('Email sending must be set up in order to invite other users');
 		}
 
 		const reinvitee = await this.userRepository.findOneBy({ id: idToReinvite });
 		if (!reinvitee) {
-			this.logger.debug(
+			logger.debug(
 				'Request to reinvite a user failed because the ID of the reinvitee was not found in database',
 			);
 			throw new NotFoundError('Could not find user');
 		}
 
 		if (reinvitee.password) {
-			this.logger.debug(
+			logger.debug(
 				'Request to reinvite a user failed because the invite had already been accepted',
 				{ userId: reinvitee.id },
 			);
 			throw new BadRequestError('User has already accepted the invite');
 		}
 
-		const baseUrl = getInstanceBaseUrl();
-		const inviteAcceptUrl = `${baseUrl}/signup?inviterId=${req.user.id}&inviteeId=${reinvitee.id}`;
+		const baseUrl = this.urlService.instanceBaseUrl;
+		const inviteAcceptUrl = this.urlService.generateUserInviteUrl(req.user.id, reinvitee.id);
 
 		try {
 			const result = await this.mailer.invite({
@@ -602,7 +554,7 @@ export class UsersController {
 				message_type: 'Resend invite',
 				public_api: false,
 			});
-			this.logger.error('Failed to send email', {
+			logger.error('Failed to send email', {
 				email: reinvitee.email,
 				inviteAcceptUrl,
 				domain: baseUrl,

@@ -1,8 +1,10 @@
 import type { CookieOptions, Response } from 'express';
 import { anyObject, captor, mock } from 'jest-mock-extended';
-import type { ILogger } from 'n8n-workflow';
 import jwt from 'jsonwebtoken';
-import type { IInternalHooksClass } from '@/Interfaces';
+import type { ILogger } from 'n8n-workflow';
+import { LoggerProxy } from 'n8n-workflow';
+
+import config from '@/config';
 import type { User } from '@db/entities/User';
 import type {
 	CredentialsRepository,
@@ -10,43 +12,39 @@ import type {
 	UserRepository,
 	WorkflowRepository,
 } from '@db/repositories';
-import type { Config } from '@/config';
 import { BadRequestError } from '@/ResponseHelper';
 import type { OwnerRequest } from '@/requests';
 import { OwnerController } from '@/controllers';
-import { badPasswords } from '../shared/testData';
 import { AUTH_COOKIE_NAME } from '@/constants';
+import type { InternalHooks } from '@/InternalHooks';
+import { badPasswords } from '../shared/testData';
 
 describe('OwnerController', () => {
-	const config = mock<Config>();
-	const logger = mock<ILogger>();
-	const internalHooks = mock<IInternalHooksClass>();
+	const internalHooks = mock<InternalHooks>();
 	const userRepository = mock<UserRepository>();
 	const settingsRepository = mock<SettingsRepository>();
 	const credentialsRepository = mock<CredentialsRepository>();
 	const workflowsRepository = mock<WorkflowRepository>();
-	const controller = new OwnerController({
-		config,
-		logger,
+	const controller = new OwnerController(
 		internalHooks,
-		repositories: {
-			User: userRepository,
-			Settings: settingsRepository,
-			Credentials: credentialsRepository,
-			Workflow: workflowsRepository,
-		},
-	});
+		userRepository,
+		settingsRepository,
+		credentialsRepository,
+		workflowsRepository,
+	);
+
+	LoggerProxy.init(mock<ILogger>());
 
 	describe('preSetup', () => {
 		it('should throw a BadRequestError if the instance owner is already setup', async () => {
-			config.getEnv.calledWith('userManagement.isInstanceOwnerSetUp').mockReturnValue(true);
+			config.set('userManagement.isInstanceOwnerSetUp', true);
 			await expect(controller.preSetup()).rejects.toThrowError(
 				new BadRequestError('Instance owner already setup'),
 			);
 		});
 
 		it('should a return credential and workflow count', async () => {
-			config.getEnv.calledWith('userManagement.isInstanceOwnerSetUp').mockReturnValue(false);
+			config.set('userManagement.isInstanceOwnerSetUp', false);
 			credentialsRepository.countBy.mockResolvedValue(7);
 			workflowsRepository.countBy.mockResolvedValue(31);
 			const { credentials, workflows } = await controller.preSetup();
@@ -57,14 +55,14 @@ describe('OwnerController', () => {
 
 	describe('setupOwner', () => {
 		it('should throw a BadRequestError if the instance owner is already setup', async () => {
-			config.getEnv.calledWith('userManagement.isInstanceOwnerSetUp').mockReturnValue(true);
+			config.set('userManagement.isInstanceOwnerSetUp', true);
 			await expect(controller.setupOwner(mock(), mock())).rejects.toThrowError(
 				new BadRequestError('Instance owner already setup'),
 			);
 		});
 
 		it('should throw a BadRequestError if the email is invalid', async () => {
-			config.getEnv.calledWith('userManagement.isInstanceOwnerSetUp').mockReturnValue(false);
+			config.set('userManagement.isInstanceOwnerSetUp', false);
 			const req = mock<OwnerRequest.Post>({ body: { email: 'invalid email' } });
 			await expect(controller.setupOwner(req, mock())).rejects.toThrowError(
 				new BadRequestError('Invalid email address'),
@@ -74,7 +72,7 @@ describe('OwnerController', () => {
 		describe('should throw if the password is invalid', () => {
 			Object.entries(badPasswords).forEach(([password, errorMessage]) => {
 				it(password, async () => {
-					config.getEnv.calledWith('userManagement.isInstanceOwnerSetUp').mockReturnValue(false);
+					config.set('userManagement.isInstanceOwnerSetUp', false);
 					const req = mock<OwnerRequest.Post>({ body: { email: 'valid@email.com', password } });
 					await expect(controller.setupOwner(req, mock())).rejects.toThrowError(
 						new BadRequestError(errorMessage),
@@ -84,7 +82,7 @@ describe('OwnerController', () => {
 		});
 
 		it('should throw a BadRequestError if firstName & lastName are missing ', async () => {
-			config.getEnv.calledWith('userManagement.isInstanceOwnerSetUp').mockReturnValue(false);
+			config.set('userManagement.isInstanceOwnerSetUp', false);
 			const req = mock<OwnerRequest.Post>({
 				body: { email: 'valid@email.com', password: 'NewPassword123', firstName: '', lastName: '' },
 			});
@@ -109,7 +107,7 @@ describe('OwnerController', () => {
 				user,
 			});
 			const res = mock<Response>();
-			config.getEnv.calledWith('userManagement.isInstanceOwnerSetUp').mockReturnValue(false);
+			config.set('userManagement.isInstanceOwnerSetUp', false);
 			userRepository.save.calledWith(anyObject()).mockResolvedValue(user);
 			jest.spyOn(jwt, 'sign').mockImplementation(() => 'signed-token');
 
@@ -131,7 +129,7 @@ describe('OwnerController', () => {
 				{ key: 'userManagement.skipInstanceOwnerSetup' },
 				{ value: JSON.stringify(true) },
 			);
-			expect(config.set).toHaveBeenCalledWith('userManagement.skipInstanceOwnerSetup', true);
+			expect(config.get('userManagement.skipInstanceOwnerSetup')).toBe(true);
 		});
 	});
 });

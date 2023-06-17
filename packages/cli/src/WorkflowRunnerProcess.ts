@@ -53,10 +53,10 @@ import { getLogger } from '@/Logger';
 import config from '@/config';
 import { generateFailedExecutionFromError } from '@/WorkflowHelpers';
 import { initErrorHandling } from '@/ErrorReporting';
-import { PermissionChecker } from '@/UserManagement/PermissionChecker';
 import { License } from '@/License';
 import { InternalHooks } from '@/InternalHooks';
 import { PostHogClient } from '@/posthog';
+import { PermissionService } from '@/services/permission.service';
 
 class WorkflowRunnerProcess {
 	data: IWorkflowExecutionDataProcessWithExecution | undefined;
@@ -150,7 +150,7 @@ class WorkflowRunnerProcess {
 			pinData: this.data.pinData,
 		});
 		try {
-			await PermissionChecker.check(this.workflow, userId);
+			await Container.get(PermissionService).check(this.workflow, userId);
 		} catch (error) {
 			const caughtError = error as NodeOperationError;
 			const failedExecutionData = generateFailedExecutionFromError(

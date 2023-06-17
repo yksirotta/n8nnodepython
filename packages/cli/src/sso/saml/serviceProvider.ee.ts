@@ -1,22 +1,23 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { getInstanceBaseUrl } from '@/UserManagement/UserManagementHelper';
 import type { ServiceProviderInstance } from 'samlify';
 import { ServiceProvider } from 'samlify';
+import { Container } from 'typedi';
 import { SamlUrls } from './constants';
 import type { SamlPreferences } from './types/samlPreferences';
+import { URLService } from '@/services/url.service';
 
 let serviceProviderInstance: ServiceProviderInstance | undefined;
 
 export function getServiceProviderEntityId(): string {
-	return getInstanceBaseUrl() + SamlUrls.restMetadata;
+	return Container.get(URLService).instanceBaseUrl + SamlUrls.restMetadata;
 }
 
 export function getServiceProviderReturnUrl(): string {
-	return getInstanceBaseUrl() + SamlUrls.restAcs;
+	return Container.get(URLService).instanceBaseUrl + SamlUrls.restAcs;
 }
 
 export function getServiceProviderConfigTestReturnUrl(): string {
-	return getInstanceBaseUrl() + SamlUrls.configTestReturn;
+	return Container.get(URLService).instanceBaseUrl + SamlUrls.configTestReturn;
 }
 
 // TODO:SAML: make these configurable for the end user

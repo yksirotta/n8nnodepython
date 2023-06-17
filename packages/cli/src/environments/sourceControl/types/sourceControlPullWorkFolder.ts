@@ -18,7 +18,7 @@ export class SourceControlPullWorkFolder {
 	variables?: { [key: string]: string };
 }
 
-export class SourceControllPullOptions {
+export class SourceControlPullOptions {
 	userId: string;
 
 	force?: boolean;

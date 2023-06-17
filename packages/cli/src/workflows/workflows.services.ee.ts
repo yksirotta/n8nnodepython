@@ -1,5 +1,6 @@
 import type { DeleteResult, EntityManager } from 'typeorm';
 import { In, Not } from 'typeorm';
+import { Container } from 'typedi';
 import * as Db from '@/Db';
 import * as ResponseHelper from '@/ResponseHelper';
 import * as WorkflowHelpers from '@/WorkflowHelpers';
@@ -8,8 +9,7 @@ import { SharedWorkflow } from '@db/entities/SharedWorkflow';
 import type { Role } from '@db/entities/Role';
 import type { User } from '@db/entities/User';
 import { WorkflowEntity } from '@db/entities/WorkflowEntity';
-import { RoleService } from '@/role/role.service';
-import { UserService } from '@/user/user.service';
+import { RoleService } from '@/services/role.service';
 import { WorkflowsService } from './workflows.services';
 import type {
 	CredentialUsedByWorkflow,
@@ -19,6 +19,7 @@ import type {
 import { EECredentialsService as EECredentials } from '@/credentials/credentials.service.ee';
 import { getSharedWorkflowIds } from '@/WorkflowHelpers';
 import { NodeOperationError } from 'n8n-workflow';
+import { UserRepository } from '@/databases/repositories';
 
 export class EEWorkflowsService extends WorkflowsService {
 	static async getWorkflowIdsForUser(user: User) {
@@ -30,9 +31,14 @@ export class EEWorkflowsService extends WorkflowsService {
 		user: User,
 		workflowId: string,
 	): Promise<{ ownsWorkflow: boolean; workflow?: WorkflowEntity }> {
-		const sharing = await this.getSharing(user, workflowId, ['workflow', 'role'], {
-			allowGlobalOwner: false,
-		});
+		const sharing = await Db.collections.SharedWorkflow.getSharing(
+			user,
+			workflowId,
+			['workflow', 'role'],
+			{
+				allowGlobalOwner: false,
+			},
+		);
 
 		if (!sharing || sharing.role.name !== 'owner') return { ownsWorkflow: false };
 
@@ -69,7 +75,7 @@ export class EEWorkflowsService extends WorkflowsService {
 		shareWithIds: string[],
 	): Promise<SharedWorkflow[]> {
 		const [users, role] = await Promise.all([
-			UserService.getByIds(transaction, shareWithIds),
+			Container.get(UserRepository).getByIds(transaction, shareWithIds),
 			RoleService.trxGet(transaction, { scope: 'workflow', name: 'editor' }),
 		]);
 

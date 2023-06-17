@@ -2,6 +2,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import express from 'express';
+import type { DeleteResult } from 'typeorm';
+import { Service } from 'typedi';
+import type {
+	MessageEventBusDestinationWebhookOptions,
+	MessageEventBusDestinationOptions,
+	IRunExecutionData,
+} from 'n8n-workflow';
+import { MessageEventBusDestinationTypeNames, EventMessageTypeNames } from 'n8n-workflow';
+
+import { BadRequestError } from '@/ResponseHelper';
+import { RestController, Get, Post, Delete, Authorized } from '@/decorators';
+import { AuthenticatedRequest } from '@/requests';
+
 import { isEventMessageOptions } from './EventMessageClasses/AbstractEventMessage';
 import { EventMessageGeneric } from './EventMessageClasses/EventMessageGeneric';
 import type { EventMessageWorkflowOptions } from './EventMessageClasses/EventMessageWorkflow';
@@ -21,20 +34,10 @@ import type { EventMessageTypes, FailedEventSummary } from './EventMessageClasse
 import { eventNamesAll } from './EventMessageClasses';
 import type { EventMessageAuditOptions } from './EventMessageClasses/EventMessageAudit';
 import { EventMessageAudit } from './EventMessageClasses/EventMessageAudit';
-import { BadRequestError } from '@/ResponseHelper';
-import type {
-	MessageEventBusDestinationWebhookOptions,
-	MessageEventBusDestinationOptions,
-	IRunExecutionData,
-} from 'n8n-workflow';
-import { MessageEventBusDestinationTypeNames, EventMessageTypeNames } from 'n8n-workflow';
 import type { EventMessageNodeOptions } from './EventMessageClasses/EventMessageNode';
 import { EventMessageNode } from './EventMessageClasses/EventMessageNode';
 import { recoverExecutionDataFromEventLogMessages } from './MessageEventBus/recoverEvents';
-import { RestController, Get, Post, Delete, Authorized } from '@/decorators';
 import type { MessageEventBusDestination } from './MessageEventBusDestination/MessageEventBusDestination.ee';
-import type { DeleteResult } from 'typeorm';
-import { AuthenticatedRequest } from '@/requests';
 
 // ----------------------------------------
 // TypeGuards
@@ -72,6 +75,7 @@ const isMessageEventBusDestinationOptions = (
 // Controller
 // ----------------------------------------
 
+@Service()
 @Authorized()
 @RestController('/eventbus')
 export class EventBusController {

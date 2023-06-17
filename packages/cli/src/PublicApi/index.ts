@@ -13,10 +13,10 @@ import type { JsonObject } from 'swagger-ui-express';
 
 import config from '@/config';
 import * as Db from '@/Db';
-import { getInstanceBaseUrl } from '@/UserManagement/UserManagementHelper';
 import { Container } from 'typedi';
 import { InternalHooks } from '@/InternalHooks';
 import { License } from '@/License';
+import { URLService } from '@/services/url.service';
 
 async function createApiRouter(
 	version: string,
@@ -30,7 +30,7 @@ async function createApiRouter(
 	// from the Swagger UI
 	swaggerDocument.server = [
 		{
-			url: `${getInstanceBaseUrl()}/${publicApiEndpoint}/${version}}`,
+			url: `${Container.get(URLService).instanceBaseUrl}/${publicApiEndpoint}/${version}}`,
 		},
 	];
 	const apiController = express.Router();

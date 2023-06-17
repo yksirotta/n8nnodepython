@@ -37,7 +37,6 @@ import type { User } from '@db/entities/User';
 import { getLogger } from '@/Logger';
 import { loadPublicApiVersions } from '@/PublicApi/';
 import { issueJWT } from '@/auth/jwt';
-import { UserManagementMailer } from '@/UserManagement/email/UserManagementMailer';
 import {
 	AUTHLESS_ENDPOINTS,
 	COMMUNITY_NODE_VERSION,
@@ -73,15 +72,11 @@ import { PostHogClient } from '@/posthog';
 import { variablesController } from '@/environments/variables/variables.controller';
 import { LdapManager } from '@/Ldap/LdapManager.ee';
 import { handleLdapInit } from '@/Ldap/helpers';
-import { Push } from '@/push';
 import { setSamlLoginEnabled } from '@/sso/saml/samlHelpers';
-import { SamlService } from '@/sso/saml/saml.service.ee';
 import { SamlController } from '@/sso/saml/routes/saml.controller.ee';
 import { EventBusController } from '@/eventbus/eventBus.controller';
 import { License } from '@/License';
-import { SourceControlService } from '@/environments/sourceControl/sourceControl.service.ee';
 import { SourceControlController } from '@/environments/sourceControl/sourceControl.controller.ee';
-import { SourceControlPreferencesService } from '@/environments/sourceControl/sourceControlPreferences.service.ee';
 
 export const mockInstance = <T>(
 	ctor: new (...args: any[]) => T,
@@ -170,22 +165,15 @@ export async function initTestServer({
 	}
 
 	if (functionEndpoints.length) {
-		const externalHooks = Container.get(ExternalHooks);
 		const internalHooks = Container.get(InternalHooks);
-		const mailer = Container.get(UserManagementMailer);
-		const repositories = Db.collections;
 
 		for (const group of functionEndpoints) {
 			switch (group) {
 				case 'eventBus':
-					registerController(testServer.app, config, new EventBusController());
+					registerController(testServer.app, config, Container.get(EventBusController));
 					break;
 				case 'auth':
-					registerController(
-						testServer.app,
-						config,
-						new AuthController({ config, logger, internalHooks, repositories }),
-					);
+					registerController(testServer.app, config, Container.get(AuthController));
 					break;
 				case 'ldap':
 					Container.get(License).isLdapEnabled = () => true;
@@ -199,71 +187,25 @@ export async function initTestServer({
 					break;
 				case 'saml':
 					await setSamlLoginEnabled(true);
-					const samlService = Container.get(SamlService);
-					registerController(testServer.app, config, new SamlController(samlService));
+					registerController(testServer.app, config, Container.get(SamlController));
 					break;
 				case 'sourceControl':
-					const sourceControlService = Container.get(SourceControlService);
-					const sourceControlPreferencesService = Container.get(SourceControlPreferencesService);
-					registerController(
-						testServer.app,
-						config,
-						new SourceControlController(sourceControlService, sourceControlPreferencesService),
-					);
+					registerController(testServer.app, config, Container.get(SourceControlController));
 					break;
 				case 'nodes':
-					registerController(
-						testServer.app,
-						config,
-						new NodesController(
-							config,
-							Container.get(LoadNodesAndCredentials),
-							Container.get(Push),
-							internalHooks,
-						),
-					);
+					registerController(testServer.app, config, Container.get(NodesController));
+					break;
 				case 'me':
-					registerController(
-						testServer.app,
-						config,
-						new MeController({ logger, externalHooks, internalHooks, repositories }),
-					);
+					registerController(testServer.app, config, Container.get(MeController));
 					break;
 				case 'passwordReset':
-					registerController(
-						testServer.app,
-						config,
-						new PasswordResetController({
-							config,
-							logger,
-							externalHooks,
-							internalHooks,
-							mailer,
-							repositories,
-						}),
-					);
+					registerController(testServer.app, config, Container.get(PasswordResetController));
 					break;
 				case 'owner':
-					registerController(
-						testServer.app,
-						config,
-						new OwnerController({ config, logger, internalHooks, repositories }),
-					);
+					registerController(testServer.app, config, Container.get(OwnerController));
 					break;
 				case 'users':
-					registerController(
-						testServer.app,
-						config,
-						new UsersController({
-							config,
-							mailer,
-							externalHooks,
-							internalHooks,
-							repositories,
-							activeWorkflowRunner: Container.get(ActiveWorkflowRunner),
-							logger,
-						}),
-					);
+					registerController(testServer.app, config, Container.get(UsersController));
 			}
 		}
 	}

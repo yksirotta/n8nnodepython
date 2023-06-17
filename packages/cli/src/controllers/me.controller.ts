@@ -1,5 +1,10 @@
 import validator from 'validator';
 import { plainToInstance } from 'class-transformer';
+import { Response } from 'express';
+import { randomBytes } from 'crypto';
+import { Service } from 'typedi';
+import { LoggerProxy as logger } from 'n8n-workflow';
+
 import { Authorized, Delete, Get, Patch, Post, RestController } from '@/decorators';
 import {
 	compareHash,
@@ -11,52 +16,28 @@ import { BadRequestError } from '@/ResponseHelper';
 import { validateEntity } from '@/GenericHelpers';
 import { issueCookie } from '@/auth/jwt';
 import type { User } from '@db/entities/User';
-import type { UserRepository } from '@db/repositories';
-import { Response } from 'express';
-import type { ILogger } from 'n8n-workflow';
+import { UserRepository } from '@db/repositories';
+
 import {
 	AuthenticatedRequest,
 	MeRequest,
 	UserSettingsUpdatePayload,
 	UserUpdatePayload,
 } from '@/requests';
-import type {
-	PublicUser,
-	IDatabaseCollections,
-	IExternalHooksClass,
-	IInternalHooksClass,
-} from '@/Interfaces';
-import { randomBytes } from 'crypto';
-import { isSamlLicensedAndEnabled } from '../sso/saml/samlHelpers';
-import { UserService } from '@/user/user.service';
+import type { PublicUser } from '@/Interfaces';
+import { isSamlLicensedAndEnabled } from '@/sso/saml/samlHelpers';
+import { ExternalHooks } from '@/ExternalHooks';
+import { InternalHooks } from '@/InternalHooks';
 
+@Service()
 @Authorized()
 @RestController('/me')
 export class MeController {
-	private readonly logger: ILogger;
-
-	private readonly externalHooks: IExternalHooksClass;
-
-	private readonly internalHooks: IInternalHooksClass;
-
-	private readonly userRepository: UserRepository;
-
-	constructor({
-		logger,
-		externalHooks,
-		internalHooks,
-		repositories,
-	}: {
-		logger: ILogger;
-		externalHooks: IExternalHooksClass;
-		internalHooks: IInternalHooksClass;
-		repositories: Pick<IDatabaseCollections, 'User'>;
-	}) {
-		this.logger = logger;
-		this.externalHooks = externalHooks;
-		this.internalHooks = internalHooks;
-		this.userRepository = repositories.User;
-	}
+	constructor(
+		private readonly externalHooks: ExternalHooks,
+		private readonly internalHooks: InternalHooks,
+		private readonly userRepository: UserRepository,
+	) {}
 
 	/**
 	 * Update the logged-in user's properties, except password.
@@ -68,7 +49,7 @@ export class MeController {
 
 		const { email } = payload;
 		if (!email) {
-			this.logger.debug('Request to update user email failed because of missing email in payload', {
+			logger.debug('Request to update user email failed because of missing email in payload', {
 				userId,
 				payload,
 			});
@@ -76,7 +57,7 @@ export class MeController {
 		}
 
 		if (!validator.isEmail(email)) {
-			this.logger.debug('Request to update user email failed because of invalid email in payload', {
+			logger.debug('Request to update user email failed because of invalid email in payload', {
 				userId,
 				invalidEmail: email,
 			});
@@ -88,13 +69,10 @@ export class MeController {
 		// If SAML is enabled, we don't allow the user to change their email address
 		if (isSamlLicensedAndEnabled()) {
 			if (email !== currentEmail) {
-				this.logger.debug(
-					'Request to update user failed because SAML user may not change their email',
-					{
-						userId,
-						payload,
-					},
-				);
+				logger.debug('Request to update user failed because SAML user may not change their email', {
+					userId,
+					payload,
+				});
 				throw new BadRequestError('SAML user may not change their email');
 			}
 		}
@@ -105,7 +83,7 @@ export class MeController {
 			relations: { globalRole: true },
 		});
 
-		this.logger.info('User updated successfully', { userId });
+		logger.info('User updated successfully', { userId });
 
 		await issueCookie(res, user);
 
@@ -129,7 +107,7 @@ export class MeController {
 
 		// If SAML is enabled, we don't allow the user to change their email address
 		if (isSamlLicensedAndEnabled()) {
-			this.logger.debug('Attempted to change password for user, while SAML is enabled', {
+			logger.debug('Attempted to change password for user, while SAML is enabled', {
 				userId: req.user?.id,
 			});
 			throw new BadRequestError(
@@ -155,7 +133,7 @@ export class MeController {
 		req.user.password = await hashPassword(validPassword);
 
 		const user = await this.userRepository.save(req.user);
-		this.logger.info('Password updated successfully', { userId: user.id });
+		logger.info('Password updated successfully', { userId: user.id });
 
 		await issueCookie(res, user);
 
@@ -177,12 +155,9 @@ export class MeController {
 		const { body: personalizationAnswers } = req;
 
 		if (!personalizationAnswers) {
-			this.logger.debug(
-				'Request to store user personalization survey failed because of empty payload',
-				{
-					userId: req.user.id,
-				},
-			);
+			logger.debug('Request to store user personalization survey failed because of empty payload', {
+				userId: req.user.id,
+			});
 			throw new BadRequestError('Personalization answers are mandatory');
 		}
 
@@ -191,7 +166,7 @@ export class MeController {
 			personalizationAnswers,
 		});
 
-		this.logger.info('User survey updated successfully', { userId: req.user.id });
+		logger.info('User survey updated successfully', { userId: req.user.id });
 
 		void this.internalHooks.onPersonalizationSurveySubmitted(req.user.id, personalizationAnswers);
 
@@ -250,7 +225,7 @@ export class MeController {
 		const payload = plainToInstance(UserSettingsUpdatePayload, req.body);
 		const { id } = req.user;
 
-		await UserService.updateUserSettings(id, payload);
+		await this.userRepository.updateUserSettings(id, payload);
 
 		const user = await this.userRepository.findOneOrFail({
 			select: ['settings'],

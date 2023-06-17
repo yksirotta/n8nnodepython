@@ -1,10 +1,12 @@
 import type { Request } from 'express';
+import { Service } from 'typedi';
 import { ICredentialTypes } from 'n8n-workflow';
 import { join } from 'path';
 import { access } from 'fs/promises';
+
+import config from '@/config';
 import { Authorized, Get, RestController } from '@/decorators';
 import { BadRequestError, InternalServerError } from '@/ResponseHelper';
-import { Config } from '@/config';
 import { NODES_BASE_DIR } from '@/constants';
 
 export const CREDENTIAL_TRANSLATIONS_DIR = 'n8n-nodes-base/dist/credentials/translations';
@@ -14,10 +16,11 @@ export declare namespace TranslationRequest {
 	export type Credential = Request<{}, {}, {}, { credentialType: string }>;
 }
 
+@Service()
 @Authorized()
 @RestController('/')
 export class TranslationController {
-	constructor(private config: Config, private credentialTypes: ICredentialTypes) {}
+	constructor(private readonly credentialTypes: ICredentialTypes) {}
 
 	@Get('/credential-translation')
 	async getCredentialTranslation(req: TranslationRequest.Credential) {
@@ -26,7 +29,7 @@ export class TranslationController {
 		if (!this.credentialTypes.recognizes(credentialType))
 			throw new BadRequestError(`Invalid Credential type: "${credentialType}"`);
 
-		const defaultLocale = this.config.getEnv('defaultLocale');
+		const defaultLocale = config.getEnv('defaultLocale');
 		const translationPath = join(
 			CREDENTIAL_TRANSLATIONS_DIR,
 			defaultLocale,

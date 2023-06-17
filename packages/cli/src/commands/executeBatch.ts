@@ -7,17 +7,16 @@ import { sleep } from 'n8n-workflow';
 import { sep } from 'path';
 import { diff } from 'json-diff';
 import pick from 'lodash/pick';
+import { Container } from 'typedi';
 
 import { ActiveExecutions } from '@/ActiveExecutions';
 import * as Db from '@/Db';
 import { WorkflowRunner } from '@/WorkflowRunner';
 import type { IWorkflowDb, IWorkflowExecutionDataProcess } from '@/Interfaces';
 import type { User } from '@db/entities/User';
-import { getInstanceOwner } from '@/UserManagement/UserManagementHelper';
 import { findCliWorkflowStart } from '@/utils';
-import { initEvents } from '@/events';
 import { BaseCommand } from './BaseCommand';
-import { Container } from 'typedi';
+import { UserService } from '@/services/user.service';
 
 const re = /\d+/;
 
@@ -176,9 +175,6 @@ export class ExecuteBatch extends BaseCommand {
 		await super.init();
 		await this.initBinaryManager();
 		await this.initExternalHooks();
-
-		// Add event handlers
-		initEvents();
 	}
 
 	async run() {
@@ -263,7 +259,7 @@ export class ExecuteBatch extends BaseCommand {
 			ExecuteBatch.githubWorkflow = true;
 		}
 
-		ExecuteBatch.instanceOwner = await getInstanceOwner();
+		ExecuteBatch.instanceOwner = await Container.get(UserService).getInstanceOwner();
 
 		const query = Db.collections.Workflow.createQueryBuilder('workflows');
 

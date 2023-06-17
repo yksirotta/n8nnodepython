@@ -56,4 +56,11 @@ export class RoleRepository extends Repository<Role> {
 	async findRoleOrFail(scope: RoleScopes, name: RoleNames): Promise<Role> {
 		return this.findOneOrFail({ where: { scope, name } });
 	}
+
+	async findRoleIdOrFail(scope: RoleScopes, name: RoleNames): Promise<Role['id']> {
+		return this.findOneOrFail({
+			select: ['id'],
+			where: { scope, name },
+		}).then((role) => role.id);
+	}
 }

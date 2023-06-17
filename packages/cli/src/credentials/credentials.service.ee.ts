@@ -1,12 +1,13 @@
 /* eslint-disable no-param-reassign */
 import type { DeleteResult, EntityManager, FindOptionsWhere } from 'typeorm';
 import { In, Not } from 'typeorm';
+import { Container } from 'typedi';
 import * as Db from '@/Db';
-import { RoleService } from '@/role/role.service';
+import { RoleService } from '@/services/role.service';
 import { CredentialsEntity } from '@db/entities/CredentialsEntity';
 import { SharedCredentials } from '@db/entities/SharedCredentials';
 import type { User } from '@db/entities/User';
-import { UserService } from '@/user/user.service';
+import { UserRepository } from '@/databases/repositories';
 import { CredentialsService } from './credentials.service';
 import type { CredentialWithSharings } from './credentials.types';
 
@@ -79,7 +80,7 @@ export class EECredentialsService extends CredentialsService {
 		shareWithIds: string[],
 	): Promise<SharedCredentials[]> {
 		const [users, role] = await Promise.all([
-			UserService.getByIds(transaction, shareWithIds),
+			Container.get(UserRepository).getByIds(transaction, shareWithIds),
 			RoleService.trxGet(transaction, { scope: 'credential', name: 'user' }),
 		]);
 

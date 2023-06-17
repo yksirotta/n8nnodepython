@@ -1,6 +1,6 @@
 import { Service } from 'typedi';
+import { writeFileSync } from 'fs';
 import path from 'path';
-import * as Db from '@/Db';
 import { sourceControlFoldersExistCheck } from './sourceControlHelper.ee';
 import type { SourceControlPreferences } from './types/sourceControlPreferences';
 import {
@@ -16,13 +16,14 @@ import {
 import { LoggerProxy } from 'n8n-workflow';
 import { SourceControlGitService } from './sourceControlGit.service.ee';
 import { UserSettings } from 'n8n-core';
+import { CredentialsRepository, WorkflowRepository } from '@db/repositories';
 import type { PushResult, StatusResult } from 'simple-git';
 import type { ExportResult } from './types/exportResult';
 import { SourceControlExportService } from './sourceControlExport.service.ee';
 import { BadRequestError } from '../../ResponseHelper';
 import type { ImportResult } from './types/importResult';
 import type { SourceControlPushWorkFolder } from './types/sourceControlPushWorkFolder';
-import type { SourceControllPullOptions } from './types/sourceControlPullWorkFolder';
+import type { SourceControlPullOptions } from './types/sourceControlPullWorkFolder';
 import type {
 	SourceControlledFileLocation,
 	SourceControlledFile,
@@ -30,8 +31,8 @@ import type {
 	SourceControlledFileType,
 } from './types/sourceControlledFile';
 import { SourceControlPreferencesService } from './sourceControlPreferences.service.ee';
-import { writeFileSync } from 'fs';
 import { SourceControlImportService } from './sourceControlImport.service.ee';
+
 @Service()
 export class SourceControlService {
 	private sshKeyName: string;
@@ -45,6 +46,8 @@ export class SourceControlService {
 		private sourceControlPreferencesService: SourceControlPreferencesService,
 		private sourceControlExportService: SourceControlExportService,
 		private sourceControlImportService: SourceControlImportService,
+		private credentialsRepository: CredentialsRepository,
+		private workflowRepository: WorkflowRepository,
 	) {
 		const userFolder = UserSettings.getUserN8nFolderPath();
 		this.sshFolder = path.join(userFolder, SOURCE_CONTROL_SSH_FOLDER);
@@ -150,7 +153,7 @@ export class SourceControlService {
 		return result;
 	}
 
-	async import(options: SourceControllPullOptions): Promise<ImportResult | undefined> {
+	async import(options: SourceControlPullOptions): Promise<ImportResult | undefined> {
 		try {
 			return await this.sourceControlImportService.importFromWorkFolder(options);
 		} catch (error) {
@@ -174,7 +177,7 @@ export class SourceControlService {
 
 	// will reset the branch to the remote branch and pull
 	// this will discard all local changes
-	async resetWorkfolder(options: SourceControllPullOptions): Promise<ImportResult | undefined> {
+	async resetWorkfolder(options: SourceControlPullOptions): Promise<ImportResult | undefined> {
 		const currentBranch = await this.gitService.getCurrentBranch();
 		await this.sourceControlExportService.cleanWorkFolder();
 		await this.gitService.resetBranch({
@@ -212,7 +215,7 @@ export class SourceControlService {
 	}
 
 	async pullWorkfolder(
-		options: SourceControllPullOptions,
+		options: SourceControlPullOptions,
 	): Promise<ImportResult | StatusResult | undefined> {
 		await this.resetWorkfolder({
 			importAfterPull: false,
@@ -303,7 +306,7 @@ export class SourceControlService {
 					.replace(/[\/,\\]/, '')
 					.replace('.json', '');
 				if (location === 'remote') {
-					const existingWorkflow = await Db.collections.Workflow.find({
+					const existingWorkflow = await this.workflowRepository.find({
 						where: { id },
 					});
 					if (existingWorkflow?.length > 0) {
@@ -336,7 +339,7 @@ export class SourceControlService {
 					.replace(/[\/,\\]/, '')
 					.replace('.json', '');
 				if (location === 'remote') {
-					const existingCredential = await Db.collections.Credentials.find({
+					const existingCredential = await this.credentialsRepository.find({
 						where: { id },
 					});
 					if (existingCredential?.length > 0) {

@@ -1,7 +1,7 @@
 import { SharedWorkflowRepository } from '@db/repositories/sharedWorkflow.repository';
 import { Role } from '@db/entities/Role';
 import { SharedWorkflow } from '@db/entities/SharedWorkflow';
-import { RoleService } from '@/role/role.service';
+import { RoleService } from '@/services/role.service';
 import { mockInstance } from '../../integration/shared/utils';
 
 describe('RoleService', () => {

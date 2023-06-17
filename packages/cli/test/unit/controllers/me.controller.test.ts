@@ -2,26 +2,26 @@ import type { CookieOptions, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { mock, anyObject, captor } from 'jest-mock-extended';
 import type { ILogger } from 'n8n-workflow';
-import type { IExternalHooksClass, IInternalHooksClass } from '@/Interfaces';
+import { LoggerProxy } from 'n8n-workflow';
+
 import type { User } from '@db/entities/User';
 import type { UserRepository } from '@db/repositories';
 import { MeController } from '@/controllers';
 import { AUTH_COOKIE_NAME } from '@/constants';
 import { BadRequestError } from '@/ResponseHelper';
 import type { AuthenticatedRequest, MeRequest } from '@/requests';
+import type { ExternalHooks } from '@/ExternalHooks';
+import type { InternalHooks } from '@/InternalHooks';
+
 import { badPasswords } from '../shared/testData';
 
 describe('MeController', () => {
-	const logger = mock<ILogger>();
-	const externalHooks = mock<IExternalHooksClass>();
-	const internalHooks = mock<IInternalHooksClass>();
+	const externalHooks = mock<ExternalHooks>();
+	const internalHooks = mock<InternalHooks>();
 	const userRepository = mock<UserRepository>();
-	const controller = new MeController({
-		logger,
-		externalHooks,
-		internalHooks,
-		repositories: { User: userRepository },
-	});
+	const controller = new MeController(externalHooks, internalHooks, userRepository);
+
+	LoggerProxy.init(mock<ILogger>());
 
 	describe('updateCurrentUser', () => {
 		it('should throw BadRequestError if email is missing in the payload', async () => {

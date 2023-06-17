@@ -9,23 +9,10 @@ import * as ResponseHelper from '@/ResponseHelper';
 import type { CurrentUser, PublicUser, WhereClause } from '@/Interfaces';
 import type { User } from '@db/entities/User';
 import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '@db/entities/User';
-import type { Role } from '@db/entities/Role';
-import { RoleRepository } from '@db/repositories';
 import config from '@/config';
-import { getWebhookBaseUrl } from '@/WebhookHelpers';
 import { License } from '@/License';
 import type { PostHogClient } from '@/posthog';
-
-export async function getWorkflowOwner(workflowId: string): Promise<User> {
-	const workflowOwnerRole = await Container.get(RoleRepository).findWorkflowOwnerRole();
-
-	const sharedWorkflow = await Db.collections.SharedWorkflow.findOneOrFail({
-		where: { workflowId, roleId: workflowOwnerRole?.id ?? undefined },
-		relations: ['user', 'user.globalRole'],
-	});
-
-	return sharedWorkflow.user;
-}
+import { URLService } from '@/services/url.service';
 
 export function isEmailSetUp(): boolean {
 	const smtp = config.getEnv('userManagement.emails.mode') === 'smtp';
@@ -56,37 +43,6 @@ export function isUserManagementEnabled(): boolean {
 export function isSharingEnabled(): boolean {
 	const license = Container.get(License);
 	return isUserManagementEnabled() && license.isSharingEnabled();
-}
-
-export async function getRoleId(scope: Role['scope'], name: Role['name']): Promise<Role['id']> {
-	return Container.get(RoleRepository)
-		.findRoleOrFail(scope, name)
-		.then((role) => role.id);
-}
-
-export async function getInstanceOwner(): Promise<User> {
-	const ownerRoleId = await getRoleId('global', 'owner');
-
-	const owner = await Db.collections.User.findOneOrFail({
-		relations: ['globalRole'],
-		where: {
-			globalRoleId: ownerRoleId,
-		},
-	});
-	return owner;
-}
-
-/**
- * Return the n8n instance base URL without trailing slash.
- */
-export function getInstanceBaseUrl(): string {
-	const n8nBaseUrl = config.getEnv('editorBaseUrl') || getWebhookBaseUrl();
-
-	return n8nBaseUrl.endsWith('/') ? n8nBaseUrl.slice(0, n8nBaseUrl.length - 1) : n8nBaseUrl;
-}
-
-export function generateUserInviteUrl(inviterId: string, inviteeId: string): string {
-	return `${getInstanceBaseUrl()}/signup?inviterId=${inviterId}&inviteeId=${inviteeId}`;
 }
 
 // TODO: Enforce at model level
@@ -181,7 +137,7 @@ export async function withFeatureFlags(
 
 export function addInviteLinkToUser(user: PublicUser, inviterId: string): PublicUser {
 	if (user.isPending) {
-		user.inviteAcceptUrl = generateUserInviteUrl(inviterId, user.id);
+		user.inviteAcceptUrl = Container.get(URLService).generateUserInviteUrl(inviterId, user.id);
 	}
 	return user;
 }

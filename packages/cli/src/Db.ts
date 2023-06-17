@@ -43,7 +43,6 @@ import {
 	VariablesRepository,
 	WebhookRepository,
 	WorkflowRepository,
-	WorkflowStatisticsRepository,
 	WorkflowTagMappingRepository,
 } from '@db/repositories';
 
@@ -189,7 +188,6 @@ export async function init(testConnectionOptions?: ConnectionOptions): Promise<v
 	collections.Variables = Container.get(VariablesRepository);
 	collections.Webhook = Container.get(WebhookRepository);
 	collections.Workflow = Container.get(WorkflowRepository);
-	collections.WorkflowStatistics = Container.get(WorkflowStatisticsRepository);
 	collections.WorkflowTagMapping = Container.get(WorkflowTagMappingRepository);
 }
 

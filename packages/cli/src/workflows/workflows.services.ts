@@ -11,7 +11,6 @@ import * as Db from '@/Db';
 import * as ResponseHelper from '@/ResponseHelper';
 import * as WorkflowHelpers from '@/WorkflowHelpers';
 import config from '@/config';
-import type { SharedWorkflow } from '@db/entities/SharedWorkflow';
 import type { User } from '@db/entities/User';
 import type { WorkflowEntity } from '@db/entities/WorkflowEntity';
 import { validateEntity } from '@/GenericHelpers';
@@ -47,24 +46,6 @@ const schemaGetWorkflowsQueryFilter = {
 const allowedWorkflowsQueryFilterFields = Object.keys(schemaGetWorkflowsQueryFilter.properties);
 
 export class WorkflowsService {
-	static async getSharing(
-		user: User,
-		workflowId: string,
-		relations: string[] = ['workflow'],
-		{ allowGlobalOwner } = { allowGlobalOwner: true },
-	): Promise<SharedWorkflow | null> {
-		const where: FindOptionsWhere<SharedWorkflow> = { workflowId };
-
-		// Omit user from where if the requesting user is the global
-		// owner. This allows the global owner to view and delete
-		// workflows they don't own.
-		if (!allowGlobalOwner || user.globalRole.name !== 'owner') {
-			where.userId = user.id;
-		}
-
-		return Db.collections.SharedWorkflow.findOne({ where, relations });
-	}
-
 	/**
 	 * Find the pinned trigger to execute the workflow from, if any.
 	 *

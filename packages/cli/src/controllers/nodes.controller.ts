@@ -1,4 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
+import { Service } from 'typedi';
+
+import config from '@/config';
 import {
 	RESPONSE_ERROR_MESSAGES,
 	STARTER_TEMPLATE_NAME,
@@ -29,24 +32,23 @@ import type { CommunityPackages } from '@/Interfaces';
 import { LoadNodesAndCredentials } from '@/LoadNodesAndCredentials';
 import { InternalHooks } from '@/InternalHooks';
 import { Push } from '@/push';
-import { Config } from '@/config';
 
 const { PACKAGE_NOT_INSTALLED, PACKAGE_NAME_NOT_PROVIDED } = RESPONSE_ERROR_MESSAGES;
 
+@Service()
 @Authorized(['global', 'owner'])
 @RestController('/nodes')
 export class NodesController {
 	constructor(
-		private config: Config,
-		private loadNodesAndCredentials: LoadNodesAndCredentials,
-		private push: Push,
-		private internalHooks: InternalHooks,
+		private readonly loadNodesAndCredentials: LoadNodesAndCredentials,
+		private readonly push: Push,
+		private readonly internalHooks: InternalHooks,
 	) {}
 
 	// TODO: move this into a new decorator `@IfConfig('executions.mode', 'queue')`
 	@Middleware()
 	checkIfCommunityNodesEnabled(req: Request, res: Response, next: NextFunction) {
-		if (this.config.getEnv('executions.mode') === 'queue' && req.method !== 'GET')
+		if (config.getEnv('executions.mode') === 'queue' && req.method !== 'GET')
 			res.status(400).json({
 				status: 'error',
 				message: 'Package management is disabled when running in "queue" mode',
@@ -173,7 +175,7 @@ export class NodesController {
 		let hydratedPackages = matchPackagesWithUpdates(installedPackages, pendingUpdates);
 
 		try {
-			const missingPackages = this.config.get('nodes.packagesMissing') as string | undefined;
+			const missingPackages = config.get('nodes.packagesMissing') as string | undefined;
 			if (missingPackages) {
 				hydratedPackages = matchMissingPackages(hydratedPackages, missingPackages);
 			}

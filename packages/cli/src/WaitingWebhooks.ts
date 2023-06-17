@@ -11,12 +11,16 @@ import * as WebhookHelpers from '@/WebhookHelpers';
 import { NodeTypes } from '@/NodeTypes';
 import type { IExecutionResponse, IResponseCallbackData, IWorkflowDb } from '@/Interfaces';
 import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData';
-import { getWorkflowOwner } from '@/UserManagement/UserManagementHelper';
-import { ExecutionRepository } from './databases/repositories';
+import { ExecutionRepository } from '@db/repositories';
+import { UserService } from '@/services/user.service';
 
 @Service()
 export class WaitingWebhooks {
-	constructor(private nodeTypes: NodeTypes, private executionRepository: ExecutionRepository) {}
+	constructor(
+		private readonly nodeTypes: NodeTypes,
+		private readonly userService: UserService,
+		private readonly executionRepository: ExecutionRepository,
+	) {}
 
 	async executeWebhook(
 		httpMethod: WebhookHttpMethod,
@@ -82,8 +86,9 @@ export class WaitingWebhooks {
 
 		const { workflowData } = fullExecutionData;
 
+		const workflowId = workflowData.id!;
 		const workflow = new Workflow({
-			id: workflowData.id!.toString(),
+			id: workflowId,
 			name: workflowData.name,
 			nodes: workflowData.nodes,
 			connections: workflowData.connections,
@@ -95,7 +100,7 @@ export class WaitingWebhooks {
 
 		let workflowOwner;
 		try {
-			workflowOwner = await getWorkflowOwner(workflowData.id!.toString());
+			workflowOwner = await this.userService.getWorkflowOwner(workflowId);
 		} catch (error) {
 			throw new ResponseHelper.NotFoundError('Could not find workflow');
 		}

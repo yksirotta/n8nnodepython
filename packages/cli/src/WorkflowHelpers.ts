@@ -19,6 +19,8 @@ import {
 	Workflow,
 } from 'n8n-workflow';
 import { v4 as uuid } from 'uuid';
+import omit from 'lodash/omit';
+
 import * as Db from '@/Db';
 import type {
 	ICredentialsDb,
@@ -30,13 +32,11 @@ import { WorkflowRunner } from '@/WorkflowRunner';
 import config from '@/config';
 import type { WorkflowEntity } from '@db/entities/WorkflowEntity';
 import type { User } from '@db/entities/User';
-import { RoleRepository } from '@db/repositories';
-import omit from 'lodash/omit';
-import { PermissionChecker } from './UserManagement/PermissionChecker';
+import type { SharedWorkflow } from '@db/entities/SharedWorkflow';
+import type { RoleNames } from '@db/entities/Role';
+import { RoleRepository, UserRepository } from '@db/repositories';
+import { PermissionService } from '@/services/permission.service';
 import { isWorkflowIdValid } from './utils';
-import { UserService } from './user/user.service';
-import type { SharedWorkflow } from './databases/entities/SharedWorkflow';
-import type { RoleNames } from './databases/entities/Role';
 
 const ERROR_TRIGGER_TYPE = config.getEnv('nodes.errorTriggerType');
 
@@ -118,7 +118,7 @@ export async function executeErrorWorkflow(
 		});
 
 		try {
-			await PermissionChecker.checkSubworkflowExecutePolicy(
+			await Container.get(PermissionService).checkSubworkflowExecutePolicy(
 				workflowInstance,
 				runningUser.id,
 				workflowErrorData.workflow.id,
@@ -434,7 +434,7 @@ export async function isBelowOnboardingThreshold(user: User): Promise<boolean> {
 
 	// user is above threshold --> set flag in settings
 	if (!belowThreshold) {
-		void UserService.updateUserSettings(user.id, { isOnboarded: true });
+		void Container.get(UserRepository).updateUserSettings(user.id, { isOnboarded: true });
 	}
 
 	return belowThreshold;

@@ -24,7 +24,7 @@ import { WorkflowEntity } from '@/databases/entities/WorkflowEntity';
 import { WorkflowTagMapping } from '@/databases/entities/WorkflowTagMapping';
 import { TagEntity } from '@/databases/entities/TagEntity';
 import { ActiveWorkflowRunner } from '../../ActiveWorkflowRunner';
-import type { SourceControllPullOptions } from './types/sourceControlPullWorkFolder';
+import type { SourceControlPullOptions } from './types/sourceControlPullWorkFolder';
 import { In } from 'typeorm';
 import { isUniqueConstraintError } from '../../ResponseHelper';
 
@@ -343,7 +343,7 @@ export class SourceControlImportService {
 		return importWorkflowsResult;
 	}
 
-	async importFromWorkFolder(options: SourceControllPullOptions): Promise<ImportResult> {
+	async importFromWorkFolder(options: SourceControlPullOptions): Promise<ImportResult> {
 		try {
 			const importedVariables = await this.importVariablesFromFile(options.variables);
 			const importedCredentials = await this.importCredentialsFromFiles(options.userId);

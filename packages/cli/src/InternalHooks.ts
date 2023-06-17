@@ -25,13 +25,14 @@ import type {
 } from '@/Interfaces';
 import { Telemetry } from '@/telemetry';
 import type { AuthProviderType } from '@db/entities/AuthIdentity';
-import { RoleService } from './role/role.service';
-import { eventBus } from './eventbus';
+import type { ExecutionMetadata } from '@db/entities/ExecutionMetadata';
 import type { User } from '@db/entities/User';
+import { ExecutionRepository } from '@db/repositories';
+import { RoleService } from '@/services/role.service';
+import { EventsService } from '@/services/events.service';
+import { eventBus } from '@/eventbus';
 import { N8N_VERSION } from '@/constants';
 import { NodeTypes } from './NodeTypes';
-import type { ExecutionMetadata } from './databases/entities/ExecutionMetadata';
-import { ExecutionRepository } from './databases/repositories';
 
 function userToPayload(user: User): {
 	userId: string;
@@ -58,7 +59,15 @@ export class InternalHooks implements IInternalHooksClass {
 		private nodeTypes: NodeTypes,
 		private roleService: RoleService,
 		private executionRepository: ExecutionRepository,
-	) {}
+		eventService: EventsService,
+	) {
+		eventService.on('telemetry.onFirstProductionWorkflowSuccess', async (metrics) =>
+			this.onFirstProductionWorkflowSuccess(metrics),
+		);
+		eventService.on('telemetry.onFirstWorkflowDataLoad', async (metrics) =>
+			this.onFirstWorkflowDataLoad(metrics),
+		);
+	}
 
 	async init(instanceId: string) {
 		this.instanceId = instanceId;

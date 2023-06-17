@@ -1,5 +1,5 @@
 import express from 'express';
-import { getInstanceBaseUrl } from '@/UserManagement/UserManagementHelper';
+import { Container, Service } from 'typedi';
 import { Authorized, Get, NoAuthRequired, Post, RestController } from '@/decorators';
 import { SamlUrls } from '../constants';
 import {
@@ -23,12 +23,13 @@ import {
 } from '../serviceProvider.ee';
 import { getSamlConnectionTestSuccessView } from '../views/samlConnectionTestSuccess';
 import { getSamlConnectionTestFailedView } from '../views/samlConnectionTestFailed';
-import Container from 'typedi';
 import { InternalHooks } from '@/InternalHooks';
+import { URLService } from '@/services/url.service';
 
+@Service()
 @RestController('/sso/saml')
 export class SamlController {
-	constructor(private samlService: SamlService) {}
+	constructor(private readonly samlService: SamlService, private readonly urlService: URLService) {}
 
 	@NoAuthRequired()
 	@Get(SamlUrls.metadata)
@@ -135,9 +136,9 @@ export class SamlController {
 				if (isSamlLicensedAndEnabled()) {
 					await issueCookie(res, loginResult.authenticatedUser);
 					if (loginResult.onboardingRequired) {
-						return res.redirect(getInstanceBaseUrl() + SamlUrls.samlOnboarding);
+						return res.redirect(this.urlService.instanceBaseUrl + SamlUrls.samlOnboarding);
 					} else {
-						return res.redirect(getInstanceBaseUrl() + SamlUrls.defaultRedirect);
+						return res.redirect(this.urlService.instanceBaseUrl + SamlUrls.defaultRedirect);
 					}
 				} else {
 					return res.status(202).send(loginResult.attributes);
