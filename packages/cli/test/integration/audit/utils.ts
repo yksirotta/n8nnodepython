@@ -1,12 +1,17 @@
 import nock from 'nock';
+import type { DeepPartial } from 'typeorm';
+import type { INode } from 'n8n-workflow';
 import config from '@/config';
 import { v4 as uuid } from 'uuid';
 import * as Db from '@/Db';
 import { toReportTitle } from '@/audit/utils';
 import * as constants from '@/constants';
 import type { Risk } from '@/audit/types';
+import type { CredentialsEntity } from '@db/entities/CredentialsEntity';
 import type { InstalledNodes } from '@db/entities/InstalledNodes';
 import type { InstalledPackages } from '@db/entities/InstalledPackages';
+import type { WorkflowEntity } from '@db/entities/WorkflowEntity';
+import { generateNanoId } from '@db/utils/generators';
 
 type GetSectionKind<C extends Risk.Category> = C extends 'instance'
 	? Risk.InstanceSection
@@ -34,24 +39,46 @@ export function getRiskSection<C extends Risk.Category>(
 	throw new Error(`Expected section "${sectionTitle}" for risk "${riskCategory}"`);
 }
 
-export async function saveManualTriggerWorkflow() {
-	const details = {
-		id: '1',
-		name: 'My Test Workflow',
-		active: false,
-		connections: {},
-		nodeTypes: {},
-		nodes: [
-			{
-				id: uuid(),
-				name: 'My Node',
-				type: 'n8n-nodes-base.manualTrigger',
-				typeVersion: 1,
-				position: [0, 0] as [number, number],
-			},
-		],
-	};
+export const createNode = (
+	type: string,
+	name: string,
+	id = uuid(),
+	parameters = {},
+	credentials = {},
+) => ({
+	id,
+	name,
+	type,
+	typeVersion: 1,
+	position: [0, 0] as [number, number],
+	parameters,
+	credentials,
+});
 
+export const createCredentialDetails = (): DeepPartial<CredentialsEntity> => ({
+	id: generateNanoId(),
+	name: 'My Slack Credential',
+	data: 'U2FsdGVkX18WjITBG4IDqrGB1xE/uzVNjtwDAG3lP7E=',
+	type: 'slackApi',
+	nodesAccess: [{ nodeType: 'n8n-nodes-base.slack', date: '2022-12-21T11:23:00.561Z' }],
+});
+
+export const createWorkflowDetails = (
+	nodes: INode[],
+	active = false,
+): DeepPartial<WorkflowEntity> => {
+	const id = generateNanoId();
+	return {
+		id,
+		name: `My Test Workflow ${id}`,
+		active,
+		connections: {},
+		nodes,
+	};
+};
+
+export async function saveManualTriggerWorkflow() {
+	const details = createWorkflowDetails([createNode('manualTrigger', 'My Node')]);
 	return Db.collections.Workflow.save(details);
 }
 
