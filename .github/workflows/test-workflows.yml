@@ -3,6 +3,11 @@ name: Run test workflows
 on:
   schedule:
     - cron: '0 2 * * *'
+  pull_request:
+    branches:
+      - release/patch
+      - release/minor
+      - release/major
   workflow_dispatch:
 
 jobs:
