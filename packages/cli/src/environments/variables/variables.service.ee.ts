@@ -1,7 +1,7 @@
 import { Container, Service } from 'typedi';
 import type { Variables } from '@db/entities/Variables';
 import { InternalHooks } from '@/InternalHooks';
-import { generateNanoId } from '@db/utils/generators';
+import { generateId } from '@db/utils/generators';
 import { canCreateNewVariable } from './environmentHelpers';
 import { CacheService } from '@/services/cache/cache.service';
 import { VariablesRepository } from '@db/repositories/variables.repository';
@@ -73,7 +73,7 @@ export class VariablesService {
 		void Container.get(InternalHooks).onVariableCreated({ variable_type: variable.type });
 		const saveResult = await this.variablesRepository.save({
 			...variable,
-			id: generateNanoId(),
+			id: generateId(),
 		});
 		await this.updateCache();
 		return saveResult;

@@ -2,7 +2,7 @@ import { mock } from 'jest-mock-extended';
 import { TestWebhooks } from '@/TestWebhooks';
 import { WebhookNotFoundError } from '@/errors/response-errors/webhook-not-found.error';
 import { v4 as uuid } from 'uuid';
-import { generateNanoId } from '@/databases/utils/generators';
+import { generateId } from '@/databases/utils/generators';
 import { NotFoundError } from '@/errors/response-errors/not-found.error';
 import * as WebhookHelpers from '@/WebhookHelpers';
 import type * as express from 'express';
@@ -20,7 +20,7 @@ jest.mock('@/WorkflowExecuteAdditionalData');
 
 const mockedAdditionalData = AdditionalData as jest.Mocked<typeof AdditionalData>;
 
-const workflowEntity = mock<IWorkflowDb>({ id: generateNanoId(), nodes: [] });
+const workflowEntity = mock<IWorkflowDb>({ id: generateId(), nodes: [] });
 
 const httpMethod = 'GET';
 const path = uuid();

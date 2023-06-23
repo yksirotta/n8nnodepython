@@ -8,7 +8,7 @@ import {
 } from '@n8n/typeorm';
 import config from '@/config';
 import type { Class } from 'n8n-core';
-import { generateNanoId } from '../utils/generators';
+import { generateId } from '../utils/generators';
 
 const dbType = config.getEnv('database.type');
 
@@ -36,7 +36,7 @@ function mixinStringId<T extends Class<{}, any[]>>(base: T) {
 		@BeforeInsert()
 		generateId() {
 			if (!this.id) {
-				this.id = generateNanoId();
+				this.id = generateId();
 			}
 		}
 	}

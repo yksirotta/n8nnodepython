@@ -4,7 +4,7 @@ import { SecurityAuditService } from '@/security-audit/SecurityAudit.service';
 import { CREDENTIALS_REPORT } from '@/security-audit/constants';
 import { getRiskSection } from './utils';
 import * as testDb from '../shared/testDb';
-import { generateNanoId } from '@db/utils/generators';
+import { generateId } from '@db/utils/generators';
 import { WorkflowRepository } from '@db/repositories/workflow.repository';
 import Container from 'typedi';
 import { CredentialsRepository } from '@db/repositories/credentials.repository';
@@ -29,7 +29,7 @@ afterAll(async () => {
 
 test('should report credentials not in any use', async () => {
 	const credentialDetails = {
-		id: generateNanoId(),
+		id: generateId(),
 		name: 'My Slack Credential',
 		data: 'U2FsdGVkX18WjITBG4IDqrGB1xE/uzVNjtwDAG3lP7E=',
 		type: 'slackApi',
@@ -37,7 +37,7 @@ test('should report credentials not in any use', async () => {
 	};
 
 	const workflowDetails = {
-		id: generateNanoId(),
+		id: generateId(),
 		name: 'My Test Workflow',
 		active: false,
 		connections: {},
@@ -75,7 +75,7 @@ test('should report credentials not in any use', async () => {
 
 test('should report credentials not in active use', async () => {
 	const credentialDetails = {
-		id: generateNanoId(),
+		id: generateId(),
 		name: 'My Slack Credential',
 		data: 'U2FsdGVkX18WjITBG4IDqrGB1xE/uzVNjtwDAG3lP7E=',
 		type: 'slackApi',
@@ -85,7 +85,7 @@ test('should report credentials not in active use', async () => {
 	const credential = await Container.get(CredentialsRepository).save(credentialDetails);
 
 	const workflowDetails = {
-		id: generateNanoId(),
+		id: generateId(),
 		name: 'My Test Workflow',
 		active: false,
 		connections: {},
@@ -120,7 +120,7 @@ test('should report credentials not in active use', async () => {
 
 test('should report credential in not recently executed workflow', async () => {
 	const credentialDetails = {
-		id: generateNanoId(),
+		id: generateId(),
 		name: 'My Slack Credential',
 		data: 'U2FsdGVkX18WjITBG4IDqrGB1xE/uzVNjtwDAG3lP7E=',
 		type: 'slackApi',
@@ -130,7 +130,7 @@ test('should report credential in not recently executed workflow', async () => {
 	const credential = await Container.get(CredentialsRepository).save(credentialDetails);
 
 	const workflowDetails = {
-		id: generateNanoId(),
+		id: generateId(),
 		name: 'My Test Workflow',
 		active: false,
 		connections: {},
@@ -188,7 +188,7 @@ test('should report credential in not recently executed workflow', async () => {
 
 test('should not report credentials in recently executed workflow', async () => {
 	const credentialDetails = {
-		id: generateNanoId(),
+		id: generateId(),
 		name: 'My Slack Credential',
 		data: 'U2FsdGVkX18WjITBG4IDqrGB1xE/uzVNjtwDAG3lP7E=',
 		type: 'slackApi',
@@ -198,7 +198,7 @@ test('should not report credentials in recently executed workflow', async () => 
 	const credential = await Container.get(CredentialsRepository).save(credentialDetails);
 
 	const workflowDetails = {
-		id: generateNanoId(),
+		id: generateId(),
 		name: 'My Test Workflow',
 		active: true,
 		connections: {},

@@ -2,7 +2,7 @@ import { WorkflowRepository } from '@/databases/repositories/workflow.repository
 import { ActiveWorkflowRunner } from '@/ActiveWorkflowRunner';
 import { mockInstance } from '../shared/mocking';
 import { randomName } from './shared/random';
-import { generateNanoId } from '@/databases/utils/generators';
+import { generateId } from '@/databases/utils/generators';
 import type { WorkflowEntity } from '@/databases/entities/WorkflowEntity';
 import { setupTestServer } from './shared/utils';
 import type { SuperAgentTest } from 'supertest';
@@ -25,7 +25,7 @@ describe('DebugController', () => {
 
 	describe('GET /debug/multi-main-setup', () => {
 		test('should return multi-main setup details', async () => {
-			const workflowId = generateNanoId();
+			const workflowId = generateId();
 			const webhooks = [{ id: workflowId, name: randomName() }] as WorkflowEntity[];
 			const triggersAndPollers = [{ id: workflowId, name: randomName() }] as WorkflowEntity[];
 			const activationErrors = { [workflowId]: 'Failed to activate' };

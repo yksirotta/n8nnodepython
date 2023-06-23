@@ -8,7 +8,7 @@ import { User } from '@db/entities/User';
 import { WorkflowRepository } from '@db/repositories/workflow.repository';
 import { SharedWorkflowRepository } from '@db/repositories/sharedWorkflow.repository';
 import { UserRepository } from '@/databases/repositories/user.repository';
-import { generateNanoId } from '@/databases/utils/generators';
+import { generateId } from '@/databases/utils/generators';
 import { License } from '@/License';
 import { LoadNodesAndCredentials } from '@/LoadNodesAndCredentials';
 import { NodeTypes } from '@/NodeTypes';
@@ -33,7 +33,7 @@ export const toTargetCallErrorMsg = (subworkflowId: string) =>
 
 export function createParentWorkflow() {
 	return Container.get(WorkflowRepository).create({
-		id: generateNanoId(),
+		id: generateId(),
 		name: randomName(),
 		active: false,
 		connections: {},

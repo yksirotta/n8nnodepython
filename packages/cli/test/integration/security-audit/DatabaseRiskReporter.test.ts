@@ -7,7 +7,7 @@ import {
 } from '@/security-audit/constants';
 import { getRiskSection, saveManualTriggerWorkflow } from './utils';
 import * as testDb from '../shared/testDb';
-import { generateNanoId } from '@db/utils/generators';
+import { generateId } from '@db/utils/generators';
 import { WorkflowRepository } from '@db/repositories/workflow.repository';
 import Container from 'typedi';
 
@@ -34,7 +34,7 @@ test('should report expressions in queries', async () => {
 
 	const promises = Object.entries(map).map(async ([nodeType, nodeId]) => {
 		const details = {
-			id: generateNanoId(),
+			id: generateId(),
 			name: 'My Test Workflow',
 			active: false,
 			connections: {},
@@ -87,7 +87,7 @@ test('should report expressions in query params', async () => {
 
 	const promises = Object.entries(map).map(async ([nodeType, nodeId]) => {
 		const details = {
-			id: generateNanoId(),
+			id: generateId(),
 			name: 'My Test Workflow',
 			active: false,
 			connections: {},
@@ -142,7 +142,7 @@ test('should report unused query params', async () => {
 
 	const promises = Object.entries(map).map(async ([nodeType, nodeId]) => {
 		const details = {
-			id: generateNanoId(),
+			id: generateId(),
 			name: 'My Test Workflow',
 			active: false,
 			connections: {},

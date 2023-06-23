@@ -1,12 +1,8 @@
-import { customAlphabet } from 'nanoid';
+import humanId from 'human-id';
 import type { N8nInstanceType } from '@/Interfaces';
 
-const nanoid = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 16);
-
-export function generateNanoId() {
-	return nanoid();
-}
+export const generateId = () => humanId({ capitalize: false, separator: '-', adjectiveCount: 2 });
 
 export function generateHostInstanceId(instanceType: N8nInstanceType) {
-	return `${instanceType}-${nanoid()}`;
+	return `${instanceType}-${generateId()}`;
 }

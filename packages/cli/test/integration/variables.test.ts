@@ -2,7 +2,7 @@ import Container from 'typedi';
 import type { SuperAgentTest } from 'supertest';
 import type { Variables } from '@db/entities/Variables';
 import { VariablesRepository } from '@db/repositories/variables.repository';
-import { generateNanoId } from '@db/utils/generators';
+import { generateId } from '@db/utils/generators';
 import { VariablesService } from '@/environments/variables/variables.service.ee';
 
 import * as testDb from './shared/testDb';
@@ -17,7 +17,7 @@ const license = testServer.license;
 
 async function createVariable(key: string, value: string) {
 	const result = await Container.get(VariablesRepository).save({
-		id: generateNanoId(),
+		id: generateId(),
 		key,
 		value,
 	});

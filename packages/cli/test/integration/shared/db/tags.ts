@@ -3,7 +3,7 @@ import type { TagEntity } from '@db/entities/TagEntity';
 import type { WorkflowEntity } from '@db/entities/WorkflowEntity';
 import { TagRepository } from '@db/repositories/tag.repository';
 import { WorkflowTagMappingRepository } from '@db/repositories/workflowTagMapping.repository';
-import { generateNanoId } from '@db/utils/generators';
+import { generateId } from '@db/utils/generators';
 
 import { randomName } from '../random';
 
@@ -11,7 +11,7 @@ export async function createTag(attributes: Partial<TagEntity> = {}, workflow?: 
 	const { name } = attributes;
 
 	const tag = await Container.get(TagRepository).save({
-		id: generateNanoId(),
+		id: generateId(),
 		name: name ?? randomName(),
 		...attributes,
 	});
