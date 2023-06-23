@@ -11,6 +11,7 @@ import {
 	generateIPv6,
 	generateLocation,
 	generateMAC,
+	generateHumanReadableId,
 	generateNanoid,
 	generateRandomAddress,
 	generateRandomEmail,
@@ -18,6 +19,7 @@ import {
 	generateURL,
 	generateUUID,
 	generateVersion,
+	type HumanReadableCasing,
 } from './randomData';
 import { setSeed, array as mfArray } from 'minifaker';
 import { generateGarbageMemory, runGarbageCollector } from './functions';
@@ -140,6 +142,10 @@ export class DebugHelper implements INodeType {
 						value: 'email',
 					},
 					{
+						name: 'Human Readable IDs',
+						value: 'humanReadableId',
+					},
+					{
 						name: 'IPv4',
 						value: 'ipv4',
 					},
@@ -176,6 +182,34 @@ export class DebugHelper implements INodeType {
 				displayOptions: {
 					show: {
 						category: ['randomData'],
+					},
+				},
+			},
+			{
+				displayName: 'Human Readable ID Case',
+				name: 'humanReadableIdCase',
+				type: 'options',
+				noDataExpression: true,
+				options: [
+					{
+						name: 'kebab-case',
+						value: 'kebab-case',
+					},
+					{
+						// eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
+						name: 'snake_case',
+						value: 'snake_case',
+					},
+					{
+						name: 'PascalCase',
+						value: 'PascalCase',
+					},
+				],
+				default: 'kebab-case',
+				displayOptions: {
+					show: {
+						category: ['randomData'],
+						randomDataType: ['humanReadableId'],
 					},
 				},
 			},
@@ -334,6 +368,13 @@ export class DebugHelper implements INodeType {
 								break;
 							case 'url':
 								randomFn = generateURL;
+								break;
+							case 'humanReadableId':
+								const casing = this.getNodeParameter(
+									'humanReadableIdCase',
+									0,
+								) as HumanReadableCasing;
+								randomFn = () => generateHumanReadableId(casing);
 								break;
 							case 'nanoid':
 								const nanoidAlphabet = this.getNodeParameter('nanoidAlphabet', 0) as string;

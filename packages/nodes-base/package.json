@@ -795,6 +795,7 @@
     "formidable": "^1.2.1",
     "get-system-fonts": "^2.0.2",
     "gm": "^1.25.0",
+    "human-id": "^4.0.0",
     "iconv-lite": "^0.6.2",
     "ics": "^2.27.0",
     "imap-simple": "^4.3.0",

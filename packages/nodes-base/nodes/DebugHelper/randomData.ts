@@ -22,6 +22,7 @@ import {
 	number,
 } from 'minifaker';
 import 'minifaker/locales/en';
+import humanId, { Options as HumanIdOptions } from 'human-id';
 
 export function generateRandomUser() {
 	return {
@@ -55,6 +56,14 @@ export function generateRandomEmail() {
 export function generateUUID() {
 	return { uuid: uuid.v4() };
 }
+
+export type HumanReadableCasing = 'snake_case' | 'kebab-case' | 'PascalCase';
+export const generateHumanReadableId = (casing: HumanReadableCasing = 'kebab-case') => ({
+	humanId: humanId({
+		capitalize: casing === 'PascalCase',
+		separator: casing === 'snake_case' ? '_' : casing === 'kebab-case' ? '-' : '',
+	}),
+});
 
 export function generateNanoid(customAlphabet: string, length: string) {
 	return { nanoId: nanoId.customAlphabet(customAlphabet, parseInt(length, 10))().toString() };
