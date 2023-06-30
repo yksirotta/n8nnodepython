@@ -64,25 +64,13 @@ export class ActiveWebhooks {
 		this.webhookUrls[webhookKey].push(webhookData);
 
 		try {
-			const webhookExists = await workflow.runWebhookMethod(
-				'checkExists',
+			await workflow.createWebhookIfNotExists(
 				webhookData,
 				NodeExecuteFunctions,
 				mode,
 				activation,
 				this.testWebhooks,
 			);
-			if (webhookExists !== true) {
-				// If webhook does not exist yet create it
-				await workflow.runWebhookMethod(
-					'create',
-					webhookData,
-					NodeExecuteFunctions,
-					mode,
-					activation,
-					this.testWebhooks,
-				);
-			}
 		} catch (error) {
 			// If there was a problem unregister the webhook again
 			if (this.webhookUrls[webhookKey].length <= 1) {
@@ -193,8 +181,7 @@ export class ActiveWebhooks {
 		// eslint-disable-next-line no-restricted-syntax
 		for (const webhookData of webhooks) {
 			// eslint-disable-next-line no-await-in-loop
-			await workflow.runWebhookMethod(
-				'delete',
+			await workflow.deleteWebhook(
 				webhookData,
 				NodeExecuteFunctions,
 				mode,
