@@ -12,12 +12,17 @@ import { SSEPush } from './sse.push';
 import { WebSocketPush } from './websocket.push';
 import type { PushResponse, SSEPushRequest, WebSocketPushRequest } from './types';
 import type { IPushDataType } from '@/Interfaces';
+import { LoadNodesAndCredentials } from '@/LoadNodesAndCredentials';
 
 const useWebSockets = config.getEnv('push.backend') === 'websocket';
 
 @Service()
 export class Push {
 	private backend = useWebSockets ? new WebSocketPush() : new SSEPush();
+
+	constructor(nodesAndCredentials: LoadNodesAndCredentials) {
+		nodesAndCredentials.on('nodes:updated', () => this.send('nodeDescriptionUpdated', undefined));
+	}
 
 	handleRequest(req: SSEPushRequest | WebSocketPushRequest, res: PushResponse) {
 		if (req.ws) {

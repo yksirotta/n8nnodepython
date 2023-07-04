@@ -23,6 +23,7 @@ import { generateFailedExecutionFromError } from '@/WorkflowHelpers';
 import { N8N_VERSION } from '@/constants';
 import { BaseCommand } from './BaseCommand';
 import { ExecutionRepository } from '@/databases/repositories';
+import { NodeTypes } from '@/NodeTypes';
 
 export class Worker extends BaseCommand {
 	static description = '\nStarts a n8n worker';
@@ -241,12 +242,11 @@ export class Worker extends BaseCommand {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const redisConnectionTimeoutLimit = config.getEnv('queue.bull.redis.timeoutThreshold');
 
+		const nodeTypes = Container.get(NodeTypes);
 		const queue = Container.get(Queue);
 		await queue.init();
 		Worker.jobQueue = queue.getBullObjectInstance();
-		void Worker.jobQueue.process(flags.concurrency, async (job) =>
-			this.runJob(job, this.nodeTypes),
-		);
+		void Worker.jobQueue.process(flags.concurrency, async (job) => this.runJob(job, nodeTypes));
 
 		this.logger.info('\nn8n worker is now ready');
 		this.logger.info(` * Version: ${N8N_VERSION}`);

@@ -2,13 +2,9 @@ import path from 'path';
 import { realpath, access } from 'fs/promises';
 
 import type { LoadNodesAndCredentials } from '@/LoadNodesAndCredentials';
-import type { NodeTypes } from '@/NodeTypes';
-import type { Push } from '@/push';
 
 export const reloadNodesAndCredentials = async (
 	loadNodesAndCredentials: LoadNodesAndCredentials,
-	nodeTypes: NodeTypes,
-	push: Push,
 ) => {
 	// eslint-disable-next-line import/no-extraneous-dependencies
 	const { default: debounce } = await import('lodash/debounce');
@@ -34,10 +30,8 @@ export const reloadNodesAndCredentials = async (
 
 			loader.reset();
 			await loader.loadAll();
-			await loadNodesAndCredentials.postProcessLoaders();
-			await loadNodesAndCredentials.generateTypesForFrontend();
-			nodeTypes.applySpecialNodeParameters();
-			push.send('nodeDescriptionUpdated', undefined);
+
+			loadNodesAndCredentials.emit('nodes:post-process');
 		}, 100);
 
 		const toWatch = loader.isLazyLoaded

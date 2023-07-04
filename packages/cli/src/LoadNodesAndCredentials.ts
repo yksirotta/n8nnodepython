@@ -1,3 +1,5 @@
+import { Service } from 'typedi';
+import { EventEmitter } from 'events';
 import uniq from 'lodash/uniq';
 import glob from 'fast-glob';
 import type { DirectoryLoader, Types } from 'n8n-core';
@@ -33,10 +35,9 @@ import {
 	CLI_DIR,
 } from '@/constants';
 import { CredentialsOverwrites } from '@/CredentialsOverwrites';
-import { Service } from 'typedi';
 
 @Service()
-export class LoadNodesAndCredentials implements INodesAndCredentials {
+export class LoadNodesAndCredentials extends EventEmitter implements INodesAndCredentials {
 	known: KnownNodesAndCredentials = { nodes: {}, credentials: {} };
 
 	loaded: LoadedNodesAndCredentials = { nodes: {}, credentials: {} };
@@ -54,6 +55,17 @@ export class LoadNodesAndCredentials implements INodesAndCredentials {
 	logger: ILogger;
 
 	private downloadFolder: string;
+
+	constructor() {
+		super();
+
+		this.on('nodes:post-process', async () => {
+			await this.postProcessLoaders();
+			await this.generateTypesForFrontend();
+			this.injectCustomApiCallOptions();
+			this.emit('nodes:apply-special-parameters');
+		});
+	}
 
 	async init() {
 		// Make sure the imported modules can resolve dependencies fine.
@@ -83,7 +95,6 @@ export class LoadNodesAndCredentials implements INodesAndCredentials {
 
 		await this.loadNodesFromCustomDirectories();
 		await this.postProcessLoaders();
-		this.injectCustomApiCallOptions();
 	}
 
 	async generateTypesForFrontend() {
@@ -203,8 +214,7 @@ export class LoadNodesAndCredentials implements INodesAndCredentials {
 				);
 				if (isUpdate) await removePackageFromDatabase(options.installedPackage);
 				const installedPackage = await persistInstalledPackageData(loader);
-				await this.postProcessLoaders();
-				await this.generateTypesForFrontend();
+				this.emit('nodes:post-process');
 				return installedPackage;
 			} catch (error) {
 				LoggerProxy.error('Failed to save installed packages and nodes', {
@@ -241,8 +251,7 @@ export class LoadNodesAndCredentials implements INodesAndCredentials {
 			delete this.loaders[packageName];
 		}
 
-		await this.postProcessLoaders();
-		await this.generateTypesForFrontend();
+		this.emit('nodes:post-process');
 	}
 
 	async updateNpmModule(

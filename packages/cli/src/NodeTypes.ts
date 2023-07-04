@@ -13,12 +13,14 @@ import { LoadNodesAndCredentials } from './LoadNodesAndCredentials';
 
 @Service()
 export class NodeTypes implements INodeTypes {
-	constructor(private nodesAndCredentials: LoadNodesAndCredentials) {}
-
-	init() {
+	constructor(private nodesAndCredentials: LoadNodesAndCredentials) {
 		// Some nodeTypes need to get special parameters applied like the
 		// polling nodes the polling times
-		this.applySpecialNodeParameters();
+		nodesAndCredentials.on('nodes:apply-special-parameters', () => {
+			this.applySpecialNodeParameters();
+
+			nodesAndCredentials.emit('nodes:updated');
+		});
 	}
 
 	/**

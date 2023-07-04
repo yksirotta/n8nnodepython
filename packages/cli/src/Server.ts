@@ -396,7 +396,7 @@ export class Server extends AbstractServer {
 
 		if (inDevelopment && process.env.N8N_DEV_RELOAD === 'true') {
 			const { reloadNodesAndCredentials } = await import('@/ReloadNodesAndCredentials');
-			await reloadNodesAndCredentials(this.loadNodesAndCredentials, this.nodeTypes, this.push);
+			await reloadNodesAndCredentials(this.loadNodesAndCredentials);
 		}
 
 		void Db.collections.Workflow.findOne({
