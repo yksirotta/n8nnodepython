@@ -61,8 +61,8 @@ export class LoadNodesAndCredentials extends EventEmitter implements INodesAndCr
 
 		this.on('nodes:post-process', async () => {
 			await this.postProcessLoaders();
-			await this.generateTypesForFrontend();
 			this.injectCustomApiCallOptions();
+			await this.generateTypesForFrontend(); // TODO: skip for worker/webhook
 			this.emit('nodes:apply-special-parameters');
 		});
 	}
@@ -94,10 +94,11 @@ export class LoadNodesAndCredentials extends EventEmitter implements INodesAndCr
 		}
 
 		await this.loadNodesFromCustomDirectories();
-		await this.postProcessLoaders();
+
+		this.emit('nodes:post-process');
 	}
 
-	async generateTypesForFrontend() {
+	private async generateTypesForFrontend() {
 		const credentialsOverwrites = CredentialsOverwrites().getAll();
 		for (const credential of this.types.credentials) {
 			const overwrittenProperties = [];
@@ -328,7 +329,7 @@ export class LoadNodesAndCredentials extends EventEmitter implements INodesAndCr
 		return loader;
 	}
 
-	async postProcessLoaders() {
+	private async postProcessLoaders() {
 		this.known = { nodes: {}, credentials: {} };
 		this.loaded = { nodes: {}, credentials: {} };
 		this.types = { nodes: [], credentials: [] };

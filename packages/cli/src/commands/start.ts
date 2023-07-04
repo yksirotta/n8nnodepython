@@ -219,8 +219,6 @@ export class Start extends BaseCommand {
 			config.set('userManagement.jwtSecret', createHash('sha256').update(baseKey).digest('hex'));
 		}
 
-		await this.loadNodesAndCredentials.generateTypesForFrontend();
-
 		const installedPackages = await getAllInstalledPackages();
 		const missingPackages = new Set<{
 			packageName: string;

@@ -1433,7 +1433,7 @@ export class Server extends AbstractServer {
 
 						CredentialsOverwrites().setData(body);
 
-						await this.loadNodesAndCredentials.generateTypesForFrontend();
+						this.loadNodesAndCredentials.emit('nodes:post-process');
 
 						this.presetCredentialsLoaded = true;
 
