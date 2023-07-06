@@ -77,3 +77,27 @@ config.validate({
 // eslint-disable-next-line import/no-default-export
 export default config;
 export type Config = typeof config;
+
+class EnvParsingDecorators {
+	fromEnv(envName: string): PropertyDecorator {
+		const decoratorHandler = (target: object, key: string) => {
+			console.log(envName, target, key);
+		};
+		// decoratorHandler.
+		return decoratorHandler;
+	}
+}
+const { fromEnv } = new EnvParsingDecorators();
+
+class DatabaseConfig {
+	/** Type of database to use */
+	@fromEnv('DB_TYPE')
+	type: 'sqlite' | 'mariadb' | 'mysqldb' | 'postgresdb' = 'sqlite';
+}
+
+export class Configx {
+	database: DatabaseConfig;
+}
+
+// const x: Configx;
+// console.log(x.database.type);
