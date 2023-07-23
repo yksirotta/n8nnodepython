@@ -18,10 +18,8 @@ RUN set -eux; \
 	find /usr/local/lib/node_modules/n8n -type f -name "*.ts" -o -name "*.js.map" -o -name "*.vue" | xargs rm && \
 	rm -rf /root/.npm
 
-COPY docker-entrypoint.sh /
-
 RUN \
 	mkdir .n8n && \
 	chown node:node .n8n
 USER node
-ENTRYPOINT ["tini", "--", "/docker-entrypoint.sh"]
+ENTRYPOINT ["tini", "--", "n8n"]

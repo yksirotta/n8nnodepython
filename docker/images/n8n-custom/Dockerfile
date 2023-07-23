@@ -29,11 +29,9 @@ FROM n8nio/base:${NODE_VERSION}
 COPY --from=builder /home/node /usr/local/lib/node_modules/n8n
 RUN ln -s /usr/local/lib/node_modules/n8n/packages/cli/bin/n8n /usr/local/bin/n8n
 
-COPY docker/images/n8n/docker-entrypoint.sh /
-
 RUN \
 	mkdir .n8n && \
 	chown node:node .n8n
 USER node
 ENV NODE_ENV=production
-ENTRYPOINT ["tini", "--", "/docker-entrypoint.sh"]
+ENTRYPOINT ["tini", "--", "n8n"]
