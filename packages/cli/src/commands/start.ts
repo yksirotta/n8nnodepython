@@ -23,11 +23,11 @@ import * as Db from '@/Db';
 import * as GenericHelpers from '@/GenericHelpers';
 import { Server } from '@/Server';
 import { TestWebhooks } from '@/TestWebhooks';
-import { getAllInstalledPackages } from '@/CommunityNodes/packageModel';
 import { EDITOR_UI_DIST_DIR, GENERATED_STATIC_DIR } from '@/constants';
 import { eventBus } from '@/eventbus';
 import { BaseCommand } from './BaseCommand';
 import { InternalHooks } from '@/InternalHooks';
+import { CommunityNodesService } from '@/services/community-nodes.service';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const open = require('open');
@@ -232,7 +232,9 @@ export class Start extends BaseCommand {
 		const areCommunityPackagesEnabled = config.getEnv('nodes.communityPackages.enabled');
 
 		if (areCommunityPackagesEnabled) {
-			const installedPackages = await getAllInstalledPackages();
+			const installedPackages = await Container.get(
+				CommunityNodesService,
+			).getAllInstalledPackages();
 			const missingPackages = new Set<{
 				packageName: string;
 				version: string;

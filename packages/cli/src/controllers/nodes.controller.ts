@@ -17,19 +17,14 @@ import {
 	matchPackagesWithUpdates,
 	parseNpmPackageName,
 	removePackageFromMissingList,
-	sanitizeNpmPackageName,
 } from '@/CommunityNodes/helpers';
-import {
-	findInstalledPackage,
-	getAllInstalledPackages,
-	isPackageInstalled,
-} from '@/CommunityNodes/packageModel';
 import type { InstalledPackages } from '@db/entities/InstalledPackages';
 import type { CommunityPackages } from '@/Interfaces';
 import { LoadNodesAndCredentials } from '@/LoadNodesAndCredentials';
 import { InternalHooks } from '@/InternalHooks';
 import { Push } from '@/push';
 import { Config } from '@/config';
+import { CommunityNodesService } from '@/services/community-nodes.service';
 
 const { PACKAGE_NOT_INSTALLED, PACKAGE_NAME_NOT_PROVIDED } = RESPONSE_ERROR_MESSAGES;
 
@@ -41,6 +36,7 @@ export class NodesController {
 		private loadNodesAndCredentials: LoadNodesAndCredentials,
 		private push: Push,
 		private internalHooks: InternalHooks,
+		private communityNodesService: CommunityNodesService,
 	) {}
 
 	// TODO: move this into a new decorator `@IfConfig('executions.mode', 'queue')`
@@ -81,7 +77,7 @@ export class NodesController {
 			);
 		}
 
-		const isInstalled = await isPackageInstalled(parsed.packageName);
+		const isInstalled = await this.communityNodesService.isPackageInstalled(parsed.packageName);
 		const hasLoaded = hasPackageLoaded(name);
 
 		if (isInstalled && hasLoaded) {
@@ -152,7 +148,7 @@ export class NodesController {
 
 	@Get('/')
 	async getInstalledPackages() {
-		const installedPackages = await getAllInstalledPackages();
+		const installedPackages = await this.communityNodesService.getAllInstalledPackages();
 
 		if (installedPackages.length === 0) return [];
 
@@ -191,14 +187,14 @@ export class NodesController {
 		}
 
 		try {
-			sanitizeNpmPackageName(name);
+			parseNpmPackageName(name);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : UNKNOWN_FAILURE_REASON;
 
 			throw new BadRequestError(message);
 		}
 
-		const installedPackage = await findInstalledPackage(name);
+		const installedPackage = await this.communityNodesService.findInstalledPackage(name);
 
 		if (!installedPackage) {
 			throw new BadRequestError(PACKAGE_NOT_INSTALLED);
@@ -241,8 +237,7 @@ export class NodesController {
 			throw new BadRequestError(PACKAGE_NAME_NOT_PROVIDED);
 		}
 
-		const previouslyInstalledPackage = await findInstalledPackage(name);
-
+		const previouslyInstalledPackage = await this.communityNodesService.findInstalledPackage(name);
 		if (!previouslyInstalledPackage) {
 			throw new BadRequestError(PACKAGE_NOT_INSTALLED);
 		}

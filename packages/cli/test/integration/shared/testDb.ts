@@ -20,7 +20,11 @@ import type { Role } from '@db/entities/Role';
 import type { TagEntity } from '@db/entities/TagEntity';
 import type { User } from '@db/entities/User';
 import { WorkflowEntity } from '@db/entities/WorkflowEntity';
-import { RoleRepository } from '@db/repositories';
+import {
+	InstalledNodesRepository,
+	InstalledPackagesRepository,
+	RoleRepository,
+} from '@db/repositories';
 import type { ICredentialsDb } from '@/Interfaces';
 
 import { DB_INITIALIZATION_TIMEOUT } from './constants';
@@ -248,22 +252,17 @@ export async function createManyUsers(
 export async function saveInstalledPackage(
 	installedPackagePayload: InstalledPackagePayload,
 ): Promise<InstalledPackages> {
-	const newInstalledPackage = new InstalledPackages();
-
-	Object.assign(newInstalledPackage, installedPackagePayload);
-
-	const savedInstalledPackage = await Db.collections.InstalledPackages.save(newInstalledPackage);
-	return savedInstalledPackage;
+	const repo = Container.get(InstalledPackagesRepository);
+	const newInstalledPackage = repo.create(installedPackagePayload);
+	return repo.save(newInstalledPackage);
 }
 
 export async function saveInstalledNode(
 	installedNodePayload: InstalledNodePayload,
 ): Promise<InstalledNodes> {
-	const newInstalledNode = new InstalledNodes();
-
-	Object.assign(newInstalledNode, installedNodePayload);
-
-	return Db.collections.InstalledNodes.save(newInstalledNode);
+	const repo = Container.get(InstalledNodesRepository);
+	const newInstalledNode = repo.create(installedNodePayload);
+	return repo.save(newInstalledNode);
 }
 
 export async function addApiKey(user: User): Promise<User> {

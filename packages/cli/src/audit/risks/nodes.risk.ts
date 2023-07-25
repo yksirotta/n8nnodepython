@@ -1,8 +1,8 @@
 import * as path from 'path';
 import glob from 'fast-glob';
+import { Container } from 'typedi';
 import { LoadNodesAndCredentials } from '@/LoadNodesAndCredentials';
 import { getNodeTypes } from '@/audit/utils';
-import { getAllInstalledPackages } from '@/CommunityNodes/packageModel';
 import {
 	OFFICIAL_RISKY_NODE_TYPES,
 	ENV_VARS_DOCS_URL,
@@ -12,10 +12,10 @@ import {
 } from '@/audit/constants';
 import type { WorkflowEntity } from '@db/entities/WorkflowEntity';
 import type { Risk } from '@/audit/types';
-import { Container } from 'typedi';
+import { CommunityNodesService } from '@/services/community-nodes.service';
 
 async function getCommunityNodeDetails() {
-	const installedPackages = await getAllInstalledPackages();
+	const installedPackages = await Container.get(CommunityNodesService).getAllInstalledPackages();
 
 	return installedPackages.reduce<Risk.CommunityNodeDetails[]>((acc, pkg) => {
 		pkg.installedNodes.forEach((node) =>

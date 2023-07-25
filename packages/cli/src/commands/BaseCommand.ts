@@ -48,16 +48,16 @@ export abstract class BaseCommand extends Command {
 		// Make sure the settings exist
 		this.userSettings = await UserSettings.prepareUserSettings();
 
+		await Db.init().catch(async (error: Error) =>
+			this.exitWithCrash('There was an error initializing DB', error),
+		);
+
 		this.loadNodesAndCredentials = Container.get(LoadNodesAndCredentials);
 		await this.loadNodesAndCredentials.init();
 		this.nodeTypes = Container.get(NodeTypes);
 		this.nodeTypes.init();
 		const credentialTypes = Container.get(CredentialTypes);
 		CredentialsOverwrites(credentialTypes);
-
-		await Db.init().catch(async (error: Error) =>
-			this.exitWithCrash('There was an error initializing DB', error),
-		);
 
 		await this.server?.init();
 

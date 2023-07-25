@@ -106,6 +106,9 @@ class WorkflowRunnerProcess {
 
 		const userSettings = await UserSettings.prepareUserSettings();
 
+		// Init db since we need to read the license.
+		await Db.init();
+
 		const loadNodesAndCredentials = Container.get(LoadNodesAndCredentials);
 		await loadNodesAndCredentials.init();
 
@@ -116,9 +119,6 @@ class WorkflowRunnerProcess {
 		// Load all external hooks
 		const externalHooks = Container.get(ExternalHooks);
 		await externalHooks.init();
-
-		// Init db since we need to read the license.
-		await Db.init();
 
 		const instanceId = userSettings.instanceId ?? '';
 		await Container.get(PostHogClient).init(instanceId);

@@ -8,7 +8,6 @@ import {
 	removePackageFromMissingList,
 	isNpmError,
 } from '@/CommunityNodes/helpers';
-import { findInstalledPackage, isPackageInstalled } from '@/CommunityNodes/packageModel';
 import { LoadNodesAndCredentials } from '@/LoadNodesAndCredentials';
 import { InstalledPackages } from '@db/entities/InstalledPackages';
 import type { User } from '@db/entities/User';
@@ -31,14 +30,6 @@ jest.mock('@/CommunityNodes/helpers', () => {
 		hasPackageLoaded: jest.fn(),
 		isNpmError: jest.fn(),
 		removePackageFromMissingList: jest.fn(),
-	};
-});
-
-jest.mock('@/CommunityNodes/packageModel', () => {
-	return {
-		...jest.requireActual('@/CommunityNodes/packageModel'),
-		isPackageInstalled: jest.fn(),
-		findInstalledPackage: jest.fn(),
 	};
 });
 

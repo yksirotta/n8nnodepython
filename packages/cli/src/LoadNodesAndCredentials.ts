@@ -18,6 +18,7 @@ import type {
 } from 'n8n-workflow';
 import { LoggerProxy, ErrorReporterProxy as ErrorReporter } from 'n8n-workflow';
 
+import { Service } from 'typedi';
 import { createWriteStream } from 'fs';
 import { mkdir } from 'fs/promises';
 import path from 'path';
@@ -33,7 +34,7 @@ import {
 	CLI_DIR,
 } from '@/constants';
 import { CredentialsOverwrites } from '@/CredentialsOverwrites';
-import { Service } from 'typedi';
+import { CommunityNodesService } from '@/services/community-nodes.service';
 
 @Service()
 export class LoadNodesAndCredentials implements INodesAndCredentials {
@@ -54,6 +55,8 @@ export class LoadNodesAndCredentials implements INodesAndCredentials {
 	logger: ILogger;
 
 	private downloadFolder: string;
+
+	constructor(private readonly communityNodesService: CommunityNodesService) {}
 
 	async init() {
 		// Make sure the imported modules can resolve dependencies fine.
@@ -203,11 +206,8 @@ export class LoadNodesAndCredentials implements INodesAndCredentials {
 		if (loader.loadedNodes.length > 0) {
 			// Save info to DB
 			try {
-				const { persistInstalledPackageData, removePackageFromDatabase } = await import(
-					'@/CommunityNodes/packageModel'
-				);
-				if (isUpdate) await removePackageFromDatabase(options.installedPackage);
-				const installedPackage = await persistInstalledPackageData(loader);
+				if (isUpdate) await this.communityNodesService.removePackage(options.installedPackage);
+				const installedPackage = await this.communityNodesService.saveInstalledPackage(loader);
 				await this.postProcessLoaders();
 				await this.generateTypesForFrontend();
 				return installedPackage;
@@ -238,8 +238,7 @@ export class LoadNodesAndCredentials implements INodesAndCredentials {
 
 		await executeCommand(command);
 
-		const { removePackageFromDatabase } = await import('@/CommunityNodes/packageModel');
-		await removePackageFromDatabase(installedPackage);
+		await this.communityNodesService.removePackage(installedPackage);
 
 		if (packageName in this.loaders) {
 			this.loaders[packageName].reset();

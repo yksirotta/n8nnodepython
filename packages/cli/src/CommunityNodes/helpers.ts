@@ -69,8 +69,6 @@ export const parseNpmPackageName = (rawString?: string): CommunityPackages.Parse
 	};
 };
 
-export const sanitizeNpmPackageName = parseNpmPackageName;
-
 export const executeCommand = async (
 	command: string,
 	options?: { doNotHandleError?: boolean },

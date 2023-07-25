@@ -1,7 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import * as Db from '@/Db';
 import { audit } from '@/audit';
-import * as packageModel from '@/CommunityNodes/packageModel';
 import { OFFICIAL_RISKY_NODE_TYPES, NODES_REPORT } from '@/audit/constants';
 import { getRiskSection, MOCK_PACKAGE, saveManualTriggerWorkflow } from './utils';
 import * as testDb from '../shared/testDb';

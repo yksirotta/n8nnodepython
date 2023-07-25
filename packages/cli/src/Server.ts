@@ -169,7 +169,8 @@ import { SourceControlService } from '@/environments/sourceControl/sourceControl
 import { SourceControlController } from '@/environments/sourceControl/sourceControl.controller.ee';
 import { ExecutionRepository } from '@db/repositories';
 import type { ExecutionEntity } from '@db/entities/ExecutionEntity';
-import { JwtService } from './services/jwt.service';
+import { JwtService } from '@/services/jwt.service';
+import { CommunityNodesService } from '@/services/community-nodes.service';
 
 const exec = promisify(callbackExec);
 
@@ -506,7 +507,13 @@ export class Server extends AbstractServer {
 
 		if (config.getEnv('nodes.communityPackages.enabled')) {
 			controllers.push(
-				new NodesController(config, this.loadNodesAndCredentials, this.push, internalHooks),
+				new NodesController(
+					config,
+					this.loadNodesAndCredentials,
+					this.push,
+					internalHooks,
+					Container.get(CommunityNodesService),
+				),
 			);
 		}
 
