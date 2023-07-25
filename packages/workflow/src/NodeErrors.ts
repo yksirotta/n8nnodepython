@@ -60,13 +60,17 @@ const ERROR_STATUS_PROPERTIES = [
 const ERROR_NESTING_PROPERTIES = ['error', 'err', 'response', 'body', 'data'];
 
 interface ExecutionBaseErrorOptions {
-	cause?: Error | JsonObject;
+	cause?: Error;
+	data?: JsonObject;
+	workflowId?: string;
 }
 
 export abstract class ExecutionBaseError extends Error {
 	description: string | null | undefined;
 
-	cause: Error | JsonObject | undefined;
+	data: JsonObject | undefined;
+
+	workflowId: string | undefined;
 
 	timestamp: number;
 
@@ -74,17 +78,16 @@ export abstract class ExecutionBaseError extends Error {
 
 	lineNumber: number | undefined;
 
-	constructor(message: string, { cause }: ExecutionBaseErrorOptions) {
-		const options = cause instanceof Error ? { cause } : {};
-		super(message, options);
+	constructor(message: string, { cause, data, workflowId }: ExecutionBaseErrorOptions) {
+		super(message, cause instanceof Error ? { cause } : {});
 
+		this.data = data;
 		this.name = this.constructor.name;
 		this.timestamp = Date.now();
+		this.workflowId = workflowId;
 
 		if (cause instanceof ExecutionBaseError) {
 			this.context = cause.context;
-		} else if (cause && !(cause instanceof Error)) {
-			this.cause = cause;
 		}
 	}
 
@@ -98,6 +101,7 @@ export abstract class ExecutionBaseError extends Error {
 			description: this.description,
 			context: this.context,
 			cause: this.cause,
+			data: this.data,
 		};
 	}
 }
@@ -111,9 +115,9 @@ export abstract class NodeError extends ExecutionBaseError {
 
 	severity: Severity = 'error';
 
-	constructor(node: INode, error: Error | JsonObject) {
-		const message = error instanceof Error ? error.message : '';
-		super(message, { cause: error });
+	constructor(node: INode, options: ExecutionBaseErrorOptions) {
+		const message = options.cause instanceof Error ? options.cause.message : '';
+		super(message, options);
 		this.node = node;
 	}
 
