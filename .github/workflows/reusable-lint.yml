@@ -1,0 +1,52 @@
+name: Lint
+
+on:
+  workflow_call:
+    inputs:
+      branch:
+        description: 'GitHub branch to lint'
+        type: string
+        required: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+
+      - uses: pnpm/action-setup@v2.4.0
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3.8.1
+        with:
+          node-version: 18.x
+
+      - name: Setup pnpm store cache
+        uses: actions/cache@v3.3.1
+        with:
+          path: |
+            /home/runner/.pnpm-store
+            /github/home/.pnpm-store
+          key: pnpm-store-cache
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fetch base branch for `git diff`
+        if: ${{ inputs.branch != 'master' }}
+        run: git fetch origin ${{ github.event.pull_request.base.ref }}:${{ github.event.pull_request.base.ref }}
+
+      - name: Lint Changes
+        if: ${{ inputs.branch != 'master' }}
+        env:
+          ESLINT_PLUGIN_DIFF_COMMIT: ${{ github.event.pull_request.base.ref }}
+        run: pnpm lint
+
+      - name: Lint Master
+        if: ${{ inputs.branch == 'master' }}
+        env:
+          CI_LINT_MASTER: true
+        run: pnpm lint

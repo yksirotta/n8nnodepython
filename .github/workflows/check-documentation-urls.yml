@@ -16,15 +16,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v2.4.0
 
-      - uses: actions/setup-node@v3
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3.8.1
         with:
           node-version: 18.x
-          cache: 'pnpm'
+
+      - name: Setup pnpm store cache
+        uses: actions/cache@v3.3.1
+        with:
+          path: |
+            /home/runner/.pnpm-store
+            /github/home/.pnpm-store
+          key: pnpm-store-cache
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build nodes-base
         run: pnpm --filter @n8n/client-oauth2 --filter n8n-workflow --filter n8n-core --filter n8n-nodes-base build

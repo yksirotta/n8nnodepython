@@ -35,8 +35,8 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.inputs.base-branch }}
 
-      - uses: pnpm/action-setup@v2.2.4
-      - uses: actions/setup-node@v3
+      - uses: pnpm/action-setup@v2.4.0
+      - uses: actions/setup-node@v3.8.1
         with:
           node-version: 18.x
 

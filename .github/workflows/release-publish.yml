@@ -23,11 +23,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v2.2.4
-      - uses: actions/setup-node@v3
+      - uses: pnpm/action-setup@v2.4.0
+      - uses: actions/setup-node@v3.8.1
         with:
           node-version: 18.x
-          cache: 'pnpm'
+
+      - name: Setup pnpm store cache
+        uses: actions/cache@v3.3.1
+        with:
+          path: |
+            /home/runner/.pnpm-store
+            /github/home/.pnpm-store
+          key: pnpm-store-cache
+
       - run: pnpm install --frozen-lockfile
 
       - name: Set release version in env

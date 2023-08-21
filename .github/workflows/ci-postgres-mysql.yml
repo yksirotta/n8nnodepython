@@ -5,45 +5,127 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
 
+env:
+  DB_MYSQLDB_PASSWORD: password
+  DB_POSTGRESDB_PASSWORD: password
+  DB_TABLE_PREFIX: test_
+  DB_POSTGRESDB_SCHEMA: alt_schema
+
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-
-    timeout-minutes: 60
-
-    env:
-      DB_MYSQLDB_PASSWORD: password
-      DB_POSTGRESDB_PASSWORD: password
-
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v2.4.0
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3.8.1
         with:
           node-version: 18.x
-          cache: 'pnpm'
+
+      - name: Setup pnpm store cache
+        uses: actions/cache@v3.3.1
+        with:
+          path: |
+            /home/runner/.pnpm-store
+            /github/home/.pnpm-store
+          key: pnpm-store-cache
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Start MySQL & Postgres
+      - name: Build Backend packages
+        run: pnpm  --filter @n8n/client-oauth2 --filter n8n-workflow --filter n8n-core --filter n8n build
+
+      - name: Cache build artifacts
+        uses: actions/cache/save@v3.3.1
+        with:
+          path: ./packages
+          key: build-db-${{ github.sha }}
+
+  test-mysql:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: pnpm/action-setup@v2.4.0
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3.8.1
+        with:
+          node-version: 18.x
+
+      - name: Setup pnpm store cache
+        uses: actions/cache@v3.3.1
+        with:
+          path: |
+            /home/runner/.pnpm-store
+            /github/home/.pnpm-store
+          key: pnpm-store-cache
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore cached build artifacts
+        uses: actions/cache/restore@v3.3.1
+        with:
+          path: ./packages
+          key: build-db-${{ github.sha }}
+
+      - name: Start MySQL
         uses: isbang/compose-action@v1.3.2
         with:
           compose-file: ./.github/docker-compose.yml
-
-      - name: Build Core, Workflow, and CLI
-        run: pnpm  --filter @n8n/client-oauth2 --filter n8n-workflow --filter n8n-core --filter n8n build
+          services: mysql
 
       - name: Test MySQL
         working-directory: packages/cli
-        run: DB_TABLE_PREFIX=test_ pnpm test:mysql
+        run: pnpm test:mysql
+
+  test-postgres:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: pnpm/action-setup@v2.4.0
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3.8.1
+        with:
+          node-version: 18.x
+
+      - name: Setup pnpm store cache
+        uses: actions/cache@v3.3.1
+        with:
+          path: |
+            /home/runner/.pnpm-store
+            /github/home/.pnpm-store
+          key: pnpm-store-cache
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore cached build artifacts
+        uses: actions/cache/restore@v3.3.1
+        with:
+          path: ./packages
+          key: build-db-${{ github.sha }}
+
+      - name: Start Postres
+        uses: isbang/compose-action@v1.3.2
+        with:
+          compose-file: ./.github/docker-compose.yml
+          services: postgres
 
       - name: Test Postgres
         working-directory: packages/cli
-        run: DB_POSTGRESDB_SCHEMA=alt_schema DB_TABLE_PREFIX=test_ pnpm test:postgres
+        run: pnpm test:postgres
 
+  notify-on-failure:
+    name: Notify Slack on failure
+    needs: [test-mysql, test-postgres]
+    runs-on: ubuntu-latest
+    steps:
       - name: Notify Slack on failure
         uses: act10ns/slack@v2.0.0
         if: failure()

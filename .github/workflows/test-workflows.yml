@@ -23,15 +23,21 @@ jobs:
           repository: n8n-io/test-workflows
           path: test-workflows
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v2.4.0
         with:
-          version: 8.6.1
+          version: 8.6.12
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3.8.1
         with:
           node-version: 18.x
-          cache: 'pnpm'
-          cache-dependency-path: 'n8n/pnpm-lock.yaml'
+
+      - name: Setup pnpm store cache
+        uses: actions/cache@v3.3.1
+        with:
+          path: |
+            /home/runner/.pnpm-store
+            /github/home/.pnpm-store
+          key: pnpm-store-cache
 
       - name: Install dependencies
         run: |
