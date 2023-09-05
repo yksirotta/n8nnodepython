@@ -1,9 +1,9 @@
 import type { IDataObject } from 'n8n-workflow';
 import moment from 'moment';
-import type { IRecurrenceRule } from './SchedulerInterface';
+import type { RecurrenceRule } from './SchedulerInterface';
 
 export function recurrenceCheck(
-	recurrence: IRecurrenceRule,
+	recurrence: RecurrenceRule.Activated,
 	recurrenceRules: number[],
 	timezone: string,
 ): boolean {
@@ -17,7 +17,7 @@ export function recurrenceCheck(
 	if (
 		intervalSize &&
 		recurrenceRuleIndex !== undefined &&
-		(typeInterval === 'weeks' || typeInterval === 'undefined')
+		(typeInterval === 'weeks' || typeInterval === undefined)
 	) {
 		if (
 			lastExecution === undefined || // First time executing this rule
