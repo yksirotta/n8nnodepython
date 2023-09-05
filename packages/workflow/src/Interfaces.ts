@@ -1256,7 +1256,7 @@ export interface INodeType {
 		this: IExecuteFunctions,
 	): Promise<INodeExecutionData[][] | NodeExecutionWithMetadata[][] | null>;
 	poll?(this: IPollFunctions): Promise<INodeExecutionData[][] | null>;
-	trigger?(this: ITriggerFunctions): Promise<ITriggerResponse | undefined>;
+	trigger?(this: ITriggerFunctions): Promise<ITriggerResponse>;
 	webhook?(this: IWebhookFunctions): Promise<IWebhookResponseData>;
 	methods?: {
 		loadOptions?: {
@@ -1291,6 +1291,7 @@ export interface INodeType {
 export abstract class Node {
 	abstract description: INodeTypeDescription;
 	execute?(context: IExecuteFunctions): Promise<INodeExecutionData[][]>;
+	trigger?(context: ITriggerFunctions): Promise<ITriggerResponse>;
 	webhook?(context: IWebhookFunctions): Promise<IWebhookResponseData>;
 }
 

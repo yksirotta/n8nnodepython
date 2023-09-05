@@ -1070,11 +1070,13 @@ export class Workflow {
 			);
 		}
 
+		const triggerResponse = await (nodeType instanceof Node
+			? nodeType.trigger(triggerFunctions)
+			: nodeType.trigger.call(triggerFunctions));
+
 		if (mode === 'manual') {
 			// In manual mode we do not just start the trigger function we also
 			// want to be able to get informed as soon as the first data got emitted
-			const triggerResponse = await nodeType.trigger.call(triggerFunctions);
-
 			// Add the manual trigger response which resolves when the first time data got emitted
 			triggerResponse!.manualTriggerResponse = new Promise((resolve, reject) => {
 				triggerFunctions.emit = (
@@ -1118,11 +1120,9 @@ export class Workflow {
 					}
 				)(reject);
 			});
-
-			return triggerResponse;
 		}
-		// In all other modes simply start the trigger
-		return nodeType.trigger.call(triggerFunctions);
+
+		return triggerResponse;
 	}
 
 	/**
