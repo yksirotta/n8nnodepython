@@ -1,18 +1,17 @@
 import type {
 	ITriggerFunctions,
 	IDataObject,
-	INodeType,
 	INodeTypeDescription,
 	ITriggerResponse,
 } from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
+import { Node, NodeOperationError } from 'n8n-workflow';
 
 import { CronJob } from 'cron';
 import moment from 'moment';
 import type { RecurrenceRule } from './SchedulerInterface';
 import { convertToUnixFormat, recurrenceCheck } from './GenericFunctions';
 
-export class ScheduleTrigger implements INodeType {
+export class ScheduleTrigger extends Node {
 	description: INodeTypeDescription = {
 		displayName: 'Schedule Trigger',
 		name: 'scheduleTrigger',
@@ -411,14 +410,14 @@ export class ScheduleTrigger implements INodeType {
 		],
 	};
 
-	async trigger(this: ITriggerFunctions): Promise<ITriggerResponse> {
-		const rule = this.getNodeParameter('rule', []) as IDataObject;
+	async trigger(context: ITriggerFunctions): Promise<ITriggerResponse> {
+		const rule = context.getNodeParameter('rule', []) as IDataObject;
 		const interval = rule.interval as IDataObject[];
-		const timezone = this.getTimezone();
-		const version = this.getNode().typeVersion;
+		const timezone = context.getTimezone();
+		const version = context.getNode().typeVersion;
 		const cronJobs: CronJob[] = [];
 		const intervalArr: NodeJS.Timeout[] = [];
-		const staticData = this.getWorkflowStaticData('node') as {
+		const staticData = context.getWorkflowStaticData('node') as {
 			recurrenceRules: number[];
 		};
 		if (!staticData.recurrenceRules) {
@@ -440,10 +439,10 @@ export class ScheduleTrigger implements INodeType {
 			};
 
 			if (!recurrence.activated) {
-				this.emit([this.helpers.returnJsonArray([resultData])]);
+				context.emit([context.helpers.returnJsonArray([resultData])]);
 			} else {
 				if (recurrenceCheck(recurrence, staticData.recurrenceRules, timezone)) {
-					this.emit([this.helpers.returnJsonArray([resultData])]);
+					context.emit([context.helpers.returnJsonArray([resultData])]);
 				}
 			}
 		};
@@ -466,7 +465,7 @@ export class ScheduleTrigger implements INodeType {
 					);
 					cronJobs.push(cronJob);
 				} catch (error) {
-					throw new NodeOperationError(this.getNode(), 'Invalid cron expression', {
+					throw new NodeOperationError(context.getNode(), 'Invalid cron expression', {
 						description: 'More information on how to build them at https://crontab.guru/',
 					});
 				}
