@@ -459,7 +459,7 @@ export class ScheduleTrigger implements INodeType {
 				try {
 					const cronJob = new CronJob(
 						cronExpression,
-						async () => executeTrigger({ activated: false } as IRecurrenceRule),
+						async () => executeTrigger({ activated: false }),
 						undefined,
 						true,
 						timezone,
@@ -476,7 +476,7 @@ export class ScheduleTrigger implements INodeType {
 				const seconds = interval[i].secondsInterval as number;
 				intervalValue *= seconds;
 				const intervalObj = setInterval(
-					async () => executeTrigger({ activated: false } as IRecurrenceRule),
+					async () => executeTrigger({ activated: false }),
 					intervalValue,
 				);
 				intervalArr.push(intervalObj);
@@ -486,7 +486,7 @@ export class ScheduleTrigger implements INodeType {
 				const minutes = interval[i].minutesInterval as number;
 				intervalValue *= 60 * minutes;
 				const intervalObj = setInterval(
-					async () => executeTrigger({ activated: false } as IRecurrenceRule),
+					async () => executeTrigger({ activated: false }),
 					intervalValue,
 				);
 				intervalArr.push(intervalObj);
@@ -500,7 +500,7 @@ export class ScheduleTrigger implements INodeType {
 				if (hour === 1) {
 					const cronJob = new CronJob(
 						cronExpression,
-						async () => executeTrigger({ activated: false } as IRecurrenceRule),
+						async () => executeTrigger({ activated: false }),
 						undefined,
 						true,
 						timezone,
@@ -515,7 +515,7 @@ export class ScheduleTrigger implements INodeType {
 								index: i,
 								intervalSize: hour,
 								typeInterval: 'hours',
-							} as IRecurrenceRule),
+							}),
 						undefined,
 						true,
 						timezone,
@@ -533,7 +533,7 @@ export class ScheduleTrigger implements INodeType {
 				if (day === 1) {
 					const cronJob = new CronJob(
 						cronExpression,
-						async () => executeTrigger({ activated: false } as IRecurrenceRule),
+						async () => executeTrigger({ activated: false }),
 						undefined,
 						true,
 						timezone,
@@ -548,7 +548,7 @@ export class ScheduleTrigger implements INodeType {
 								index: i,
 								intervalSize: day,
 								typeInterval: 'days',
-							} as IRecurrenceRule),
+							}),
 						undefined,
 						true,
 						timezone,
@@ -568,7 +568,7 @@ export class ScheduleTrigger implements INodeType {
 				if (week === 1) {
 					const cronJob = new CronJob(
 						cronExpression,
-						async () => executeTrigger({ activated: false } as IRecurrenceRule),
+						async () => executeTrigger({ activated: false }),
 						undefined,
 						true,
 						timezone,
@@ -583,7 +583,7 @@ export class ScheduleTrigger implements INodeType {
 								index: i,
 								intervalSize: week,
 								typeInterval: 'weeks',
-							} as IRecurrenceRule),
+							}),
 						undefined,
 						true,
 						timezone,
@@ -593,7 +593,7 @@ export class ScheduleTrigger implements INodeType {
 			}
 
 			if (interval[i].field === 'months') {
-				const month = interval[i].monthsInterval;
+				const month = interval[i].monthsInterval as number;
 				const day = interval[i].triggerAtDayOfMonth?.toString() as string;
 				const hour = interval[i].triggerAtHour?.toString() as string;
 				const minute = interval[i].triggerAtMinute?.toString() as string;
@@ -602,7 +602,7 @@ export class ScheduleTrigger implements INodeType {
 				if (month === 1) {
 					const cronJob = new CronJob(
 						cronExpression,
-						async () => executeTrigger({ activated: false } as IRecurrenceRule),
+						async () => executeTrigger({ activated: false }),
 						undefined,
 						true,
 						timezone,
@@ -617,7 +617,7 @@ export class ScheduleTrigger implements INodeType {
 								index: i,
 								intervalSize: month,
 								typeInterval: 'months',
-							} as IRecurrenceRule),
+							}),
 						undefined,
 						true,
 						timezone,
@@ -637,7 +637,7 @@ export class ScheduleTrigger implements INodeType {
 		}
 
 		async function manualTriggerFunction() {
-			void executeTrigger({ activated: false } as IRecurrenceRule);
+			void executeTrigger({ activated: false });
 		}
 
 		return {
