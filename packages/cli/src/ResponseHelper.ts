@@ -1,19 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
 import type { Request, Response } from 'express';
-import { parse, stringify } from 'flatted';
 import picocolors from 'picocolors';
 import { ErrorReporterProxy as ErrorReporter, NodeApiError } from 'n8n-workflow';
-
-import type {
-	IExecutionDb,
-	IExecutionFlatted,
-	IExecutionFlattedDb,
-	IExecutionResponse,
-	IWorkflowDb,
-} from '@/Interfaces';
 import { inDevelopment } from '@/constants';
 
 /**
@@ -86,9 +73,9 @@ export class ServiceUnavailableError extends ResponseError {
 	}
 }
 
-export function sendSuccessResponse(
+export function sendSuccessResponse<T = unknown>(
 	res: Response,
-	data: any,
+	data: T,
 	raw?: boolean,
 	responseCode?: number,
 	responseHeader?: object,
@@ -108,9 +95,7 @@ export function sendSuccessResponse(
 			res.json(data);
 		}
 	} else {
-		res.json({
-			data,
-		});
+		res.json({ data });
 	}
 }
 
@@ -200,74 +185,13 @@ export function send<T, R extends Request, S extends Response>(
 	};
 }
 
-/**
- * Flattens the Execution data.
- * As it contains a lot of references which normally would be saved as duplicate data
- * with regular JSON.stringify it gets flattened which keeps the references in place.
- *
- * @param {IExecutionDb} fullExecutionData The data to flatten
- */
-// TODO: Remove this functions since it's purpose should be fulfilled by the execution repository
-export function flattenExecutionData(fullExecutionData: IExecutionDb): IExecutionFlatted {
-	// Flatten the data
-	const returnData: IExecutionFlatted = {
-		data: stringify(fullExecutionData.data),
-		mode: fullExecutionData.mode,
-		// @ts-ignore
-		waitTill: fullExecutionData.waitTill,
-		startedAt: fullExecutionData.startedAt,
-		stoppedAt: fullExecutionData.stoppedAt,
-		finished: fullExecutionData.finished ? fullExecutionData.finished : false,
-		workflowId: fullExecutionData.workflowId,
-
-		workflowData: fullExecutionData.workflowData!,
-		status: fullExecutionData.status,
-	};
-
-	if (fullExecutionData.id !== undefined) {
-		returnData.id = fullExecutionData.id;
-	}
-
-	if (fullExecutionData.retryOf !== undefined) {
-		returnData.retryOf = fullExecutionData.retryOf.toString();
-	}
-
-	if (fullExecutionData.retrySuccessId !== undefined) {
-		returnData.retrySuccessId = fullExecutionData.retrySuccessId.toString();
-	}
-
-	return returnData;
-}
-
-/**
- * Unflattens the Execution data.
- *
- * @param {IExecutionFlattedDb} fullExecutionData The data to unflatten
- */
-// TODO: Remove this functions since it's purpose should be fulfilled by the execution repository
-export function unflattenExecutionData(fullExecutionData: IExecutionFlattedDb): IExecutionResponse {
-	const returnData: IExecutionResponse = {
-		id: fullExecutionData.id,
-		workflowData: fullExecutionData.workflowData as IWorkflowDb,
-		data: parse(fullExecutionData.data),
-		mode: fullExecutionData.mode,
-		waitTill: fullExecutionData.waitTill ? fullExecutionData.waitTill : undefined,
-		startedAt: fullExecutionData.startedAt,
-		stoppedAt: fullExecutionData.stoppedAt,
-		finished: fullExecutionData.finished ? fullExecutionData.finished : false,
-		workflowId: fullExecutionData.workflowId,
-		status: fullExecutionData.status,
-	};
-
-	return returnData;
-}
-
 export const flattenObject = (obj: { [x: string]: any }, prefix = '') =>
 	Object.keys(obj).reduce((acc, k) => {
 		const pre = prefix.length ? prefix + '.' : '';
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		if (typeof obj[k] === 'object') Object.assign(acc, flattenObject(obj[k], pre + k));
 		//@ts-ignore
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		else acc[pre + k] = obj[k];
 		return acc;
 	}, {});

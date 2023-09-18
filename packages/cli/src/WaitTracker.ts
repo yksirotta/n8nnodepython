@@ -2,21 +2,22 @@ import {
 	ErrorReporterProxy as ErrorReporter,
 	LoggerProxy as Logger,
 	WorkflowOperationError,
+	type IRunExecutionData,
 } from 'n8n-workflow';
 import { Container, Service } from 'typedi';
 import type { FindManyOptions, ObjectLiteral } from 'typeorm';
 import { Not, LessThanOrEqual } from 'typeorm';
 import { DateUtils } from 'typeorm/util/DateUtils';
+import { parse } from 'flatted';
 
 import config from '@/config';
-import * as ResponseHelper from '@/ResponseHelper';
 import type {
 	IExecutionResponse,
 	IExecutionsStopData,
+	IWorkflowDb,
 	IWorkflowExecutionDataProcess,
 } from '@/Interfaces';
 import { WorkflowRunner } from '@/WorkflowRunner';
-import { recoverExecutionDataFromEventLogMessages } from './eventbus/MessageEventBus/recoverEvents';
 import { ExecutionRepository } from '@db/repositories';
 import type { ExecutionEntity } from '@db/entities/ExecutionEntity';
 import { OwnershipService } from './services/ownership.service';
@@ -116,37 +117,28 @@ export class WaitTracker {
 				`Only running or waiting executions can be stopped and ${executionId} is currently ${execution.status}.`,
 			);
 		}
-		let fullExecutionData: IExecutionResponse;
-		try {
-			fullExecutionData = ResponseHelper.unflattenExecutionData(execution);
-		} catch (error) {
-			// if the execution ended in an unforseen, non-cancelable state, try to recover it
-			await recoverExecutionDataFromEventLogMessages(executionId, [], true);
-			// find recovered data
-			const restoredExecution = await Container.get(ExecutionRepository).findSingleExecution(
-				executionId,
-				{
-					includeData: true,
-					unflattenData: true,
-				},
-			);
-			if (!restoredExecution) {
-				throw new Error(`Execution ${executionId} could not be recovered or canceled.`);
-			}
-			fullExecutionData = restoredExecution;
-		}
+
 		// Set in execution in DB as failed and remove waitTill time
 		const error = new WorkflowOperationError('Workflow-Execution has been canceled!');
-
-		fullExecutionData.data.resultData.error = {
+		const data = parse(execution.data) as IRunExecutionData;
+		data.resultData.error = {
 			...error,
 			message: error.message,
 			stack: error.stack,
 		};
 
-		fullExecutionData.stoppedAt = new Date();
-		fullExecutionData.waitTill = null;
-		fullExecutionData.status = 'canceled';
+		const fullExecutionData: IExecutionResponse = {
+			id: execution.id,
+			workflowData: execution.workflowData as IWorkflowDb,
+			data,
+			mode: execution.mode,
+			waitTill: null,
+			startedAt: execution.startedAt,
+			stoppedAt: new Date(),
+			finished: execution.finished ? execution.finished : false,
+			workflowId: execution.workflowId,
+			status: 'canceled',
+		};
 
 		await Container.get(ExecutionRepository).updateExistingExecution(
 			executionId,
@@ -155,8 +147,8 @@ export class WaitTracker {
 
 		return {
 			mode: fullExecutionData.mode,
-			startedAt: new Date(fullExecutionData.startedAt),
-			stoppedAt: fullExecutionData.stoppedAt ? new Date(fullExecutionData.stoppedAt) : undefined,
+			startedAt: fullExecutionData.startedAt,
+			stoppedAt: fullExecutionData.stoppedAt ?? undefined,
 			finished: fullExecutionData.finished,
 			status: fullExecutionData.status,
 		};

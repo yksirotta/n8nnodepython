@@ -65,15 +65,11 @@ export class ActiveExecutions {
 			executionStatus = 'running';
 		} else {
 			// Is an existing execution we want to finish so update in DB
-
-			const execution: Pick<IExecutionDb, 'id' | 'data' | 'waitTill' | 'status'> = {
-				id: executionId,
+			await Container.get(ExecutionRepository).updateExistingExecution(executionId, {
 				data: executionData.executionData!,
 				waitTill: null,
 				status: executionStatus,
-			};
-
-			await Container.get(ExecutionRepository).updateExistingExecution(executionId, execution);
+			});
 		}
 
 		this.activeExecutions[executionId] = {

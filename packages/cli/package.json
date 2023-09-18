@@ -131,7 +131,7 @@
     "express-openapi-validator": "^4.13.6",
     "express-prom-bundle": "^6.6.0",
     "fast-glob": "^3.2.5",
-    "flatted": "^3.2.4",
+    "flatted": "^3.2.9",
     "formidable": "^3.5.0",
     "google-timezones-json": "^1.1.0",
     "handlebars": "4.7.7",

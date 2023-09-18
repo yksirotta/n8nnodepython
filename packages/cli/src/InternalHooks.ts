@@ -244,6 +244,10 @@ export class InternalHooks implements IInternalHooksClass {
 		executionId: string,
 		data: IWorkflowExecutionDataProcess | IWorkflowBase,
 	): Promise<void> {
+		await this.executionRepository.updateExistingExecution(executionId, {
+			status: 'running',
+		});
+
 		let payload: EventPayloadWorkflow;
 		// this hook is called slightly differently depending on whether it's from a worker or the main instance
 		// in the worker context, meaning in queue mode, only IWorkflowBase is available
@@ -264,15 +268,11 @@ export class InternalHooks implements IInternalHooksClass {
 				workflowName: (data as IWorkflowBase).name,
 			};
 		}
-		void Promise.all([
-			this.executionRepository.updateExistingExecution(executionId, {
-				status: 'running',
-			}),
-			eventBus.sendWorkflowEvent({
-				eventName: 'n8n.workflow.started',
-				payload,
-			}),
-		]);
+
+		void eventBus.sendWorkflowEvent({
+			eventName: 'n8n.workflow.started',
+			payload,
+		});
 	}
 
 	async onWorkflowCrashed(

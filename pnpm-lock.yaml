@@ -288,8 +288,8 @@ importers:
         specifier: ^3.2.5
         version: 3.2.12
       flatted:
-        specifier: ^3.2.4
-        version: 3.2.7
+        specifier: ^3.2.9
+        version: 3.2.9
       formidable:
         specifier: ^3.5.0
         version: 3.5.0
@@ -594,9 +594,6 @@ importers:
       file-type:
         specifier: ^16.5.4
         version: 16.5.4
-      flatted:
-        specifier: ^3.2.4
-        version: 3.2.7
       form-data:
         specifier: ^4.0.0
         version: 4.0.0
@@ -870,8 +867,8 @@ importers:
         specifier: ^2.0.2
         version: 2.0.5
       flatted:
-        specifier: ^3.2.4
-        version: 3.2.7
+        specifier: ^3.2.9
+        version: 3.2.9
       humanize-duration:
         specifier: ^3.27.2
         version: 3.27.3
@@ -12615,12 +12612,12 @@ packages:
     resolution: {integrity: sha512-dm9s5Pw7Jc0GvMYbshN6zchCA9RgQlzzEZX3vylR9IqFfS8XciblUXOKfW6SiuJ0e13eDYZoZV5wdrev7P3Nwg==}
     engines: {node: ^10.12.0 || >=12.0.0}
     dependencies:
-      flatted: 3.2.7
+      flatted: 3.2.9
       rimraf: 3.0.2
     dev: true
 
-  /flatted@3.2.7:
-    resolution: {integrity: sha512-5nqDSxl8nn5BSNxyR3n4I6eDmbolI6WT+QqR547RwxQapgjQBmtktdP+HTBb/a/zLsbzERTONyUB5pefh5TtjQ==}
+  /flatted@3.2.9:
+    resolution: {integrity: sha512-36yxDn5H7OFZQla0/jFJmbIKTdZAQHngCedGxiMmpNfEZM0sdEeT+WczLQrjK6D7o2aiyLYDnkw0R3JK0Qv1RQ==}
 
   /flow-parser@0.197.0:
     resolution: {integrity: sha512-yhwkJPxH1JBg0aJunk/jVRy5p3UhVZBGkzL1hq/GK+GaBh6bKr2YKkv6gDuiufaw+i3pKWQgOLtD++1cvrgXLA==}
