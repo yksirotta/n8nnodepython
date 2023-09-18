@@ -12,7 +12,7 @@ import { issueCookie, resolveJwt } from '@/auth/jwt';
 import { AUTH_COOKIE_NAME, RESPONSE_ERROR_MESSAGES } from '@/constants';
 import { Request, Response } from 'express';
 import { ILogger } from 'n8n-workflow';
-import type { User } from '@db/entities/User';
+import { User, UserWithMFA } from '@db/entities/User';
 import { LoginRequest, UserRequest } from '@/requests';
 import type { PublicUser } from '@/Interfaces';
 import { Config } from '@/config';
@@ -49,7 +49,7 @@ export class AuthController {
 		if (!email) throw new Error('Email is required to log in');
 		if (!password) throw new Error('Password is required to log in');
 
-		let user: User | undefined;
+		let user: User | UserWithMFA | undefined;
 
 		let usedAuthenticationMethod = getCurrentAuthenticationMethod();
 		if (isSamlCurrentAuthenticationMethod()) {
@@ -72,7 +72,7 @@ export class AuthController {
 		}
 
 		if (user) {
-			if (user.mfaEnabled) {
+			if (this.hasMFAEnabled(user)) {
 				if (!mfaToken && !mfaRecoveryCode) {
 					throw new AuthError('MFA Error', 998);
 				}
@@ -84,8 +84,8 @@ export class AuthController {
 				user.mfaRecoveryCodes = decryptedRecoveryCodes;
 
 				const isMFATokenValid =
-					(await this.validateMfaToken(user, mfaToken)) ||
-					(await this.validateMfaRecoveryCode(user, mfaRecoveryCode));
+					(await this.mfaService.validateMfaToken(user, mfaToken)) ||
+					(await this.mfaService.validateMfaRecoveryCode(user, mfaRecoveryCode));
 
 				if (!isMFATokenValid) {
 					throw new AuthError('Invalid mfa token or recovery code');
@@ -231,26 +231,7 @@ export class AuthController {
 		return { loggedOut: true };
 	}
 
-	private async validateMfaToken(user: User, token?: string) {
-		if (!!!token) return false;
-		return this.mfaService.totp.verifySecret({
-			secret: user.mfaSecret ?? '',
-			token,
-		});
-	}
-
-	private async validateMfaRecoveryCode(user: User, mfaRecoveryCode?: string) {
-		if (!!!mfaRecoveryCode) return false;
-		const index = user.mfaRecoveryCodes.indexOf(mfaRecoveryCode);
-		if (index === -1) return false;
-
-		// remove used recovery code
-		user.mfaRecoveryCodes.splice(index, 1);
-
-		await this.userService.update(user.id, {
-			mfaRecoveryCodes: this.mfaService.encryptRecoveryCodes(user.mfaRecoveryCodes),
-		});
-
-		return true;
+	private hasMFAEnabled(user: User | UserWithMFA): user is UserWithMFA {
+		return (user as UserWithMFA).mfaEnabled;
 	}
 }

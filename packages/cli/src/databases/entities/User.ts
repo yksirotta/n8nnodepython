@@ -13,8 +13,6 @@ import {
 import { IsEmail, IsString, Length } from 'class-validator';
 import type { IUser, IUserSettings } from 'n8n-workflow';
 import { Role } from './Role';
-import type { SharedWorkflow } from './SharedWorkflow';
-import type { SharedCredentials } from './SharedCredentials';
 import { NoXss } from '../utils/customValidators';
 import { objectRetriever, lowerCaser } from '../utils/transformers';
 import { WithTimestamps, jsonColumnType } from './AbstractEntity';
@@ -51,10 +49,6 @@ export class User extends WithTimestamps implements IUser {
 	@Length(1, 32, { message: 'Last name must be $constraint1 to $constraint2 characters long.' })
 	lastName: string;
 
-	@Column({ nullable: true })
-	@IsString({ message: 'Password must be of type string.' })
-	password: string;
-
 	@Column({
 		type: jsonColumnType,
 		nullable: true,
@@ -68,21 +62,6 @@ export class User extends WithTimestamps implements IUser {
 	})
 	settings: IUserSettings | null;
 
-	@ManyToOne('Role', 'globalForUsers', { nullable: false })
-	globalRole: Role;
-
-	@Column()
-	globalRoleId: string;
-
-	@OneToMany('AuthIdentity', 'user')
-	authIdentities: AuthIdentity[];
-
-	@OneToMany('SharedWorkflow', 'user')
-	sharedWorkflows: SharedWorkflow[];
-
-	@OneToMany('SharedCredentials', 'user')
-	sharedCredentials: SharedCredentials[];
-
 	@Column({ type: Boolean, default: false })
 	disabled: boolean;
 
@@ -91,19 +70,22 @@ export class User extends WithTimestamps implements IUser {
 	preUpsertHook(): void {
 		this.email = this.email?.toLowerCase() ?? null;
 	}
+}
 
-	@Column({ type: String, nullable: true })
-	@Index({ unique: true })
-	apiKey?: string | null;
+@Entity({ name: 'user' })
+export class AuthUser extends User {
+	@Column({ nullable: true })
+	@IsString({ message: 'Password must be of type string.' })
+	password: string;
 
-	@Column({ type: Boolean, default: false })
-	mfaEnabled: boolean;
+	@OneToMany('AuthIdentity', 'user')
+	authIdentities: AuthIdentity[];
 
-	@Column({ type: String, nullable: true, select: false })
-	mfaSecret?: string | null;
+	@Column()
+	globalRoleId: string;
 
-	@Column({ type: 'simple-array', default: '', select: false })
-	mfaRecoveryCodes: string[];
+	@ManyToOne('Role', 'globalForUsers')
+	globalRole: Role;
 
 	/**
 	 * Whether the user is pending setup completion.
@@ -125,4 +107,23 @@ export class User extends WithTimestamps implements IUser {
 	computeIsOwner(): void {
 		this.isOwner = this.globalRole?.name === 'owner';
 	}
+}
+
+@Entity({ name: 'user' })
+export class PublicAPIUser extends AuthUser {
+	@Column({ type: String, nullable: true })
+	@Index({ unique: true })
+	apiKey: string | null;
+}
+
+@Entity({ name: 'user' })
+export class UserWithMFA extends AuthUser {
+	@Column({ type: Boolean, default: false })
+	mfaEnabled: boolean;
+
+	@Column({ type: String, nullable: true })
+	mfaSecret: string;
+
+	@Column({ type: 'simple-array', default: '' })
+	mfaRecoveryCodes: string[];
 }

@@ -1,20 +1,16 @@
+import { Container } from 'typedi';
 import config from '@/config';
-import * as Db from '@/Db';
 import { MFA_FEATURE_ENABLED } from './constants';
+import { UserRepository } from '@/databases/repositories';
 
 export const isMfaFeatureEnabled = () => config.get(MFA_FEATURE_ENABLED);
 
-const isMfaFeatureDisabled = () => !isMfaFeatureEnabled();
-
-const getUsersWithMfaEnabled = async () =>
-	Db.collections.User.count({ where: { mfaEnabled: true } });
-
 export const handleMfaDisable = async () => {
-	if (isMfaFeatureDisabled()) {
+	if (!isMfaFeatureEnabled()) {
 		// check for users with MFA enabled, and if there are
 		// users, then keep the feature enabled
-		const users = await getUsersWithMfaEnabled();
-		if (users) {
+		const count = await Container.get(UserRepository).countUsersWithMFA();
+		if (count > 0) {
 			config.set(MFA_FEATURE_ENABLED, true);
 		}
 	}
