@@ -5,9 +5,7 @@ import { RedisServiceBaseSender } from './RedisServiceBaseClasses';
 
 @Service()
 export class RedisServiceListSender extends RedisServiceBaseSender {
-	async init(): Promise<void> {
-		await super.init('list-sender');
-	}
+	readonly type = 'list-sender';
 
 	async prepend(list: string, message: string): Promise<void> {
 		if (!this.redisClient) {

@@ -177,7 +177,6 @@ import { handleMfaDisable, isMfaFeatureEnabled } from './Mfa/helpers';
 import { JwtService } from './services/jwt.service';
 import { RoleService } from './services/role.service';
 import { UserService } from './services/user.service';
-import { OrchestrationController } from './controllers/orchestration.controller';
 
 const exec = promisify(callbackExec);
 
@@ -205,7 +204,7 @@ export class Server extends AbstractServer {
 	binaryDataService: BinaryDataService;
 
 	constructor() {
-		super('main');
+		super();
 
 		this.app.engine('handlebars', expressHandlebars({ defaultLayout: false }));
 		this.app.set('view engine', 'handlebars');
@@ -366,7 +365,6 @@ export class Server extends AbstractServer {
 		this.binaryDataService = Container.get(BinaryDataService);
 
 		await super.start();
-		LoggerProxy.debug(`Server ID: ${this.uniqueInstanceId}`);
 
 		const cpus = os.cpus();
 		const binaryDataConfig = config.getEnv('binaryDataManager');
@@ -558,8 +556,13 @@ export class Server extends AbstractServer {
 			Container.get(SourceControlController),
 			Container.get(WorkflowStatisticsController),
 			Container.get(ExternalSecretsController),
-			Container.get(OrchestrationController),
 		];
+
+		if (config.getEnv('executions.mode') === 'queue') {
+			// eslint-disable-next-line @typescript-eslint/naming-convention
+			const { OrchestrationController } = await import('@/controllers/orchestration.controller');
+			controllers.push(Container.get(OrchestrationController));
+		}
 
 		if (isLdapEnabled()) {
 			const { service, sync } = LdapManager.getInstance();

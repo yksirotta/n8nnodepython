@@ -1,8 +1,8 @@
+import { Container } from 'typedi';
 import { LoggerProxy } from 'n8n-workflow';
-import { messageToRedisServiceCommandObject } from './helpers';
 import config from '@/config';
-import { MessageEventBus } from '../../eventbus/MessageEventBus/MessageEventBus';
-import Container from 'typedi';
+import { MessageEventBus } from '@/eventbus/MessageEventBus/MessageEventBus';
+import { messageToRedisServiceCommandObject } from './helpers';
 
 // this function handles commands sent to the MAIN instance. the workers handle their own commands
 export async function handleCommandMessage(messageString: string) {

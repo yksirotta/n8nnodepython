@@ -1,7 +1,7 @@
 import type Redis from 'ioredis';
 import type { Cluster } from 'ioredis';
-import { getDefaultRedisClient } from './RedisServiceHelper';
 import { LoggerProxy } from 'n8n-workflow';
+import { getDefaultRedisClient } from './RedisServiceHelper';
 import config from '@/config';
 
 export type RedisClientType =
@@ -22,16 +22,18 @@ export type RedisServiceMessageHandler =
 	| ((channel: string, message: string) => void)
 	| ((stream: string, id: string, message: string[]) => void);
 
-class RedisServiceBase {
+abstract class RedisServiceBase {
 	redisClient: Redis | Cluster | undefined;
 
 	isInitialized = false;
 
-	async init(type: RedisClientType = 'client'): Promise<void> {
+	abstract type: RedisClientType;
+
+	async init(): Promise<void> {
 		if (this.redisClient && this.isInitialized) {
 			return;
 		}
-		this.redisClient = await getDefaultRedisClient(undefined, type);
+		this.redisClient = await getDefaultRedisClient(undefined, this.type);
 
 		this.redisClient.on('close', () => {
 			LoggerProxy.warn('Redis unavailable - trying to reconnect...');
@@ -56,12 +58,7 @@ class RedisServiceBase {
 }
 
 export abstract class RedisServiceBaseSender extends RedisServiceBase {
-	senderId: string;
-
-	async init(type: RedisClientType = 'client'): Promise<void> {
-		await super.init(type);
-		this.senderId = config.get('redis.queueModeId');
-	}
+	readonly senderId = config.get('redis.queueModeId');
 }
 
 export abstract class RedisServiceBaseReceiver extends RedisServiceBase {

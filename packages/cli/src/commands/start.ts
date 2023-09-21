@@ -26,17 +26,18 @@ import { TestWebhooks } from '@/TestWebhooks';
 import { CommunityPackageService } from '@/services/communityPackage.service';
 import { EDITOR_UI_DIST_DIR, GENERATED_STATIC_DIR } from '@/constants';
 import { eventBus } from '@/eventbus';
-import { BaseCommand } from './BaseCommand';
+import { ServerCommand } from './ServerCommand';
 import { InternalHooks } from '@/InternalHooks';
 import { License } from '@/License';
 import { ExecutionRepository } from '@/databases/repositories/execution.repository';
-import { IConfig } from '@oclif/config';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const open = require('open');
 const pipeline = promisify(stream.pipeline);
 
-export class Start extends BaseCommand {
+export class Start extends ServerCommand {
+	readonly instanceType = 'main';
+
 	static description = 'Starts n8n. Makes Web-UI available and starts active workflows';
 
 	static examples = [
@@ -65,12 +66,6 @@ export class Start extends BaseCommand {
 	protected activeWorkflowRunner: ActiveWorkflowRunner;
 
 	protected server = new Server();
-
-	constructor(argv: string[], cmdConfig: IConfig) {
-		super(argv, cmdConfig);
-		this.setInstanceType('main');
-		this.setInstanceQueueModeId();
-	}
 
 	/**
 	 * Opens the UI in browser
@@ -201,21 +196,8 @@ export class Start extends BaseCommand {
 	}
 
 	async init() {
-		await this.initCrashJournal();
-
-		this.logger.info('Initializing n8n process');
-		if (config.getEnv('executions.mode') === 'queue') {
-			this.logger.debug('Main Instance running in queue mode');
-			this.logger.debug(`Queue mode id: ${this.queueModeId}`);
-		}
-
 		await super.init();
 		this.activeWorkflowRunner = Container.get(ActiveWorkflowRunner);
-
-		await this.initLicense();
-		await this.initBinaryDataService();
-		await this.initExternalHooks();
-		await this.initExternalSecrets();
 
 		if (!config.getEnv('endpoints.disableUi')) {
 			await this.generateStaticAssets();
