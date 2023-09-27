@@ -7,6 +7,9 @@ import type {
 	IDataObject,
 	INode,
 	INodeCredentialTestRequest,
+	INodeCredentials,
+	INodeParameters,
+	INodeTypeNameVersion,
 	IPinData,
 	IRunData,
 	IUser,
@@ -397,58 +400,45 @@ export declare namespace OAuthRequest {
 	}
 }
 
-// ----------------------------------
-//      /node-parameter-options
-// ----------------------------------
-
-export type NodeParameterOptionsRequest = AuthenticatedRequest<
-	{},
+export type NodesOptionsRequest<QueryParams = {}> = AuthenticatedRequest<
+	{
+		nodeTypeAndVersion: INodeTypeNameVersion;
+		currentNodeParameters: INodeParameters;
+		credentials?: INodeCredentials;
+	},
 	{},
 	{},
 	{
-		nodeTypeAndVersion: string;
-		methodName: string;
 		path: string;
+		nodeTypeAndVersion: string;
 		currentNodeParameters: string;
-		credentials: string;
-	}
+		methodName?: string;
+		credentials?: string;
+	} & QueryParams
 >;
 
 // ----------------------------------
-//        /node-list-search
+//      /node-details/parameter-options
 // ----------------------------------
 
-export type NodeListSearchRequest = AuthenticatedRequest<
-	{},
-	{},
-	{},
-	{
-		nodeTypeAndVersion: string;
-		methodName: string;
-		path: string;
-		currentNodeParameters: string;
-		credentials: string;
-		filter?: string;
-		paginationToken?: string;
-	}
->;
+export type NodeParameterOptionsRequest = NodesOptionsRequest<{
+	loadOptions?: string;
+}>;
 
 // ----------------------------------
-//        /get-mapping-fields
+//        /node-details/list-search
 // ----------------------------------
 
-export type ResourceMapperRequest = AuthenticatedRequest<
-	{},
-	{},
-	{},
-	{
-		nodeTypeAndVersion: string;
-		methodName: string;
-		path: string;
-		currentNodeParameters: string;
-		credentials: string;
-	}
->;
+export type NodeListSearchRequest = NodesOptionsRequest<{
+	filter?: string;
+	paginationToken?: string;
+}>;
+
+// ----------------------------------
+//        /node-details/mapping-fields
+// ----------------------------------
+
+export type ResourceMapperRequest = NodesOptionsRequest<{}>;
 
 // ----------------------------------
 //             /tags

@@ -2,6 +2,7 @@ export { AuthController } from './auth.controller';
 export { LdapController } from './ldap.controller';
 export { MeController } from './me.controller';
 export { MFAController } from './mfa.controller';
+export { NodeDetailsController } from './nodeDetails.controller';
 export { NodeTypesController } from './nodeTypes.controller';
 export { OwnerController } from './owner.controller';
 export { PasswordResetController } from './passwordReset.controller';

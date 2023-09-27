@@ -9,16 +9,14 @@ import {
 import { DEFAULT_NODETYPE_VERSION, STORES } from '@/constants';
 import type {
 	INodeTypesState,
+	NodeParameterOptionsReqParams,
 	IResourceLocatorReqParams,
 	ResourceMapperReqParams,
 } from '@/Interface';
 import { addHeaders, addNodeTranslation } from '@/plugins/i18n';
 import { omit } from '@/utils';
 import type {
-	ILoadOptions,
-	INodeCredentials,
 	INodeListSearchResult,
-	INodeParameters,
 	INodePropertyOptions,
 	INodeTypeDescription,
 	INodeTypeNameVersion,
@@ -174,14 +172,9 @@ export const useNodeTypesStore = defineStore(STORES.NODE_TYPES, {
 				addHeaders(headers, rootStore.defaultLocale);
 			}
 		},
-		async getNodeParameterOptions(sendData: {
-			nodeTypeAndVersion: INodeTypeNameVersion;
-			path: string;
-			methodName?: string;
-			loadOptions?: ILoadOptions;
-			currentNodeParameters: INodeParameters;
-			credentials?: INodeCredentials;
-		}): Promise<INodePropertyOptions[]> {
+		async getNodeParameterOptions(
+			sendData: NodeParameterOptionsReqParams,
+		): Promise<INodePropertyOptions[]> {
 			const rootStore = useRootStore();
 			return getNodeParameterOptions(rootStore.getRestApiContext, sendData);
 		},

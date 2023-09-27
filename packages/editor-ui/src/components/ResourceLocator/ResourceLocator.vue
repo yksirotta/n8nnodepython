@@ -146,7 +146,6 @@
 import { defineComponent } from 'vue';
 import { mapStores } from 'pinia';
 import type {
-	ILoadOptions,
 	INode,
 	INodeCredentials,
 	INodeListSearchItems,
@@ -688,9 +687,6 @@ export default defineComponent({
 				const loadOptionsMethod = this.getPropertyArgument(this.currentMode, 'searchListMethod') as
 					| string
 					| undefined;
-				const searchList = this.getPropertyArgument(this.currentMode, 'searchList') as
-					| ILoadOptions
-					| undefined;
 
 				const requestParams: IResourceLocatorReqParams = {
 					nodeTypeAndVersion: {
@@ -699,7 +695,6 @@ export default defineComponent({
 					},
 					path: this.path,
 					methodName: loadOptionsMethod,
-					searchList,
 					currentNodeParameters: resolvedNodeParameters,
 					credentials: this.node.credentials,
 					...(params.filter ? { filter: params.filter } : {}),

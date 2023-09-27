@@ -25,29 +25,15 @@ import axios from 'axios';
 import type { RequestOptions } from 'oauth-1.0a';
 import clientOAuth1 from 'oauth-1.0a';
 
-import {
-	BinaryDataService,
-	Credentials,
-	LoadMappingOptions,
-	LoadNodeParameterOptions,
-	LoadNodeListSearch,
-	UserSettings,
-	FileNotFoundError,
-} from 'n8n-core';
+import { BinaryDataService, Credentials, UserSettings, FileNotFoundError } from 'n8n-core';
 
 import type {
-	INodeCredentials,
 	INodeCredentialsDetails,
-	INodeListSearchResult,
-	INodeParameters,
-	INodePropertyOptions,
-	INodeTypeNameVersion,
 	ITelemetrySettings,
 	WorkflowExecuteMode,
 	ICredentialTypes,
 	ExecutionStatus,
 	IExecutionsSummary,
-	ResourceMapperFields,
 	IN8nUISettings,
 } from 'n8n-workflow';
 import { LoggerProxy, jsonParse } from 'n8n-workflow';
@@ -77,10 +63,7 @@ import type {
 	BinaryDataRequest,
 	CurlHelper,
 	ExecutionRequest,
-	NodeListSearchRequest,
-	NodeParameterOptionsRequest,
 	OAuthRequest,
-	ResourceMapperRequest,
 	WorkflowRequest,
 } from '@/requests';
 import { registerController } from '@/decorators';
@@ -89,6 +72,7 @@ import {
 	LdapController,
 	MeController,
 	MFAController,
+	NodeDetailsController,
 	NodeTypesController,
 	OwnerController,
 	PasswordResetController,
@@ -529,6 +513,7 @@ export class Server extends AbstractServer {
 				postHog,
 			),
 			new MeController(logger, externalHooks, internalHooks, userService),
+			Container.get(NodeDetailsController),
 			new NodeTypesController(config, nodeTypes),
 			new PasswordResetController(
 				config,
@@ -706,170 +691,6 @@ export class Server extends AbstractServer {
 		} catch (error) {
 			LoggerProxy.warn(`Source Control initialization failed: ${error.message}`);
 		}
-
-		// ----------------------------------------
-
-		// Returns parameter values which normally get loaded from an external API or
-		// get generated dynamically
-		this.app.get(
-			`/${this.restEndpoint}/node-parameter-options`,
-			ResponseHelper.send(
-				async (req: NodeParameterOptionsRequest): Promise<INodePropertyOptions[]> => {
-					const nodeTypeAndVersion = jsonParse(
-						req.query.nodeTypeAndVersion,
-					) as INodeTypeNameVersion;
-
-					const { path, methodName } = req.query;
-
-					const currentNodeParameters = jsonParse(
-						req.query.currentNodeParameters,
-					) as INodeParameters;
-
-					let credentials: INodeCredentials | undefined;
-
-					if (req.query.credentials) {
-						credentials = jsonParse(req.query.credentials);
-					}
-
-					const loadDataInstance = new LoadNodeParameterOptions(
-						nodeTypeAndVersion,
-						this.nodeTypes,
-						path,
-						currentNodeParameters,
-						credentials,
-					);
-
-					const additionalData = await WorkflowExecuteAdditionalData.getBase(
-						req.user.id,
-						currentNodeParameters,
-					);
-
-					if (methodName) {
-						return loadDataInstance.getOptionsViaMethodName(methodName, additionalData);
-					}
-					// @ts-ignore
-					if (req.query.loadOptions) {
-						return loadDataInstance.getOptionsViaRequestProperty(
-							// @ts-ignore
-							jsonParse(req.query.loadOptions as string),
-							additionalData,
-						);
-					}
-
-					return [];
-				},
-			),
-		);
-
-		// Returns parameter values which normally get loaded from an external API or
-		// get generated dynamically
-		this.app.get(
-			`/${this.restEndpoint}/nodes-list-search`,
-			ResponseHelper.send(
-				async (
-					req: NodeListSearchRequest,
-					res: express.Response,
-				): Promise<INodeListSearchResult | undefined> => {
-					const nodeTypeAndVersion = jsonParse(
-						req.query.nodeTypeAndVersion,
-					) as INodeTypeNameVersion;
-
-					const { path, methodName } = req.query;
-
-					if (!req.query.currentNodeParameters) {
-						throw new ResponseHelper.BadRequestError(
-							'Parameter currentNodeParameters is required.',
-						);
-					}
-
-					const currentNodeParameters = jsonParse(
-						req.query.currentNodeParameters,
-					) as INodeParameters;
-
-					let credentials: INodeCredentials | undefined;
-
-					if (req.query.credentials) {
-						credentials = jsonParse(req.query.credentials);
-					}
-
-					const listSearchInstance = new LoadNodeListSearch(
-						nodeTypeAndVersion,
-						this.nodeTypes,
-						path,
-						currentNodeParameters,
-						credentials,
-					);
-
-					const additionalData = await WorkflowExecuteAdditionalData.getBase(
-						req.user.id,
-						currentNodeParameters,
-					);
-
-					if (methodName) {
-						return listSearchInstance.getOptionsViaMethodName(
-							methodName,
-							additionalData,
-							req.query.filter,
-							req.query.paginationToken,
-						);
-					}
-
-					throw new ResponseHelper.BadRequestError('Parameter methodName is required.');
-				},
-			),
-		);
-
-		this.app.get(
-			`/${this.restEndpoint}/get-mapping-fields`,
-			ResponseHelper.send(
-				async (
-					req: ResourceMapperRequest,
-					res: express.Response,
-				): Promise<ResourceMapperFields | undefined> => {
-					const nodeTypeAndVersion = jsonParse(
-						req.query.nodeTypeAndVersion,
-					) as INodeTypeNameVersion;
-
-					const { path, methodName } = req.query;
-
-					if (!req.query.currentNodeParameters) {
-						throw new ResponseHelper.BadRequestError(
-							'Parameter currentNodeParameters is required.',
-						);
-					}
-
-					const currentNodeParameters = jsonParse(
-						req.query.currentNodeParameters,
-					) as INodeParameters;
-
-					let credentials: INodeCredentials | undefined;
-
-					if (req.query.credentials) {
-						credentials = jsonParse(req.query.credentials);
-					}
-
-					const loadMappingOptionsInstance = new LoadMappingOptions(
-						nodeTypeAndVersion,
-						this.nodeTypes,
-						path,
-						currentNodeParameters,
-						credentials,
-					);
-
-					const additionalData = await WorkflowExecuteAdditionalData.getBase(
-						req.user.id,
-						currentNodeParameters,
-					);
-
-					const fields = await loadMappingOptionsInstance.getOptionsViaMethodName(
-						methodName,
-						additionalData,
-					);
-
-					return fields;
-				},
-			),
-		);
 
 		// ----------------------------------------
 		// Active Workflows

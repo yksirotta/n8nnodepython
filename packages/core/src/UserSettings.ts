@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import fs from 'fs';
 import path from 'path';
+import {
+	access as fsAccess,
+	mkdir as fsMkdir,
+	readFile as fsReadFile,
+	writeFile as fsWriteFile,
+} from 'fs/promises';
 import { createHash, randomBytes } from 'crypto';
-import { promisify } from 'util';
 import { deepCopy } from 'n8n-workflow';
 import {
 	ENCRYPTION_KEY_ENV_OVERWRITE,
@@ -17,16 +20,10 @@ import {
 } from './Constants';
 import type { IUserSettings } from './Interfaces';
 
-const fsAccess = promisify(fs.access);
-const fsReadFile = promisify(fs.readFile);
-const fsMkdir = promisify(fs.mkdir);
-const fsWriteFile = promisify(fs.writeFile);
-
 let settingsCache: IUserSettings | undefined;
 
 /**
  * Creates the user settings if they do not exist yet
- *
  */
 export async function prepareUserSettings(): Promise<IUserSettings> {
 	const settingsPath = getUserSettingsPath();
@@ -65,9 +62,7 @@ export async function prepareUserSettings(): Promise<IUserSettings> {
 /**
  * Returns the encryption key which is used to encrypt
  * the credentials.
- *
  */
-
 export async function getEncryptionKey(): Promise<string> {
 	if (process.env[ENCRYPTION_KEY_ENV_OVERWRITE] !== undefined) {
 		return process.env[ENCRYPTION_KEY_ENV_OVERWRITE];
@@ -84,7 +79,6 @@ export async function getEncryptionKey(): Promise<string> {
 
 /**
  * Returns the instance ID
- *
  */
 export async function getInstanceId(): Promise<string> {
 	const userSettings = await getUserSettings();
@@ -108,33 +102,6 @@ async function generateInstanceId(key?: string) {
 		: undefined;
 
 	return hash;
-}
-
-/**
- * Adds/Overwrite the given settings in the currently
- * saved user settings
- *
- * @param {IUserSettings} addSettings  The settings to add/overwrite
- * @param {string} [settingsPath] Optional settings file path
- */
-export async function addToUserSettings(
-	addSettings: IUserSettings,
-	settingsPath?: string,
-): Promise<IUserSettings> {
-	if (settingsPath === undefined) {
-		settingsPath = getUserSettingsPath();
-	}
-
-	let userSettings = await getUserSettings(settingsPath);
-
-	if (userSettings === undefined) {
-		userSettings = {};
-	}
-
-	// Add the settings
-	Object.assign(userSettings, addSettings);
-
-	return writeUserSettings(userSettings, settingsPath);
 }
 
 /**
@@ -176,9 +143,8 @@ export async function writeUserSettings(
 
 /**
  * Returns the content of the user settings
- *
  */
-export async function getUserSettings(
+async function getUserSettings(
 	settingsPath?: string,
 	ignoreCache?: boolean,
 ): Promise<IUserSettings | undefined> {
@@ -241,7 +207,6 @@ export function getUserN8nFolderCustomExtensionPath(): string {
 /**
  * Returns the path to the n8n user folder with the nodes that
  * have been downloaded
- *
  */
 export function getUserN8nFolderDownloadedNodesPath(): string {
 	return path.join(getUserN8nFolderPath(), DOWNLOADED_NODES_SUBDIRECTORY);
@@ -251,7 +216,6 @@ export function getUserN8nFolderDownloadedNodesPath(): string {
  * Returns the home folder path of the user if
  * none can be found it falls back to the current
  * working directory
- *
  */
 export function getUserHome(): string {
 	if (process.env[USER_FOLDER_ENV_OVERWRITE] !== undefined) {

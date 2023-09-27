@@ -3,14 +3,11 @@ import type {
 	INodeTranslationHeaders,
 	IResourceLocatorReqParams,
 	IRestApiContext,
+	NodeParameterOptionsReqParams,
 	ResourceMapperReqParams,
 } from '@/Interface';
 import type {
-	IDataObject,
-	ILoadOptions,
-	INodeCredentials,
 	INodeListSearchResult,
-	INodeParameters,
 	INodePropertyOptions,
 	INodeTypeDescription,
 	INodeTypeNameVersion,
@@ -38,38 +35,21 @@ export async function getNodesInformation(
 
 export async function getNodeParameterOptions(
 	context: IRestApiContext,
-	sendData: {
-		nodeTypeAndVersion: INodeTypeNameVersion;
-		path: string;
-		methodName?: string;
-		loadOptions?: ILoadOptions;
-		currentNodeParameters: INodeParameters;
-		credentials?: INodeCredentials;
-	},
+	sendData: NodeParameterOptionsReqParams,
 ): Promise<INodePropertyOptions[]> {
-	return makeRestApiRequest(context, 'GET', '/node-parameter-options', sendData);
+	return makeRestApiRequest(context, 'GET', '/node-details/parameter-options', sendData);
 }
 
 export async function getResourceLocatorResults(
 	context: IRestApiContext,
 	sendData: IResourceLocatorReqParams,
 ): Promise<INodeListSearchResult> {
-	return makeRestApiRequest(
-		context,
-		'GET',
-		'/nodes-list-search',
-		sendData as unknown as IDataObject,
-	);
+	return makeRestApiRequest(context, 'GET', '/node-details/list-search', sendData);
 }
 
 export async function getResourceMapperFields(
 	context: IRestApiContext,
 	sendData: ResourceMapperReqParams,
 ): Promise<ResourceMapperFields> {
-	return makeRestApiRequest(
-		context,
-		'GET',
-		'/get-mapping-fields',
-		sendData as unknown as IDataObject,
-	);
+	return makeRestApiRequest(context, 'GET', '/node-details/mapping-fields', sendData);
 }
