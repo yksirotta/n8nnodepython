@@ -25,7 +25,6 @@ import {
 	LdapController,
 	MFAController,
 	MeController,
-	NodesController,
 	OwnerController,
 	PasswordResetController,
 	TagsController,
@@ -241,17 +240,11 @@ export const setupTestServer = ({
 					case 'sourceControl':
 						registerController(app, config, Container.get(SourceControlController));
 						break;
-					case 'nodes':
-						registerController(
-							app,
-							config,
-							new NodesController(
-								config,
-								Container.get(LoadNodesAndCredentials),
-								Container.get(Push),
-								internalHooks,
-							),
+					case 'community-packages':
+						const { CommunityPackagesController } = await import(
+							'@/controllers/communityPackages.controller'
 						);
+						registerController(app, config, Container.get(CommunityPackagesController));
 					case 'me':
 						registerController(
 							app,

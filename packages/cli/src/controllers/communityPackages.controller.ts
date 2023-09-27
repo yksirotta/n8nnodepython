@@ -1,4 +1,6 @@
+import { Service } from 'typedi';
 import { Request, Response, NextFunction } from 'express';
+import config from '@/config';
 import {
 	RESPONSE_ERROR_MESSAGES,
 	STARTER_TEMPLATE_NAME,
@@ -12,9 +14,7 @@ import type { CommunityPackages } from '@/Interfaces';
 import { LoadNodesAndCredentials } from '@/LoadNodesAndCredentials';
 import { InternalHooks } from '@/InternalHooks';
 import { Push } from '@/push';
-import { Config } from '@/config';
 import { CommunityPackageService } from '@/services/communityPackage.service';
-import Container from 'typedi';
 
 const {
 	PACKAGE_NOT_INSTALLED,
@@ -33,24 +33,21 @@ export function isNpmError(error: unknown): error is { code: number; stdout: str
 	return typeof error === 'object' && error !== null && 'code' in error && 'stdout' in error;
 }
 
+@Service()
 @Authorized(['global', 'owner'])
-@RestController('/nodes')
-export class NodesController {
-	private communityPackageService: CommunityPackageService;
-
+@RestController('/community-packages')
+export class CommunityPackagesController {
 	constructor(
-		private config: Config,
-		private loadNodesAndCredentials: LoadNodesAndCredentials,
 		private push: Push,
 		private internalHooks: InternalHooks,
-	) {
-		this.communityPackageService = Container.get(CommunityPackageService);
-	}
+		private loadNodesAndCredentials: LoadNodesAndCredentials,
+		private communityPackageService: CommunityPackageService,
+	) {}
 
 	// TODO: move this into a new decorator `@IfConfig('executions.mode', 'queue')`
 	@Middleware()
 	checkIfCommunityNodesEnabled(req: Request, res: Response, next: NextFunction) {
-		if (this.config.getEnv('executions.mode') === 'queue' && req.method !== 'GET')
+		if (config.getEnv('executions.mode') === 'queue' && req.method !== 'GET')
 			res.status(400).json({
 				status: 'error',
 				message: 'Package management is disabled when running in "queue" mode',
@@ -180,7 +177,7 @@ export class NodesController {
 		);
 
 		try {
-			const missingPackages = this.config.get('nodes.packagesMissing') as string | undefined;
+			const missingPackages = config.get('nodes.packagesMissing') as string | undefined;
 			if (missingPackages) {
 				hydratedPackages = this.communityPackageService.matchMissingPackages(
 					hydratedPackages,

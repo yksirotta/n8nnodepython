@@ -89,7 +89,6 @@ import {
 	LdapController,
 	MeController,
 	MFAController,
-	NodesController,
 	NodeTypesController,
 	OwnerController,
 	PasswordResetController,
@@ -571,9 +570,11 @@ export class Server extends AbstractServer {
 		}
 
 		if (config.getEnv('nodes.communityPackages.enabled')) {
-			controllers.push(
-				new NodesController(config, this.loadNodesAndCredentials, this.push, internalHooks),
+			// eslint-disable-next-line @typescript-eslint/naming-convention
+			const { CommunityPackagesController } = await import(
+				'@/controllers/communityPackages.controller'
 			);
+			controllers.push(Container.get(CommunityPackagesController));
 		}
 
 		if (inE2ETests) {
