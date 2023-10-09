@@ -6,7 +6,7 @@ COPY .npmrc /usr/local/etc/npmrc
 
 RUN \
 	apk add --update git openssh graphicsmagick tini tzdata ca-certificates libc6-compat && \
-	npm install -g npm@9.5.1 full-icu && \
+	npm install -g npm@9.5.1 full-icu sqlite3@5.1.6 && \
 	rm -rf /var/cache/apk/* /root/.npm /tmp/* && \
 	# Install fonts
 	apk --no-cache add --virtual fonts msttcorefonts-installer fontconfig && \
