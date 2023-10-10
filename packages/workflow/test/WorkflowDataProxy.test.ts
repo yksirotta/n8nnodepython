@@ -251,7 +251,6 @@ describe('WorkflowDataProxy', () => {
 			workflow,
 			runExecutionData,
 			0,
-			0,
 			nameLastNode,
 			lastNodeConnectionInputData || [],
 			{},
@@ -260,6 +259,7 @@ describe('WorkflowDataProxy', () => {
 			{},
 			executeData,
 		);
+		dataProxy.setItemIndex(0);
 		const proxy = dataProxy.getDataProxy();
 
 		test('test $("NodeName").all()', () => {

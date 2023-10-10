@@ -18,7 +18,6 @@ export class PythonSandbox extends Sandbox {
 	constructor(
 		context: SandboxContext,
 		private pythonCode: string,
-		itemIndex: number | undefined,
 		helpers: IExecuteFunctions['helpers'],
 	) {
 		super(
@@ -28,7 +27,6 @@ export class PythonSandbox extends Sandbox {
 					plural: 'dictionaries',
 				},
 			},
-			itemIndex,
 			helpers,
 		);
 		// Since python doesn't allow variable names starting with `$`,

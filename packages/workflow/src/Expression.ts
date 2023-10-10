@@ -139,7 +139,6 @@ export class Expression {
 			this.workflow,
 			runExecutionData,
 			runIndex,
-			itemIndex,
 			activeNodeName,
 			connectionInputData,
 			siblingParameters,
@@ -151,6 +150,7 @@ export class Expression {
 			selfData,
 			contextNodeName,
 		);
+		dataProxy.setItemIndex(itemIndex);
 		const data = dataProxy.getDataProxy();
 
 		// Support only a subset of process properties

@@ -84,8 +84,6 @@ export class ExecutionData implements INodeType {
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-		const context = this.getWorkflowDataProxy(0);
-
 		const items = this.getInputData();
 		const operations = this.getNodeParameter('operation', 0);
 

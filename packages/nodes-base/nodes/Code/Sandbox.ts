@@ -19,7 +19,7 @@ export interface SandboxContext extends IWorkflowDataProxyData {
 
 export const REQUIRED_N8N_ITEM_KEYS = new Set(['json', 'binary', 'pairedItem']);
 
-export function getSandboxContext(this: IExecuteFunctions, index: number): SandboxContext {
+export function getSandboxContext(this: IExecuteFunctions): SandboxContext {
 	return {
 		// from NodeExecuteFunctions
 		$getNodeParameter: this.getNodeParameter,
@@ -28,17 +28,22 @@ export function getSandboxContext(this: IExecuteFunctions, index: number): Sandb
 
 		// to bring in all $-prefixed vars and methods from WorkflowDataProxy
 		// $node, $items(), $parameter, $json, $env, etc.
-		...this.getWorkflowDataProxy(index),
+		...this.dataProxy,
 	};
 }
 
 export abstract class Sandbox extends EventEmitter {
+	protected itemIndex = 0;
+
 	constructor(
 		private textKeys: SandboxTextKeys,
-		protected itemIndex: number | undefined,
 		protected helpers: IExecuteFunctions['helpers'],
 	) {
 		super();
+	}
+
+	incrementItemIndex() {
+		this.itemIndex++;
 	}
 
 	abstract runCodeAllItems(): Promise<INodeExecutionData[]>;
@@ -82,7 +87,6 @@ export abstract class Sandbox extends EventEmitter {
 
 	validateRunCodeAllItems(
 		executionResult: INodeExecutionData | INodeExecutionData[] | undefined,
-		itemIndex?: number,
 	): INodeExecutionData[] {
 		if (typeof executionResult !== 'object') {
 			throw new ValidationError({
@@ -90,7 +94,6 @@ export abstract class Sandbox extends EventEmitter {
 				description: `Please return an array of ${this.getTextKey('object', {
 					plural: true,
 				})}, one for each item you would like to output.`,
-				itemIndex,
 			});
 		}
 

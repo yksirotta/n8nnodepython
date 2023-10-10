@@ -95,6 +95,11 @@ return item;`,
 
 				// Define the global objects for the custom function
 				const sandbox = {
+					getNodeParameter: this.getNodeParameter,
+					getWorkflowStaticData: this.getWorkflowStaticData,
+					helpers: this.helpers,
+
+					item: item.json,
 					/** @deprecated for removal - replaced by getBinaryDataAsync() */
 					getBinaryData: (): IBinaryKeyData | undefined => {
 						if (mode === 'manual') {
@@ -113,10 +118,6 @@ return item;`,
 						}
 						item.binary = data;
 					},
-					getNodeParameter: this.getNodeParameter,
-					getWorkflowStaticData: this.getWorkflowStaticData,
-					helpers: this.helpers,
-					item: item.json,
 					getBinaryDataAsync: async (): Promise<IBinaryKeyData | undefined> => {
 						// Fetch Binary Data, if available. Cannot check item with `if (item?.index)`, as index may be 0.
 						if (item?.binary && item?.index !== undefined && item?.index !== null) {
@@ -150,11 +151,11 @@ return item;`,
 						// Set Item Reference
 						item.binary = data;
 					},
-				};
 
-				// Make it possible to access data via $node, $parameter, ...
-				const dataProxy = this.getWorkflowDataProxy(itemIndex);
-				Object.assign(sandbox, dataProxy);
+					// to bring in all $-prefixed vars and methods from WorkflowDataProxy
+					// $node, $items(), $parameter, $json, $env, etc.
+					...this.dataProxy,
+				};
 
 				const options: NodeVMOptions = {
 					console: mode === 'manual' ? 'redirect' : 'inherit',

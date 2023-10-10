@@ -25,7 +25,6 @@ export class JavaScriptSandbox extends Sandbox {
 	constructor(
 		context: SandboxContext,
 		private jsCode: string,
-		itemIndex: number | undefined,
 		helpers: IExecuteFunctions['helpers'],
 		nodeMode: CodeExecutionMode,
 	) {
@@ -36,7 +35,6 @@ export class JavaScriptSandbox extends Sandbox {
 					plural: 'objects',
 				},
 			},
-			itemIndex,
 			helpers,
 		);
 

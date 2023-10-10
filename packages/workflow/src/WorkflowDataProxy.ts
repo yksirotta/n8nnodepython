@@ -56,7 +56,7 @@ export class WorkflowDataProxy {
 
 	private runIndex: number;
 
-	private itemIndex: number;
+	private itemIndex = 0;
 
 	private activeNodeName: string;
 
@@ -83,7 +83,6 @@ export class WorkflowDataProxy {
 		workflow: Workflow,
 		runExecutionData: IRunExecutionData | null,
 		runIndex: number,
-		itemIndex: number,
 		activeNodeName: string,
 		connectionInputData: INodeExecutionData[],
 		siblingParameters: INodeParameters,
@@ -111,7 +110,6 @@ export class WorkflowDataProxy {
 
 		this.defaultReturnRunIndex = defaultReturnRunIndex;
 		this.runIndex = runIndex;
-		this.itemIndex = itemIndex;
 		this.siblingParameters = siblingParameters;
 		this.mode = mode;
 		this.defaultTimezone = defaultTimezone;
@@ -120,6 +118,10 @@ export class WorkflowDataProxy {
 		this.additionalKeys = additionalKeys;
 		this.executeData = executeData;
 		Settings.defaultZone = this.timezone;
+	}
+
+	setItemIndex(index: number) {
+		this.itemIndex = index;
 	}
 
 	/**
@@ -1199,7 +1201,6 @@ export class WorkflowDataProxy {
 					this.workflow,
 					this.runExecutionData,
 					this.runIndex,
-					itemIndex,
 					this.activeNodeName,
 					this.connectionInputData,
 					that.siblingParameters,
@@ -1210,6 +1211,7 @@ export class WorkflowDataProxy {
 					defaultReturnRunIndex,
 					that.contextNodeName,
 				);
+				dataProxy.setItemIndex(itemIndex);
 				return dataProxy.getDataProxy();
 			},
 			$items: (nodeName?: string, outputIndex?: number, runIndex?: number) => {
@@ -1239,7 +1241,9 @@ export class WorkflowDataProxy {
 			$runIndex: this.runIndex,
 			$mode: this.mode,
 			$workflow: this.workflowGetter(),
-			$itemIndex: this.itemIndex,
+			get $itemIndex(): number {
+				return that.itemIndex;
+			},
 			$now: DateTime.now(),
 			$today: DateTime.now().set({ hour: 0, minute: 0, second: 0, millisecond: 0 }),
 			$jmesPath: jmespathWrapper,
