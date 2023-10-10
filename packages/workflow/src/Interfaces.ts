@@ -857,6 +857,7 @@ export type IExecuteFunctions = ExecuteFunctions.GetNodeParameterFn &
 		): Promise<unknown>;
 		getInputData(inputIndex?: number, inputName?: string): INodeExecutionData[];
 		getNodeOutputs(): INodeOutputConfiguration[];
+
 		putExecutionToWait(waitTill: Date): Promise<void>;
 		sendMessageToUI(message: any): void;
 		sendResponse(response: IExecuteResponsePromiseData): void;
@@ -872,7 +873,6 @@ export type IExecuteFunctions = ExecuteFunctions.GetNodeParameterFn &
 			currentNodeRunIndex: number,
 			data: INodeExecutionData[][] | ExecutionError,
 		): void;
-		getWorkflowDataProxy(itemIndex: number): IWorkflowDataProxyData;
 
 		executionCustomData: {
 			set(key: string, value: string): void;
@@ -896,6 +896,10 @@ export type IExecuteFunctions = ExecuteFunctions.GetNodeParameterFn &
 				getBinaryDataBuffer(itemIndex: number, propertyName: string): Promise<Buffer>;
 				copyInputItems(items: INodeExecutionData[], properties: string[]): IDataObject[];
 			};
+
+		// TODO: create a new interface CodeExecuteFunctions for Code and Function Node, and move these out of IExecuteFunctions
+		dataProxy: Readonly<IWorkflowDataProxyData>;
+		setDataProxyItemIndex(itemIndex: number): void;
 	};
 
 export interface IExecuteSingleFunctions extends BaseExecutionFunctions {

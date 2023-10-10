@@ -23,31 +23,41 @@ export class JavaScriptSandbox extends Sandbox {
 	private readonly vm: NodeVM;
 
 	constructor(
-		context: SandboxContext,
+		context: IExecuteFunctions,
+		codeExecutionMode: CodeExecutionMode,
 		private jsCode: string,
-		itemIndex: number | undefined,
-		helpers: IExecuteFunctions['helpers'],
-		nodeMode: CodeExecutionMode,
 		options?: { resolver?: Resolver },
 	) {
-		super(
-			{
-				object: {
-					singular: 'object',
-					plural: 'objects',
-				},
+		super(context, codeExecutionMode, {
+			object: {
+				singular: 'object',
+				plural: 'objects',
 			},
-			itemIndex,
-			helpers,
-		);
+		});
 
-		if (nodeMode === 'runOnceForEachItem') {
-			this.validateCode();
+		const sandboxContext: SandboxContext = {
+			// from NodeExecuteFunctions
+			$getNodeParameter: context.getNodeParameter,
+			$getWorkflowStaticData: context.getWorkflowStaticData,
+			helpers: context.helpers,
+
+			// to bring in all $-prefixed vars and methods from WorkflowDataProxy
+			// $node, $items(), $parameter, $json, $env, etc.
+			...context.dataProxy,
+		};
+
+		// TODO: Move this into the base class
+		if (codeExecutionMode === 'runOnceForEachItem') {
+			Object.defineProperty(sandboxContext, 'item', {
+				get: () => sandboxContext.$input.item,
+			});
+		} else {
+			sandboxContext.items = sandboxContext.$input.all();
 		}
 
 		this.vm = new NodeVM({
 			console: 'redirect',
-			sandbox: context,
+			sandbox: sandboxContext,
 			require: options?.resolver ?? vmResolver,
 			wasm: false,
 		});
@@ -55,7 +65,7 @@ export class JavaScriptSandbox extends Sandbox {
 		this.vm.on('console.log', (...args: unknown[]) => this.emit('output', ...args));
 	}
 
-	private validateCode() {
+	validateCode() {
 		const match = this.jsCode.match(/\$input\.(?<disallowedMethod>first|last|all|itemMatching)/);
 		if (match?.groups?.disallowedMethod) {
 			const { disallowedMethod } = match.groups;

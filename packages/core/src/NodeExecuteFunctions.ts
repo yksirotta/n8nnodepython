@@ -85,7 +85,6 @@ import type {
 	IWebhookDescription,
 	IWebhookFunctions,
 	IWorkflowDataProxyAdditionalKeys,
-	IWorkflowDataProxyData,
 	IWorkflowExecuteAdditionalData,
 	NodeExecutionWithMetadata,
 	NodeHelperFunctions,
@@ -3403,6 +3402,19 @@ export function getExecuteFunctions(
 	abortSignal?: AbortSignal,
 ): IExecuteFunctions {
 	return ((workflow, runExecutionData, connectionInputData, inputData, node) => {
+		const dataProxyWrapper = new WorkflowDataProxy(
+			workflow,
+			runExecutionData,
+			runIndex,
+			node.name,
+			connectionInputData,
+			{},
+			mode,
+			getAdditionalKeys(additionalData, mode, runExecutionData),
+			executeData,
+		);
+		const dataProxy = dataProxyWrapper.getDataProxy();
+
 		return {
 			...getCommonWorkflowFunctions(workflow, node, additionalData),
 			...executionCancellationFunctions(abortSignal),
@@ -3539,20 +3551,9 @@ export function getExecuteFunctions(
 					options,
 				);
 			},
-			getWorkflowDataProxy: (itemIndex: number): IWorkflowDataProxyData => {
-				const dataProxy = new WorkflowDataProxy(
-					workflow,
-					runExecutionData,
-					runIndex,
-					itemIndex,
-					node.name,
-					connectionInputData,
-					{},
-					mode,
-					getAdditionalKeys(additionalData, mode, runExecutionData),
-					executeData,
-				);
-				return dataProxy.getDataProxy();
+			dataProxy,
+			setDataProxyItemIndex(itemIndex) {
+				dataProxyWrapper.setItemIndex(itemIndex);
 			},
 			binaryToBuffer: async (body: Buffer | Readable) =>
 				await Container.get(BinaryDataService).toBuffer(body),

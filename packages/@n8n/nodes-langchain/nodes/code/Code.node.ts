@@ -73,7 +73,8 @@ function getSandbox(
 	const node = this.getNode();
 	const workflowMode = this.getMode();
 
-	const context = getSandboxContext.call(this, itemIndex);
+	const context = getSandboxContext.call(this);
+	this.setDataProxyItemIndex(itemIndex);
 	// eslint-disable-next-line @typescript-eslint/unbound-method
 	context.addInputData = this.addInputData;
 	// eslint-disable-next-line @typescript-eslint/unbound-method

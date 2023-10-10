@@ -10,7 +10,6 @@ import { javascriptCodeDescription } from './descriptions/JavascriptCodeDescript
 import { pythonCodeDescription } from './descriptions/PythonCodeDescription';
 import { JavaScriptSandbox } from './JavaScriptSandbox';
 import { PythonSandbox } from './PythonSandbox';
-import { getSandboxContext } from './Sandbox';
 import { standardizeOutput } from './utils';
 
 const { CODE_ENABLE_STDOUT } = process.env;
@@ -100,36 +99,25 @@ export class Code implements INodeType {
 				? (this.getNodeParameter('language', 0) as CodeNodeEditorLanguage)
 				: 'javaScript';
 		const codeParameterName = language === 'python' ? 'pythonCode' : 'jsCode';
+		const code = this.getNodeParameter(codeParameterName, 0) as string;
 
-		const getSandbox = (index = 0) => {
-			const code = this.getNodeParameter(codeParameterName, index) as string;
-			const context = getSandboxContext.call(this, index);
-			if (nodeMode === 'runOnceForAllItems') {
-				context.items = context.$input.all();
-			} else {
-				context.item = context.$input.item;
-			}
-
-			const Sandbox = language === 'python' ? PythonSandbox : JavaScriptSandbox;
-			const sandbox = new Sandbox(context, code, index, this.helpers, nodeMode);
-			sandbox.on(
-				'output',
-				workflowMode === 'manual'
-					? this.sendMessageToUI
-					: CODE_ENABLE_STDOUT === 'true'
-					  ? (...args) =>
-								console.log(`[Workflow "${this.getWorkflow().id}"][Node "${node.name}"]`, ...args)
-					  : () => {},
-			);
-			return sandbox;
-		};
+		const Sandbox = language === 'python' ? PythonSandbox : JavaScriptSandbox;
+		const sandbox = new Sandbox(this, nodeMode, code);
+		sandbox.on(
+			'output',
+			workflowMode === 'manual'
+				? this.sendMessageToUI
+				: CODE_ENABLE_STDOUT === 'true'
+				  ? (...args) =>
+							console.log(`[Workflow "${this.getWorkflow().id}"][Node "${node.name}"]`, ...args)
+				  : () => {},
+		);
 
 		// ----------------------------------
 		//        runOnceForAllItems
 		// ----------------------------------
 
 		if (nodeMode === 'runOnceForAllItems') {
-			const sandbox = getSandbox();
 			let items: INodeExecutionData[];
 			try {
 				items = (await sandbox.runCodeAllItems()) as INodeExecutionData[];
@@ -154,9 +142,9 @@ export class Code implements INodeType {
 		const items = this.getInputData();
 
 		for (let index = 0; index < items.length; index++) {
-			const sandbox = getSandbox(index);
 			let result: INodeExecutionData | undefined;
 			try {
+				this.setDataProxyItemIndex(index);
 				result = await sandbox.runCodeEachItem();
 			} catch (error) {
 				if (!this.continueOnFail()) throw error;

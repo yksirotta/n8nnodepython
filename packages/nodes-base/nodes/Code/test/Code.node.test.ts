@@ -22,10 +22,8 @@ describe('Code Node unit test', () => {
 	const thisArg = mock<IExecuteFunctions>({
 		getNode: () => mock(),
 		helpers: { normalizeItems },
-		prepareOutputData: NodeHelpers.prepareOutputData,
+		dataProxy: mock<IWorkflowDataProxyData>({ $input: mock() }),
 	});
-	const workflowDataProxy = mock<IWorkflowDataProxyData>({ $input: mock() });
-	thisArg.getWorkflowDataProxy.mockReturnValue(workflowDataProxy);
 
 	describe('runOnceForAllItems', () => {
 		beforeEach(() => {

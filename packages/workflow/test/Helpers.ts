@@ -24,7 +24,6 @@ import type {
 	ITaskDataConnections,
 	IWorkflowBase,
 	IWorkflowDataProxyAdditionalKeys,
-	IWorkflowDataProxyData,
 	IWorkflowExecuteAdditionalData,
 	NodeParameterValue,
 	WorkflowExecuteMode,
@@ -178,6 +177,18 @@ export function getExecuteFunctions(
 	mode: WorkflowExecuteMode,
 ): IExecuteFunctions {
 	return ((workflow, runExecutionData, connectionInputData, inputData, node) => {
+		const dataProxyWrapper = new WorkflowDataProxy(
+			workflow,
+			runExecutionData,
+			runIndex,
+			node.name,
+			connectionInputData,
+			{},
+			mode,
+			{},
+			executeData,
+		);
+		const dataProxy = dataProxyWrapper.getDataProxy();
 		return {
 			continueOnFail: () => {
 				return false;
@@ -270,20 +281,9 @@ export function getExecuteFunctions(
 					active: workflow.active,
 				};
 			},
-			getWorkflowDataProxy: (itemIndex: number): IWorkflowDataProxyData => {
-				const dataProxy = new WorkflowDataProxy(
-					workflow,
-					runExecutionData,
-					runIndex,
-					itemIndex,
-					node.name,
-					connectionInputData,
-					{},
-					mode,
-					{},
-					executeData,
-				);
-				return dataProxy.getDataProxy();
+			dataProxy,
+			setDataProxyItemIndex(itemIndex) {
+				dataProxyWrapper.setItemIndex(itemIndex);
 			},
 			getWorkflowStaticData(type: string): IDataObject {
 				return workflow.getStaticData(type, node);
