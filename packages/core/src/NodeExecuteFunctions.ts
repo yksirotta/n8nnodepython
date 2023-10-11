@@ -3384,22 +3384,6 @@ export function getExecuteSingleFunctions(
 					options,
 				);
 			},
-			getWorkflowDataProxy: (): IWorkflowDataProxyData => {
-				const dataProxy = new WorkflowDataProxy(
-					workflow,
-					runExecutionData,
-					runIndex,
-					itemIndex,
-					node.name,
-					connectionInputData,
-					{},
-					mode,
-					additionalData.timezone,
-					getAdditionalKeys(additionalData, mode, runExecutionData),
-					executeData,
-				);
-				return dataProxy.getDataProxy();
-			},
 			helpers: {
 				createDeferredPromise,
 				...getRequestHelperFunctions(workflow, node, additionalData),
