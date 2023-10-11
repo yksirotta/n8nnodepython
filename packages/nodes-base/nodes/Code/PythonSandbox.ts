@@ -1,4 +1,4 @@
-import type { IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
+import type { CodeExecutionMode, IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
 import type { PyDict } from 'pyodide/ffi';
 import { LoadPyodide } from './Pyodide';
 import type { SandboxContext } from './Sandbox';
@@ -16,25 +16,31 @@ export class PythonSandbox extends Sandbox {
 	private readonly context: PythonSandboxContext;
 
 	constructor(
-		context: SandboxContext,
+		context: IExecuteFunctions,
+		codeExecutionMode: CodeExecutionMode,
 		private pythonCode: string,
-		helpers: IExecuteFunctions['helpers'],
 	) {
-		super(
-			{
-				object: {
-					singular: 'dictionary',
-					plural: 'dictionaries',
-				},
+		super(context, codeExecutionMode, {
+			object: {
+				singular: 'dictionary',
+				plural: 'dictionaries',
 			},
-			helpers,
-		);
+		});
+
 		// Since python doesn't allow variable names starting with `$`,
 		// rename them to all to start with `_` instead
-		this.context = Object.keys(context).reduce((acc, key) => {
-			acc[key.startsWith('$') ? key.replace(/^\$/, '_') : key] = context[key];
-			return acc;
-		}, {} as PythonSandboxContext);
+
+		this.context = {
+			// from NodeExecuteFunctions
+			_getNodeParameter: context.getNodeParameter,
+			_getWorkflowStaticData: context.getWorkflowStaticData,
+			helpers: context.helpers,
+
+			// TODO: update the dataProxy to handle `_` instead of `$`
+			// to bring in all $-prefixed vars and methods from WorkflowDataProxy
+			// $node, $items(), $parameter, $json, $env, etc.
+			...context.dataProxy,
+		} as unknown as PythonSandboxContext;
 	}
 
 	async runCodeAllItems() {

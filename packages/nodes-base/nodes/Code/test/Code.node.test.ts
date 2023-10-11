@@ -133,6 +133,7 @@ describe('Code Node unit test', () => {
 						await node.execute.call(thisArg);
 						throw new Error("Validation error wasn't thrown");
 					} catch (error) {
+						console.log(error)
 						expect(error).toBeInstanceOf(ValidationError);
 						expect(error.message).toEqual("A 'json' property isn't an object [item 0]");
 					}

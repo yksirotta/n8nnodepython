@@ -12,6 +12,21 @@ import type {
 import { deepCopy, NodeOperationError } from 'n8n-workflow';
 import { vmResolver } from '../Code/JavaScriptSandbox';
 
+const cleanupData = (inputData: IDataObject): IDataObject => {
+	Object.keys(inputData).map((key) => {
+		if (inputData[key] !== null && typeof inputData[key] === 'object') {
+			if (inputData[key]!.constructor.name === 'Object') {
+				// Is regular node.js object so check its data
+				inputData[key] = cleanupData(inputData[key] as IDataObject);
+			} else {
+				// Is some special object like a Date so stringify
+				inputData[key] = deepCopy(inputData[key]);
+			}
+		}
+	});
+	return inputData;
+};
+
 export class FunctionItem implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Function Item',
@@ -63,111 +78,95 @@ return item;`,
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
+		const mode = this.getMode();
 
 		const returnData: INodeExecutionData[] = [];
 		const length = items.length;
 		let item: INodeExecutionData;
 
-		const cleanupData = (inputData: IDataObject): IDataObject => {
-			Object.keys(inputData).map((key) => {
-				if (inputData[key] !== null && typeof inputData[key] === 'object') {
-					if (inputData[key]!.constructor.name === 'Object') {
-						// Is regular node.js object so check its data
-						inputData[key] = cleanupData(inputData[key] as IDataObject);
-					} else {
-						// Is some special object like a Date so stringify
-						inputData[key] = deepCopy(inputData[key]);
+		// Define the global objects for the custom function
+		const sandbox = {
+			getNodeParameter: this.getNodeParameter,
+			getWorkflowStaticData: this.getWorkflowStaticData,
+			helpers: this.helpers,
+
+			/** @deprecated for removal - replaced by getBinaryDataAsync() */
+			getBinaryData: (): IBinaryKeyData | undefined => {
+				if (mode === 'manual') {
+					this.sendMessageToUI(
+						'getBinaryData(...) is deprecated and will be removed in a future version. Please consider switching to getBinaryDataAsync(...) instead.',
+					);
+				}
+				return item.binary;
+			},
+			/** @deprecated for removal - replaced by setBinaryDataAsync() */
+			setBinaryData: async (data: IBinaryKeyData) => {
+				if (mode === 'manual') {
+					this.sendMessageToUI(
+						'setBinaryData(...) is deprecated and will be removed in a future version. Please consider switching to setBinaryDataAsync(...) instead.',
+					);
+				}
+				item.binary = data;
+			},
+			getBinaryDataAsync: async (): Promise<IBinaryKeyData | undefined> => {
+				// Fetch Binary Data, if available. Cannot check item with `if (item?.index)`, as index may be 0.
+				if (item?.binary && item?.index !== undefined && item?.index !== null) {
+					for (const binaryPropertyName of Object.keys(item.binary)) {
+						item.binary[binaryPropertyName].data = (
+							await this.helpers.getBinaryDataBuffer(item.index, binaryPropertyName)
+						)?.toString('base64');
 					}
 				}
-			});
-			return inputData;
+				// Retrun Data
+				return item.binary;
+			},
+			setBinaryDataAsync: async (data: IBinaryKeyData) => {
+				// Ensure data is present
+				if (!data) {
+					throw new NodeOperationError(
+						this.getNode(),
+						'No data was provided to setBinaryDataAsync (data: IBinaryKeyData).',
+					);
+				}
+
+				// Set Binary Data
+				for (const binaryPropertyName of Object.keys(data)) {
+					const binaryItem = data[binaryPropertyName];
+					data[binaryPropertyName] = await this.helpers.setBinaryDataBuffer(
+						binaryItem,
+						Buffer.from(binaryItem.data, 'base64'),
+					);
+				}
+
+				// Set Item Reference
+				item.binary = data;
+			},
+
+			// to bring in all $-prefixed vars and methods from WorkflowDataProxy
+			// $node, $items(), $parameter, $json, $env, etc.
+			...this.dataProxy,
 		};
 
-		for (let itemIndex = 0; itemIndex < length; itemIndex++) {
-			const mode = this.getMode();
+		const options: NodeVMOptions = {
+			console: mode === 'manual' ? 'redirect' : 'inherit',
+			sandbox,
+			require: vmResolver,
+		};
 
+		const vm = new NodeVM(options as unknown as NodeVMOptions);
+
+		if (mode === 'manual') {
+			vm.on('console.log', this.sendMessageToUI);
+		}
+
+		for (let itemIndex = 0; itemIndex < length; itemIndex++) {
 			try {
+				// TODO: update itemIndex in the sandbox and data-proxy
 				item = items[itemIndex];
 				item.index = itemIndex;
 
 				// Copy the items as they may get changed in the functions
 				item = deepCopy(item);
-
-				// Define the global objects for the custom function
-				const sandbox = {
-					getNodeParameter: this.getNodeParameter,
-					getWorkflowStaticData: this.getWorkflowStaticData,
-					helpers: this.helpers,
-
-					item: item.json,
-					/** @deprecated for removal - replaced by getBinaryDataAsync() */
-					getBinaryData: (): IBinaryKeyData | undefined => {
-						if (mode === 'manual') {
-							this.sendMessageToUI(
-								'getBinaryData(...) is deprecated and will be removed in a future version. Please consider switching to getBinaryDataAsync(...) instead.',
-							);
-						}
-						return item.binary;
-					},
-					/** @deprecated for removal - replaced by setBinaryDataAsync() */
-					setBinaryData: async (data: IBinaryKeyData) => {
-						if (mode === 'manual') {
-							this.sendMessageToUI(
-								'setBinaryData(...) is deprecated and will be removed in a future version. Please consider switching to setBinaryDataAsync(...) instead.',
-							);
-						}
-						item.binary = data;
-					},
-					getBinaryDataAsync: async (): Promise<IBinaryKeyData | undefined> => {
-						// Fetch Binary Data, if available. Cannot check item with `if (item?.index)`, as index may be 0.
-						if (item?.binary && item?.index !== undefined && item?.index !== null) {
-							for (const binaryPropertyName of Object.keys(item.binary)) {
-								item.binary[binaryPropertyName].data = (
-									await this.helpers.getBinaryDataBuffer(item.index, binaryPropertyName)
-								)?.toString('base64');
-							}
-						}
-						// Retrun Data
-						return item.binary;
-					},
-					setBinaryDataAsync: async (data: IBinaryKeyData) => {
-						// Ensure data is present
-						if (!data) {
-							throw new NodeOperationError(
-								this.getNode(),
-								'No data was provided to setBinaryDataAsync (data: IBinaryKeyData).',
-							);
-						}
-
-						// Set Binary Data
-						for (const binaryPropertyName of Object.keys(data)) {
-							const binaryItem = data[binaryPropertyName];
-							data[binaryPropertyName] = await this.helpers.setBinaryDataBuffer(
-								binaryItem,
-								Buffer.from(binaryItem.data, 'base64'),
-							);
-						}
-
-						// Set Item Reference
-						item.binary = data;
-					},
-
-					// to bring in all $-prefixed vars and methods from WorkflowDataProxy
-					// $node, $items(), $parameter, $json, $env, etc.
-					...this.dataProxy,
-				};
-
-				const options: NodeVMOptions = {
-					console: mode === 'manual' ? 'redirect' : 'inherit',
-					sandbox,
-					require: vmResolver,
-				};
-
-				const vm = new NodeVM(options as unknown as NodeVMOptions);
-
-				if (mode === 'manual') {
-					vm.on('console.log', this.sendMessageToUI);
-				}
 
 				// Get the code to execute
 				const functionCode = this.getNodeParameter('functionCode', itemIndex) as string;

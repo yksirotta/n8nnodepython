@@ -1,8 +1,12 @@
 import { EventEmitter } from 'events';
+import type {
+	CodeExecutionMode,
+	IExecuteFunctions,
+	INodeExecutionData,
+	IWorkflowDataProxyData,
+} from 'n8n-workflow';
 import { ValidationError } from './ValidationError';
 import { isObject } from './utils';
-
-import type { IExecuteFunctions, INodeExecutionData, IWorkflowDataProxyData } from 'n8n-workflow';
 
 interface SandboxTextKeys {
 	object: {
@@ -19,27 +23,18 @@ export interface SandboxContext extends IWorkflowDataProxyData {
 
 export const REQUIRED_N8N_ITEM_KEYS = new Set(['json', 'binary', 'pairedItem']);
 
-export function getSandboxContext(this: IExecuteFunctions): SandboxContext {
-	return {
-		// from NodeExecuteFunctions
-		$getNodeParameter: this.getNodeParameter,
-		$getWorkflowStaticData: this.getWorkflowStaticData,
-		helpers: this.helpers,
-
-		// to bring in all $-prefixed vars and methods from WorkflowDataProxy
-		// $node, $items(), $parameter, $json, $env, etc.
-		...this.dataProxy,
-	};
-}
-
 export abstract class Sandbox extends EventEmitter {
 	protected itemIndex = 0;
 
+	protected helpers: IExecuteFunctions['helpers'];
+
 	constructor(
+		thisArg: IExecuteFunctions,
+		protected codeExecutionMode: CodeExecutionMode,
 		private textKeys: SandboxTextKeys,
-		protected helpers: IExecuteFunctions['helpers'],
 	) {
 		super();
+		this.helpers = thisArg.helpers;
 	}
 
 	incrementItemIndex() {

@@ -10,7 +10,6 @@ import { javascriptCodeDescription } from './descriptions/JavascriptCodeDescript
 import { pythonCodeDescription } from './descriptions/PythonCodeDescription';
 import { JavaScriptSandbox } from './JavaScriptSandbox';
 import { PythonSandbox } from './PythonSandbox';
-import { getSandboxContext } from './Sandbox';
 import { standardizeOutput } from './utils';
 
 const { CODE_ENABLE_STDOUT } = process.env;
@@ -102,9 +101,8 @@ export class Code implements INodeType {
 		const codeParameterName = language === 'python' ? 'pythonCode' : 'jsCode';
 		const code = this.getNodeParameter(codeParameterName, 0) as string;
 
-		const context = getSandboxContext.call(this);
 		const Sandbox = language === 'python' ? PythonSandbox : JavaScriptSandbox;
-		const sandbox = new Sandbox(context, code, this.helpers, nodeMode);
+		const sandbox = new Sandbox(this, nodeMode, code);
 		sandbox.on(
 			'output',
 			workflowMode === 'manual'

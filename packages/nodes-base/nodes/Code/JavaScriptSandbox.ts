@@ -23,28 +23,35 @@ export class JavaScriptSandbox extends Sandbox {
 	private readonly vm: NodeVM;
 
 	constructor(
-		context: SandboxContext,
+		context: IExecuteFunctions,
+		codeExecutionMode: CodeExecutionMode,
 		private jsCode: string,
-		helpers: IExecuteFunctions['helpers'],
-		nodeMode: CodeExecutionMode,
 	) {
-		super(
-			{
-				object: {
-					singular: 'object',
-					plural: 'objects',
-				},
+		super(context, codeExecutionMode, {
+			object: {
+				singular: 'object',
+				plural: 'objects',
 			},
-			helpers,
-		);
+		});
 
-		if (nodeMode === 'runOnceForEachItem') {
+		if (codeExecutionMode === 'runOnceForEachItem') {
 			this.validateCode();
 		}
 
+		const sandboxContext: SandboxContext = {
+			// from NodeExecuteFunctions
+			$getNodeParameter: context.getNodeParameter,
+			$getWorkflowStaticData: context.getWorkflowStaticData,
+			helpers: context.helpers,
+
+			// to bring in all $-prefixed vars and methods from WorkflowDataProxy
+			// $node, $items(), $parameter, $json, $env, etc.
+			...context.dataProxy,
+		};
+
 		this.vm = new NodeVM({
 			console: 'redirect',
-			sandbox: context,
+			sandbox: sandboxContext,
 			require: vmResolver,
 			wasm: false,
 		});
