@@ -147,7 +147,7 @@ export class Workflow {
 	 * to easily find parent nodes.
 	 *
 	 */
-	__getConnectionsByDestination(connections: IConnections): IConnections {
+	private __getConnectionsByDestination(connections: IConnections): IConnections {
 		const returnConnection: IConnections = {};
 
 		let connectionInfo;
@@ -669,7 +669,7 @@ export class Workflow {
 	 * @param {ConnectionTypes} [type='main']
 	 * @param {*} [depth=-1]
 	 */
-	getConnectedNodes(
+	private getConnectedNodes(
 		connections: IConnections,
 		nodeName: string,
 		connectionType: ConnectionTypes | 'ALL' | 'ALL_NON_MAIN' = 'main',
@@ -783,7 +783,7 @@ export class Workflow {
 		queue.push({
 			name: sourceNode,
 			depth: 0,
-			indicies: [],
+			indices: [],
 		});
 
 		const visited: { [key: string]: IConnectedNode } = {};
@@ -801,7 +801,7 @@ export class Workflow {
 			// eslint-disable-next-line @typescript-eslint/no-loop-func
 			toAdd.forEach((curr) => {
 				if (visited[curr.name]) {
-					visited[curr.name].indicies = dedupe(visited[curr.name].indicies.concat(curr.indicies));
+					visited[curr.name].indices = dedupe(visited[curr.name].indices.concat(curr.indices));
 					return;
 				}
 
@@ -821,7 +821,7 @@ export class Workflow {
 					connectionsByIndex.forEach((connection) => {
 						queue.push({
 							name: connection.node,
-							indicies: [connection.index],
+							indices: [connection.index],
 							depth,
 						});
 					});
@@ -921,7 +921,7 @@ export class Workflow {
 	 *
 	 * @param {string[]} nodeNames The potential start nodes
 	 */
-	__getStartNode(nodeNames: string[]): INode | undefined {
+	private __getStartNode(nodeNames: string[]): INode | undefined {
 		// Check if there are any trigger or poll nodes and then return the first one
 		let node: INode;
 		let nodeType: INodeType;

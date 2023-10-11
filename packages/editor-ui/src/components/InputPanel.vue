@@ -341,7 +341,7 @@ export default defineComponent({
 		connectedCurrentNodeOutputs(): number[] | undefined {
 			const search = this.parentNodes.find(({ name }) => name === this.currentNodeName);
 			if (search) {
-				return search.indicies;
+				return search.indices;
 			}
 			return undefined;
 		},

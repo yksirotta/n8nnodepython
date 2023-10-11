@@ -2063,7 +2063,7 @@ export interface FeatureFlags {
 
 export interface IConnectedNode {
 	name: string;
-	indicies: number[];
+	indices: number[];
 	depth: number;
 }
 

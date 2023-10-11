@@ -1,3 +1,4 @@
+import { mock } from 'jest-mock-extended';
 import type {
 	IBinaryKeyData,
 	IConnections,
@@ -7,6 +8,7 @@ import type {
 	INodeParameters,
 	IRunExecutionData,
 	NodeParameterValueType,
+	INodeTypes,
 } from '@/Interfaces';
 import { Workflow } from '@/Workflow';
 
@@ -18,6 +20,8 @@ interface StubNode {
 	name: string;
 	parameters: INodeParameters;
 }
+
+const nodeTypes = mock<INodeTypes>();
 
 describe('Workflow', () => {
 	describe('renameNodeInParameterValue for expressions', () => {
@@ -1754,19 +1758,19 @@ describe('Workflow', () => {
 			expect(SIMPLE_WORKFLOW.getParentNodesByDepth('Set')).toEqual([
 				{
 					depth: 1,
-					indicies: [0],
+					indices: [0],
 					name: 'Start',
 				},
 			]);
 			expect(SIMPLE_WORKFLOW.getParentNodesByDepth('Set1')).toEqual([
 				{
 					depth: 1,
-					indicies: [0],
+					indices: [0],
 					name: 'Set',
 				},
 				{
 					depth: 2,
-					indicies: [0],
+					indices: [0],
 					name: 'Start',
 				},
 			]);
@@ -1777,7 +1781,7 @@ describe('Workflow', () => {
 			expect(SIMPLE_WORKFLOW.getParentNodesByDepth('Set1', 1)).toEqual([
 				{
 					depth: 1,
-					indicies: [0],
+					indices: [0],
 					name: 'Set',
 				},
 			]);
@@ -1787,30 +1791,30 @@ describe('Workflow', () => {
 			expect(SIMPLE_WORKFLOW.getParentNodesByDepth('Set1', -1)).toEqual([
 				{
 					depth: 1,
-					indicies: [0],
+					indices: [0],
 					name: 'Set',
 				},
 				{
 					depth: 2,
-					indicies: [0],
+					indices: [0],
 					name: 'Start',
 				},
 			]);
 		});
 
-		test('Should return parents of nodes with all connected output indicies', () => {
+		test('Should return parents of nodes with all connected output indices', () => {
 			expect(WORKFLOW_WITH_SWITCH.getParentNodesByDepth('Switch')).toEqual([]);
 			expect(WORKFLOW_WITH_SWITCH.getParentNodesByDepth('Set1')).toEqual([
 				{
 					depth: 1,
-					indicies: [0],
+					indices: [0],
 					name: 'Switch',
 				},
 			]);
 			expect(WORKFLOW_WITH_SWITCH.getParentNodesByDepth('Set')).toEqual([
 				{
 					depth: 1,
-					indicies: [1, 2],
+					indices: [1, 2],
 					name: 'Switch',
 				},
 			]);
@@ -1818,17 +1822,17 @@ describe('Workflow', () => {
 			expect(WORKFLOW_WITH_SWITCH.getParentNodesByDepth('Set2')).toEqual([
 				{
 					depth: 1,
-					indicies: [0],
+					indices: [0],
 					name: 'Set',
 				},
 				{
 					depth: 1,
-					indicies: [0],
+					indices: [0],
 					name: 'Set1',
 				},
 				{
 					depth: 2,
-					indicies: [1, 2, 0],
+					indices: [1, 2, 0],
 					name: 'Switch',
 				},
 			]);
@@ -1839,54 +1843,1044 @@ describe('Workflow', () => {
 			expect(WORKFLOW_WITH_LOOPS.getParentNodesByDepth('Set')).toEqual([
 				{
 					depth: 1,
-					indicies: [0, 2],
+					indices: [0, 2],
 					name: 'Switch',
 				},
 				{
 					depth: 2,
-					indicies: [0],
+					indices: [0],
 					name: 'Set1',
 				},
 				{
 					depth: 3,
-					indicies: [0],
+					indices: [0],
 					name: 'Start',
 				},
 			]);
 			expect(WORKFLOW_WITH_LOOPS.getParentNodesByDepth('Switch')).toEqual([
 				{
 					depth: 1,
-					indicies: [0],
+					indices: [0],
 					name: 'Set1',
 				},
 				{
 					depth: 2,
-					indicies: [0],
+					indices: [0],
 					name: 'Start',
 				},
 				{
 					depth: 2,
-					indicies: [0],
+					indices: [0],
 					name: 'Set',
 				},
 			]);
 			expect(WORKFLOW_WITH_LOOPS.getParentNodesByDepth('Set1')).toEqual([
 				{
 					depth: 1,
-					indicies: [0],
+					indices: [0],
 					name: 'Start',
 				},
 				{
 					depth: 1,
-					indicies: [0],
+					indices: [0],
 					name: 'Set',
 				},
 				{
 					depth: 2,
-					indicies: [0, 2],
+					indices: [0, 2],
 					name: 'Switch',
 				},
 			]);
+		});
+	});
+
+	describe('checkIfWorkflowCanBeActivated', () => {
+		// Workflow has a trigger node
+		it('should return true when workflow has a trigger node', () => {
+			const workflow = new Workflow({
+				id: 'workflow1',
+				name: 'My Workflow',
+				nodes: [
+					{
+						id: 'node1',
+						name: 'Trigger Node',
+						type: 'trigger',
+						position: [100, 100],
+						disabled: false,
+						parameters: {},
+					},
+					{
+						id: 'node2',
+						name: 'Webhook Node',
+						type: 'webhook',
+						position: [300, 100],
+						disabled: false,
+						parameters: {},
+					},
+					{
+						id: 'node3',
+						name: 'Regular Node',
+						type: 'regular',
+						position: [500, 100],
+						disabled: false,
+						parameters: {},
+					},
+				],
+				connections: {},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const result = workflow.checkIfWorkflowCanBeActivated();
+			expect(result).toBe(true);
+		});
+
+		// Workflow has a webhook node
+		it('should return true when workflow has a webhook node', () => {
+			const workflow = new Workflow({
+				id: 'workflow1',
+				name: 'My Workflow',
+				nodes: [
+					{
+						id: 'node1',
+						name: 'Trigger Node',
+						type: 'trigger',
+						position: [100, 100],
+						disabled: false,
+						parameters: {},
+					},
+					{
+						id: 'node2',
+						name: 'Webhook Node',
+						type: 'webhook',
+						position: [300, 100],
+						disabled: false,
+						parameters: {},
+					},
+					{
+						id: 'node3',
+						name: 'Regular Node',
+						type: 'regular',
+						position: [500, 100],
+						disabled: false,
+						parameters: {},
+					},
+				],
+				connections: {},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const result = workflow.checkIfWorkflowCanBeActivated();
+			expect(result).toBe(true);
+		});
+
+		// Workflow has a poll node
+		it('should return true when workflow has a poll node', () => {
+			const workflow = new Workflow({
+				id: 'workflow1',
+				name: 'My Workflow',
+				nodes: [
+					{
+						id: 'node1',
+						name: 'Trigger Node',
+						type: 'trigger',
+						position: [100, 100],
+						disabled: false,
+						parameters: {},
+					},
+					{
+						id: 'node2',
+						name: 'Webhook Node',
+						type: 'webhook',
+						position: [300, 100],
+						disabled: false,
+						parameters: {},
+					},
+					{
+						id: 'node3',
+						name: 'Poll Node',
+						type: 'poll',
+						position: [500, 100],
+						disabled: false,
+						parameters: {},
+					},
+				],
+				connections: {},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const result = workflow.checkIfWorkflowCanBeActivated();
+			expect(result).toBe(true);
+		});
+
+		// Workflow has no nodes
+		it('should return false when workflow has no nodes', () => {
+			const workflow = new Workflow({
+				id: 'workflow1',
+				name: 'My Workflow',
+				nodes: [],
+				connections: {},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const result = workflow.checkIfWorkflowCanBeActivated();
+			expect(result).toBe(false);
+		});
+
+		// Workflow has only disabled nodes
+		it('should return false when workflow has only disabled nodes', () => {
+			const workflow = new Workflow({
+				id: 'workflow1',
+				name: 'My Workflow',
+				nodes: [
+					{
+						id: 'node1',
+						name: 'Trigger Node',
+						type: 'trigger',
+						position: [100, 100],
+						disabled: true,
+						parameters: {},
+					},
+					{
+						id: 'node2',
+						name: 'Webhook Node',
+						type: 'webhook',
+						position: [300, 100],
+						disabled: true,
+						parameters: {},
+					},
+					{
+						id: 'node3',
+						name: 'Regular Node',
+						type: 'regular',
+						position: [500, 100],
+						disabled: true,
+						parameters: {},
+					},
+				],
+				connections: {},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const result = workflow.checkIfWorkflowCanBeActivated();
+			expect(result).toBe(false);
+		});
+	});
+
+	describe('getHighestNode', () => {
+		it('should return the current node when it has no incoming connections', () => {
+			const workflow = new Workflow({
+				id: 'workflow1',
+				name: 'My Workflow',
+				nodes: [
+					{
+						name: 'Node1',
+						type: 'type1',
+						disabled: false,
+					},
+				],
+				connections: {},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const highestNodes = workflow.getHighestNode('Node1');
+			expect(highestNodes).toEqual(['Node1']);
+		});
+
+		// Node has incoming connections of type 'main' and is not disabled
+		it("should return the current node and its parent node when it has incoming connections of type 'main' and is not disabled", () => {
+			const workflow = new Workflow({
+				id: 'workflow1',
+				name: 'My Workflow',
+				nodes: [
+					{
+						name: 'Node1',
+						type: 'type1',
+						disabled: false,
+					},
+					{
+						name: 'Node2',
+						type: 'type2',
+						disabled: false,
+					},
+				],
+				connections: {
+					Node1: {
+						main: [
+							[
+								{
+									node: 'Node2',
+									type: 'main',
+									index: 0,
+								},
+							],
+						],
+					},
+				},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const highestNodes = workflow.getHighestNode('Node2');
+			expect(highestNodes).toEqual(['Node1', 'Node2']);
+		});
+
+		// Node has incoming connections of type 'main' and is disabled
+		it("should return an empty array when the current node has incoming connections of type 'main' and is disabled", () => {
+			const workflow = new Workflow({
+				id: 'workflow1',
+				name: 'My Workflow',
+				nodes: [
+					{
+						name: 'Node1',
+						type: 'type1',
+						disabled: true,
+					},
+					{
+						name: 'Node2',
+						type: 'type2',
+						disabled: false,
+					},
+				],
+				connections: {
+					Node1: {
+						main: [
+							[
+								{
+									node: 'Node2',
+									type: 'main',
+									index: 0,
+								},
+							],
+						],
+					},
+				},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const highestNodes = workflow.getHighestNode('Node2');
+			expect(highestNodes).toEqual([]);
+		});
+
+		// Node does not exist
+		it('should return an empty array when the current node does not exist', () => {
+			const workflow = new Workflow({
+				id: 'workflow1',
+				name: 'My Workflow',
+				nodes: [
+					{
+						name: 'Node1',
+						type: 'type1',
+						disabled: false,
+					},
+				],
+				connections: {},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const highestNodes = workflow.getHighestNode('Node2');
+			expect(highestNodes).toEqual([]);
+		});
+
+		// Node has incoming connections of type that does not exist
+		it('should return an empty array when the current node has incoming connections of type that does not exist', () => {
+			const workflow = new Workflow({
+				id: 'workflow1',
+				name: 'My Workflow',
+				nodes: [
+					{
+						name: 'Node1',
+						type: 'type1',
+						disabled: false,
+					},
+					{
+						name: 'Node2',
+						type: 'type2',
+						disabled: false,
+					},
+				],
+				connections: {
+					Node1: {
+						main: [
+							[
+								{
+									node: 'Node2',
+									type: 'invalidType',
+									index: 0,
+								},
+							],
+						],
+					},
+				},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const highestNodes = workflow.getHighestNode('Node2');
+			expect(highestNodes).toEqual([]);
+		});
+	});
+
+	describe('getChildNodes', () => {
+		// Returns an array of child node names for a given node name and default type 'main'
+		it("should return an array of child node names for a given node name and default type 'main'", () => {
+			const workflow = new Workflow({
+				id: 'workflow1',
+				name: 'My Workflow',
+				nodes: [
+					{
+						name: 'Node1',
+						type: 'type1',
+						typeVersion: 1,
+						disabled: false,
+						parameters: {},
+					},
+					{
+						name: 'Node2',
+						type: 'type2',
+						typeVersion: 1,
+						disabled: false,
+						parameters: {},
+					},
+					{
+						name: 'Node3',
+						type: 'type3',
+						typeVersion: 1,
+						disabled: false,
+						parameters: {},
+					},
+				],
+				connections: {
+					Node1: {
+						main: [
+							[
+								{
+									node: 'Node2',
+									type: 'main',
+									index: 0,
+								},
+							],
+						],
+					},
+					Node2: {
+						main: [
+							[
+								{
+									node: 'Node3',
+									type: 'main',
+									index: 0,
+								},
+							],
+						],
+					},
+				},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const childNodes = workflow.getChildNodes('Node1');
+			expect(childNodes).toEqual(['Node2', 'Node3']);
+		});
+	});
+
+	describe('getParentNodes', () => {
+		// Returns an array of parent node names for a given node name and main connection type.
+		it('should return an array of parent node names for a given node name and main connection type', () => {
+			const workflow = new Workflow({
+				id: 'workflow1',
+				nodes: [
+					{
+						name: 'node1',
+						type: 'type1',
+						typeVersion: 1,
+						disabled: false,
+						parameters: {},
+					},
+					{
+						name: 'node2',
+						type: 'type2',
+						typeVersion: 1,
+						disabled: false,
+						parameters: {},
+					},
+					{
+						name: 'node3',
+						type: 'type3',
+						typeVersion: 1,
+						disabled: false,
+						parameters: {},
+					},
+				],
+				connections: {
+					node1: {
+						main: [
+							[
+								{
+									node: 'node2',
+									type: 'main',
+									index: 0,
+								},
+							],
+						],
+					},
+					node2: {
+						main: [
+							[
+								{
+									node: 'node3',
+									type: 'main',
+									index: 0,
+								},
+							],
+						],
+					},
+					node3: {},
+				},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const parentNodeNames = workflow.getParentNodes('node3');
+			expect(parentNodeNames).toEqual(['node2', 'node1']);
+		});
+	});
+
+	describe('getConnectedNodes', () => {
+		// Node has incoming connections of given type
+		it('should return the connected nodes when the node has incoming connections of the given type', () => {
+			const connections: IConnections = {
+				node1: {
+					main: [
+						[
+							{ node: 'node2', type: 'main', index: 0 },
+							{ node: 'node3', type: 'main', index: 0 },
+						],
+					],
+				},
+				node2: {
+					main: [[{ node: 'node4', type: 'main', index: 0 }]],
+				},
+				node3: {
+					main: [[{ node: 'node4', type: 'main', index: 1 }]],
+				},
+				node4: {
+					main: [[{ node: 'node5', type: 'main', index: 0 }]],
+				},
+				node5: {
+					main: [],
+				},
+			};
+
+			const workflow = new Workflow({
+				id: 'workflow1',
+				nodes: [],
+				connections,
+				active: true,
+				nodeTypes,
+			});
+
+			const connectedNodes = workflow.getConnectedNodes(connections, 'node1', 'main');
+			expect(connectedNodes).toEqual(['node2', 'node3', 'node4', 'node5']);
+		});
+
+		// Node has no incoming connections of given type
+		it('should return an empty array when the node has no incoming connections of the given type', () => {
+			const connections: IConnections = {
+				node1: {
+					main: [
+						[
+							{ node: 'node2', type: 'main', index: 0 },
+							{ node: 'node3', type: 'main', index: 0 },
+						],
+					],
+				},
+				node2: {
+					main: [[{ node: 'node4', type: 'main', index: 0 }]],
+				},
+				node3: {
+					main: [[{ node: 'node4', type: 'main', index: 1 }]],
+				},
+				node4: {
+					main: [[{ node: 'node5', type: 'main', index: 0 }]],
+				},
+				node5: {
+					main: [],
+				},
+			};
+
+			const workflow = new Workflow({
+				id: 'workflow1',
+				nodes: [],
+				connections,
+				active: true,
+				nodeTypes,
+			});
+
+			const connectedNodes = workflow.getConnectedNodes(connections, 'node1', 'other');
+			expect(connectedNodes).toEqual([]);
+		});
+
+		// Node has multiple incoming connections of given type
+		it('should return the connected nodes when the node has multiple incoming connections of the given type', () => {
+			const connections: IConnections = {
+				node1: {
+					main: [
+						[
+							{ node: 'node2', type: 'main', index: 0 },
+							{ node: 'node3', type: 'main', index: 0 },
+						],
+						[{ node: 'node4', type: 'main', index: 0 }],
+					],
+				},
+				node2: {
+					main: [[{ node: 'node4', type: 'main', index: 0 }]],
+				},
+				node3: {
+					main: [[{ node: 'node4', type: 'main', index: 1 }]],
+				},
+				node4: {
+					main: [[{ node: 'node5', type: 'main', index: 0 }]],
+				},
+				node5: {
+					main: [],
+				},
+			};
+
+			const workflow = new Workflow({
+				id: 'workflow1',
+				nodes: [],
+				connections,
+				active: true,
+				nodeTypes,
+			});
+
+			const connectedNodes = workflow.getConnectedNodes(connections, 'node1', 'main');
+			expect(connectedNodes).toEqual(['node2', 'node3', 'node4', 'node5']);
+		});
+	});
+
+	describe('getStartNode', () => {
+		// Workflow has only one node, return that node
+		it('should return the only node in the workflow', () => {
+			const workflow = new Workflow({
+				id: '123',
+				name: 'My Workflow',
+				nodes: [
+					{
+						id: '1',
+						name: 'Start',
+						type: 'n8n-nodes-base.start',
+						position: [100, 100],
+						typeVersion: 1,
+						parameters: {},
+					},
+				],
+				connections: {},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const startNode = workflow.getStartNode();
+			expect(startNode).toEqual({
+				id: '1',
+				name: 'Start',
+				typeVersion: 1,
+				type: 'n8n-nodes-base.start',
+				position: [100, 100],
+				parameters: {},
+			});
+		});
+
+		// Workflow has multiple nodes, return the first node with no incoming connections
+		it('should return the first node with no incoming connections', () => {
+			const workflow = new Workflow({
+				id: '123',
+				name: 'My Workflow',
+				nodes: [
+					{
+						id: '1',
+						name: 'Start',
+						type: 'n8n-nodes-base.start',
+						position: [100, 100],
+						typeVersion: 1,
+						parameters: {},
+					},
+					{
+						id: '2',
+						name: 'Trigger',
+						type: 'n8n-nodes-base.trigger',
+						position: [300, 100],
+						typeVersion: 1,
+						parameters: {},
+					},
+					{
+						id: '3',
+						name: 'End',
+						type: 'n8n-nodes-base.end',
+						position: [500, 100],
+						typeVersion: 1,
+						parameters: {},
+					},
+				],
+				connections: {
+					'1': {
+						main: [
+							{
+								node: '2',
+								type: 'main',
+								index: 0,
+							},
+						],
+					},
+					'2': {
+						main: [
+							{
+								node: '3',
+								type: 'main',
+								index: 0,
+							},
+						],
+					},
+				},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const startNode = workflow.getStartNode();
+			expect(startNode).toEqual({
+				id: '1',
+				name: 'Start',
+				typeVersion: 1,
+				type: 'n8n-nodes-base.start',
+				position: [100, 100],
+				parameters: {},
+			});
+		});
+
+		// Workflow has multiple nodes, return the first node with incoming connections from disabled nodes
+		it('should return the first node with incoming connections from disabled nodes', () => {
+			const workflow = new Workflow({
+				id: '123',
+				name: 'My Workflow',
+				nodes: [
+					{
+						id: '1',
+						name: 'Start',
+						type: 'n8n-nodes-base.start',
+						position: [100, 100],
+						typeVersion: 1,
+						parameters: {},
+					},
+					{
+						id: '2',
+						name: 'Trigger',
+						type: 'n8n-nodes-base.trigger',
+						position: [300, 100],
+						typeVersion: 1,
+						parameters: {},
+					},
+					{
+						id: '3',
+						name: 'End',
+						type: 'n8n-nodes-base.end',
+						position: [500, 100],
+						typeVersion: 1,
+						parameters: {},
+					},
+				],
+				connections: {
+					'1': {
+						main: [
+							{
+								node: '2',
+								type: 'main',
+								index: 0,
+							},
+						],
+					},
+					'2': {
+						main: [
+							{
+								node: '3',
+								type: 'main',
+								index: 0,
+							},
+						],
+					},
+				},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			workflow.nodes['2'].disabled = true;
+
+			const startNode = workflow.getStartNode();
+			expect(startNode).toEqual({
+				id: '1',
+				name: 'Start',
+				typeVersion: 1,
+				type: 'n8n-nodes-base.start',
+				position: [100, 100],
+				parameters: {},
+			});
+		});
+
+		// Workflow has no nodes
+		it('should return undefined', () => {
+			const workflow = new Workflow({
+				id: '123',
+				name: 'My Workflow',
+				nodes: [],
+				connections: {},
+				active: true,
+				nodeTypes,
+				staticData: {},
+				settings: {},
+			});
+
+			const startNode = workflow.getStartNode();
+			expect(startNode).toBeUndefined();
+		});
+	});
+
+	describe('runNode', () => {
+		// Node is not disabled and has input data
+		it('should return the data from the first main input', async () => {
+			const workflow = new Workflow({
+				id: '123',
+				name: 'My Workflow',
+				nodes: [
+					{
+						name: 'Start',
+						type: 'n8n-nodes-base.start',
+						position: [250, 250],
+						parameters: {
+							inputData: {
+								main: [
+									{
+										json: {
+											message: 'Hello World!',
+										},
+									},
+								],
+							},
+						},
+					},
+					{
+						name: 'Display',
+						type: 'n8n-nodes-base.display',
+						position: [500, 250],
+						parameters: {
+							message: '={{$json["message"]}}',
+						},
+					},
+				],
+				connections: {
+					Start: {
+						main: [
+							{
+								node: 'Display',
+							},
+						],
+					},
+				},
+				active: true,
+				nodeTypes,
+			});
+
+			const executeData = {
+				data: {
+					main: [
+						[
+							{
+								json: {
+									message: 'Hello World!',
+								},
+							},
+						],
+					],
+				},
+				node: {
+					name: 'Start',
+					type: 'n8n-nodes-base.start',
+					position: [250, 250],
+					parameters: {
+						inputData: {
+							main: [
+								{
+									json: {
+										message: 'Hello World!',
+									},
+								},
+							],
+						},
+					},
+				},
+			};
+
+			const runExecutionData = {
+				resultData: {
+					error: undefined,
+					runData: {},
+				},
+			};
+
+			const additionalData = {
+				credentialsHelper: {},
+				encryptionKey: '123',
+				executeWorkflow: async () => {},
+				restApiUrl: 'http://localhost:5678/rest',
+				instanceBaseUrl: 'http://localhost:5678',
+				timezone: 'UTC',
+				webhookBaseUrl: 'http://localhost:5678/webhook',
+				webhookWaitingBaseUrl: 'http://localhost:5678/webhook/waiting',
+				webhookTestBaseUrl: 'http://localhost:5678/webhook/test',
+				userId: '123',
+				variables: {},
+				secretsHelpers: {},
+			};
+
+			const nodeExecuteFunctions = {
+				getExecutePollFunctions: () => {},
+				getExecuteTriggerFunctions: () => {},
+				getExecuteFunctions: () => {},
+				getExecuteSingleFunctions: () => {},
+				getExecuteHookFunctions: () => {},
+				getExecuteWebhookFunctions: () => {},
+			};
+
+			const mode = 'internal';
+
+			const result = await workflow.runNode(
+				executeData,
+				runExecutionData,
+				0,
+				additionalData,
+				nodeExecuteFunctions,
+				mode,
+			);
+
+			expect(result).toEqual({ data: [{ json: { message: 'Hello World!' } }] });
+		});
+
+		// Node is not disabled and has no input data
+		it('should return undefined', async () => {
+			const workflow = new Workflow({
+				id: '123',
+				name: 'My Workflow',
+				nodes: [
+					{
+						name: 'Start',
+						type: 'n8n-nodes-base.start',
+						position: [250, 250],
+						parameters: {
+							inputData: {
+								main: [],
+							},
+						},
+					},
+				],
+				connections: {},
+				active: true,
+				nodeTypes,
+			});
+
+			const executeData = {
+				data: {
+					main: [[]],
+				},
+				node: {
+					name: 'Start',
+					type: 'n8n-nodes-base.start',
+					position: [250, 250],
+					parameters: {
+						inputData: {
+							main: [],
+						},
+					},
+				},
+			};
+
+			const runExecutionData = {
+				resultData: {
+					error: undefined,
+					runData: {},
+				},
+			};
+
+			const additionalData = {
+				credentialsHelper: {},
+				encryptionKey: '123',
+				executeWorkflow: async () => {},
+				restApiUrl: 'http://localhost:5678/rest',
+				instanceBaseUrl: 'http://localhost:5678',
+				timezone: 'UTC',
+				webhookBaseUrl: 'http://localhost:5678/webhook',
+				webhookWaitingBaseUrl: 'http://localhost:5678/webhook/waiting',
+				webhookTestBaseUrl: 'http://localhost:5678/webhook/test',
+				userId: '123',
+				variables: {},
+				secretsHelpers: {},
+			};
+
+			const nodeExecuteFunctions = {
+				getExecutePollFunctions: () => {},
+				getExecuteTriggerFunctions: () => {},
+				getExecuteFunctions: () => {},
+				getExecuteSingleFunctions: () => {},
+				getExecuteHookFunctions: () => {},
+				getExecuteWebhookFunctions: () => {},
+			};
+
+			const mode = 'internal';
+
+			const result = await workflow.runNode(
+				executeData,
+				runExecutionData,
+				0,
+				additionalData,
+				nodeExecuteFunctions,
+				mode,
+			);
+
+			expect(result).toEqual({ data: undefined });
 		});
 	});
 });
