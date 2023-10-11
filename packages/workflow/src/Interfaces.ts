@@ -874,6 +874,13 @@ export type IExecuteFunctions = ExecuteFunctions.GetNodeParameterFn &
 		): void;
 		getWorkflowDataProxy(itemIndex: number): IWorkflowDataProxyData;
 
+		executionCustomData: {
+			set(key: string, value: string): void;
+			setAll(obj: Record<string, string>): void;
+			get(key: string): string;
+			getAll(): Record<string, string>;
+		};
+
 		nodeHelpers: NodeHelperFunctions;
 		helpers: RequestHelperFunctions &
 			BaseHelperFunctions &
