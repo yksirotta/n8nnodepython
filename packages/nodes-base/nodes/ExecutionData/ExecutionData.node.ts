@@ -91,16 +91,21 @@ export class ExecutionData implements INodeType {
 
 		if (operations === 'save') {
 			for (let i = 0; i < items.length; i++) {
-				const dataToSave =
-					((this.getNodeParameter('dataToSave', i, {}) as IDataObject).values as IDataObject[]) ||
-					[];
+				const valuesArray = (this.getNodeParameter('dataToSave', i, {}) as IDataObject)
+					.values as Array<{
+					key: string;
+					value: string;
+				}>;
 
-				const values = dataToSave.reduce((acc, { key, value }) => {
-					acc[key as string] = value;
-					return acc;
-				}, {} as IDataObject);
+				const values = (valuesArray || []).reduce(
+					(acc, { key, value }) => {
+						acc[key] = value;
+						return acc;
+					},
+					{} as Record<string, string>,
+				);
 
-				context.$execution.customData.setAll(values);
+				this.executionCustomData.setAll(values);
 			}
 		}
 

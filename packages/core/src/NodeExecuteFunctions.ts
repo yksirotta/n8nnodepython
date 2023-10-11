@@ -1783,6 +1783,40 @@ export async function requestWithAuthentication(
 	}
 }
 
+function getExecutionCustomDataFunctions(
+	runExecutionData: IRunExecutionData,
+	mode: WorkflowExecuteMode,
+) {
+	return {
+		set(key: string, value: string): void {
+			try {
+				setWorkflowExecutionMetadata(runExecutionData, key, value);
+			} catch (e) {
+				if (mode === 'manual') {
+					throw e;
+				}
+				Logger.verbose(e.message);
+			}
+		},
+		setAll(obj: Record<string, string>): void {
+			try {
+				setAllWorkflowExecutionMetadata(runExecutionData, obj);
+			} catch (e) {
+				if (mode === 'manual') {
+					throw e;
+				}
+				Logger.verbose(e.message);
+			}
+		},
+		get(key: string): string {
+			return getWorkflowExecutionMetadata(runExecutionData, key);
+		},
+		getAll(): Record<string, string> {
+			return getAllWorkflowExecutionMetadata(runExecutionData);
+		},
+	};
+}
+
 /**
  * Returns the additional keys for Expressions and Function-Nodes
  *
@@ -1801,34 +1835,7 @@ export function getAdditionalKeys(
 			mode: mode === 'manual' ? 'test' : 'production',
 			resumeUrl,
 			customData: runExecutionData
-				? {
-						set(key: string, value: string): void {
-							try {
-								setWorkflowExecutionMetadata(runExecutionData, key, value);
-							} catch (e) {
-								if (mode === 'manual') {
-									throw e;
-								}
-								Logger.verbose(e.message);
-							}
-						},
-						setAll(obj: Record<string, string>): void {
-							try {
-								setAllWorkflowExecutionMetadata(runExecutionData, obj);
-							} catch (e) {
-								if (mode === 'manual') {
-									throw e;
-								}
-								Logger.verbose(e.message);
-							}
-						},
-						get(key: string): string {
-							return getWorkflowExecutionMetadata(runExecutionData, key);
-						},
-						getAll(): Record<string, string> {
-							return getAllWorkflowExecutionMetadata(runExecutionData);
-						},
-				  }
+				? getExecutionCustomDataFunctions(runExecutionData, mode)
 				: undefined,
 		},
 		$vars: additionalData.variables,
@@ -3255,6 +3262,10 @@ export function getExecuteFunctions(
 						}`,
 					);
 				});
+			},
+
+			get executionCustomData() {
+				return getExecutionCustomDataFunctions(runExecutionData, mode);
 			},
 			helpers: {
 				createDeferredPromise,
