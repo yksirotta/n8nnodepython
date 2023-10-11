@@ -459,21 +459,6 @@ export function getExecuteSingleFunctions(
 					active: workflow.active,
 				};
 			},
-			getWorkflowDataProxy: (): IWorkflowDataProxyData => {
-				const dataProxy = new WorkflowDataProxy(
-					workflow,
-					runExecutionData,
-					runIndex,
-					itemIndex,
-					node.name,
-					connectionInputData,
-					{},
-					mode,
-					{},
-					executeData,
-				);
-				return dataProxy.getDataProxy();
-			},
 			getWorkflowStaticData(type: string): IDataObject {
 				return workflow.getStaticData(type, node);
 			},
