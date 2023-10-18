@@ -6,12 +6,7 @@ import { User } from '@db/entities/User';
 import { SharedCredentials } from '@db/entities/SharedCredentials';
 import { SharedWorkflow } from '@db/entities/SharedWorkflow';
 import { Authorized, NoAuthRequired, Delete, Get, Post, RestController, Patch } from '@/decorators';
-import {
-	generateUserInviteUrl,
-	getInstanceBaseUrl,
-	hashPassword,
-	validatePassword,
-} from '@/UserManagement/UserManagementHelper';
+import { hashPassword, validatePassword } from '@/UserManagement/UserManagementHelper';
 import { issueCookie } from '@/auth/jwt';
 import {
 	BadRequestError,
@@ -35,7 +30,6 @@ import { plainToInstance } from 'class-transformer';
 import { License } from '@/License';
 import { Container } from 'typedi';
 import { RESPONSE_ERROR_MESSAGES } from '@/constants';
-import { JwtService } from '@/services/jwt.service';
 import { RoleService } from '@/services/role.service';
 import { UserService } from '@/services/user.service';
 import { listQueryMiddleware } from '@/middlewares';
@@ -53,7 +47,6 @@ export class UsersController {
 		private readonly sharedWorkflowRepository: SharedWorkflowRepository,
 		private readonly activeWorkflowRunner: ActiveWorkflowRunner,
 		private readonly mailer: UserManagementMailer,
-		private readonly jwtService: JwtService,
 		private readonly roleService: RoleService,
 		private readonly userService: UserService,
 		private readonly postHog?: PostHogClient,
@@ -120,7 +113,6 @@ export class UsersController {
 		});
 
 		const role = await this.roleService.findGlobalMemberRole();
-
 		if (!role) {
 			this.logger.error(
 				'Request to send email invite(s) to user(s) failed because no global member role was found in database',
@@ -171,8 +163,6 @@ export class UsersController {
 			userShells: createUsers,
 		});
 
-		const baseUrl = getInstanceBaseUrl();
-
 		const usersPendingSetup = Object.entries(createUsers).filter(([email, id]) => id && email);
 
 		// send invite email to new or not yet setup users
@@ -183,7 +173,9 @@ export class UsersController {
 					// This should never happen since those are removed from the list before reaching this point
 					throw new InternalServerError('User ID is missing for user with email address');
 				}
-				const inviteAcceptUrl = generateUserInviteUrl(req.user.id, id);
+
+				const inviteAcceptUrl = this.userService.generateInvitationUrl(req.user, id);
+
 				const resp: {
 					user: { id: string | null; email: string; inviteAcceptUrl?: string; emailSent: boolean };
 					error?: string;
@@ -199,7 +191,6 @@ export class UsersController {
 					const result = await this.mailer.invite({
 						email,
 						inviteAcceptUrl,
-						domain: baseUrl,
 					});
 					if (result.emailSent) {
 						resp.user.emailSent = true;
@@ -226,8 +217,6 @@ export class UsersController {
 						});
 						this.logger.error('Failed to send email', {
 							userId: req.user.id,
-							inviteAcceptUrl,
-							domain: baseUrl,
 							email,
 						});
 						resp.error = error.message;
@@ -253,13 +242,10 @@ export class UsersController {
 	 * Fill out user shell with first name, last name, and password.
 	 */
 	@NoAuthRequired()
-	@Post('/:id')
-	async updateUser(req: UserRequest.Update, res: Response) {
-		const { id: inviteeId } = req.params;
-
-		const { inviterId, firstName, lastName, password } = req.body;
-
-		if (!inviterId || !inviteeId || !firstName || !lastName || !password) {
+	@Post('/signup')
+	async updateUser(req: UserRequest.FinishSignUp, res: Response) {
+		const { token, firstName, lastName, password } = req.body;
+		if (!token || !firstName || !lastName || !password) {
 			this.logger.debug(
 				'Request to fill out a user shell failed because of missing properties in payload',
 				{ payload: req.body },
@@ -267,40 +253,15 @@ export class UsersController {
 			throw new BadRequestError('Invalid payload');
 		}
 
+		const { invitee } = await this.userService.validateInvitationToken(token);
+
 		const validPassword = validatePassword(password);
-
-		const users = await this.userService.findMany({
-			where: { id: In([inviterId, inviteeId]) },
-			relations: ['globalRole'],
-		});
-
-		if (users.length !== 2) {
-			this.logger.debug(
-				'Request to fill out a user shell failed because the inviter ID and/or invitee ID were not found in database',
-				{
-					inviterId,
-					inviteeId,
-				},
-			);
-			throw new BadRequestError('Invalid payload or URL');
-		}
-
-		const invitee = users.find((user) => user.id === inviteeId) as User;
-
-		if (invitee.password) {
-			this.logger.debug(
-				'Request to fill out a user shell failed because the invite had already been accepted',
-				{ inviteeId },
-			);
-			throw new BadRequestError('This invite has been accepted already');
-		}
 
 		invitee.firstName = firstName;
 		invitee.lastName = lastName;
 		invitee.password = await hashPassword(validPassword);
 
 		const updatedUser = await this.userService.save(invitee);
-
 		await issueCookie(res, updatedUser);
 
 		void this.internalHooks.onUserSignup(updatedUser, {
@@ -354,7 +315,7 @@ export class UsersController {
 		return findManyOptions;
 	}
 
-	removeSupplementaryFields(
+	private removeSupplementaryFields(
 		publicUsers: Array<Partial<PublicUser>>,
 		listQueryOptions: ListQuery.Options,
 	) {
@@ -394,7 +355,7 @@ export class UsersController {
 		const users = await this.userService.findMany(findManyOptions);
 
 		const publicUsers: Array<Partial<PublicUser>> = await Promise.all(
-			users.map(async (u) => this.userService.toPublic(u, { withInviteUrl: true })),
+			users.map(async (u) => this.userService.toPublic(u)),
 		);
 
 		return listQueryOptions
@@ -588,6 +549,77 @@ export class UsersController {
 		});
 
 		await this.externalHooks.run('user.deleted', [await this.userService.toPublic(userToDelete)]);
+		return { success: true };
+	}
+
+	/**
+	 * Resend email invite to user.
+	 */
+	@Post('/:id/reinvite')
+	async reinviteUser(req: UserRequest.Reinvite) {
+		const { id: idToReinvite } = req.params;
+		const isWithinUsersLimit = Container.get(License).isWithinUsersLimit();
+
+		if (!isWithinUsersLimit) {
+			this.logger.debug(
+				'Request to send email invite(s) to user(s) failed because the user limit quota has been reached',
+			);
+			throw new UnauthorizedError(RESPONSE_ERROR_MESSAGES.USERS_QUOTA_REACHED);
+		}
+
+		if (!this.mailer.isEmailSetUp) {
+			this.logger.error('Request to reinvite a user failed because email sending was not set up');
+			throw new InternalServerError('Email sending must be set up in order to invite other users');
+		}
+
+		const reinvitee = await this.userService.findOneBy({ id: idToReinvite });
+		if (!reinvitee) {
+			this.logger.debug(
+				'Request to reinvite a user failed because the ID of the reinvitee was not found in database',
+			);
+			throw new NotFoundError('Could not find user');
+		}
+
+		if (reinvitee.password) {
+			this.logger.debug(
+				'Request to reinvite a user failed because the invite had already been accepted',
+				{ userId: reinvitee.id },
+			);
+			throw new BadRequestError('User has already accepted the invite');
+		}
+
+		const inviteAcceptUrl = this.userService.generateInvitationUrl(req.user, reinvitee.id);
+
+		try {
+			const result = await this.mailer.invite({
+				email: reinvitee.email,
+				inviteAcceptUrl,
+			});
+			if (result.emailSent) {
+				void this.internalHooks.onUserReinvite({
+					user: req.user,
+					target_user_id: reinvitee.id,
+					public_api: false,
+				});
+
+				void this.internalHooks.onUserTransactionalEmail({
+					user_id: reinvitee.id,
+					message_type: 'Resend invite',
+					public_api: false,
+				});
+			}
+		} catch (error) {
+			void this.internalHooks.onEmailFailed({
+				user: reinvitee,
+				message_type: 'Resend invite',
+				public_api: false,
+			});
+			this.logger.error('Failed to send email', {
+				email: reinvitee.email,
+				inviteAcceptUrl,
+			});
+			throw new InternalServerError(`Failed to send email to ${reinvitee.email}`);
+		}
 		return { success: true };
 	}
 }

@@ -91,8 +91,9 @@ export const setupTestServer = ({
 		config.set('userManagement.jwtSecret', 'My JWT secret');
 		config.set('userManagement.isInstanceOwnerSetUp', true);
 
+		const license = Container.get(License);
 		if (enabledFeatures) {
-			Container.get(License).isFeatureEnabled = (feature) => enabledFeatures.includes(feature);
+			license.isFeatureEnabled = (feature) => enabledFeatures.includes(feature);
 		}
 
 		const enablePublicAPI = endpointGroups?.includes('publicApi');
@@ -235,7 +236,6 @@ export const setupTestServer = ({
 						);
 						const { ActiveWorkflowRunner } = await import('@/ActiveWorkflowRunner');
 						const { ExternalHooks } = await import('@/ExternalHooks');
-						const { JwtService } = await import('@/services/jwt.service');
 						const { RoleService } = await import('@/services/role.service');
 						const { UserService: US } = await import('@/services/user.service');
 						const { UserManagementMailer } = await import(
@@ -254,7 +254,6 @@ export const setupTestServer = ({
 								Container.get(SharedWorkflowRepository),
 								Container.get(ActiveWorkflowRunner),
 								Container.get(UserManagementMailer),
-								Container.get(JwtService),
 								Container.get(RoleService),
 								Container.get(US),
 							),

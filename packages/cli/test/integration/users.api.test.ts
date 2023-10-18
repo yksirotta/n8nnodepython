@@ -415,10 +415,11 @@ describe('DELETE /users/:id', () => {
 	});
 });
 
-describe('POST /users/:id', () => {
+describe('POST /users/signup', () => {
 	test('should fill out a user shell', async () => {
 		const memberShell = await createUserShell(globalMemberRole);
 
+		// TODO: update this
 		const memberData = {
 			inviterId: owner.id,
 			firstName: randomName(),
@@ -426,7 +427,7 @@ describe('POST /users/:id', () => {
 			password: randomValidPassword(),
 		};
 
-		const response = await authlessAgent.post(`/users/${memberShell.id}`).send(memberData);
+		const response = await authlessAgent.post('/users/signup').send(memberData);
 
 		const {
 			id,
@@ -497,7 +498,7 @@ describe('POST /users/:id', () => {
 		];
 
 		for (const invalidPayload of invalidPayloads) {
-			const response = await authlessAgent.post(`/users/${memberShell.id}`).send(invalidPayload);
+			const response = await authlessAgent.post('/users/signup').send(invalidPayload);
 			expect(response.statusCode).toBe(400);
 
 			const storedUser = await Container.get(UserRepository).findOneOrFail({
@@ -520,7 +521,7 @@ describe('POST /users/:id', () => {
 			password: randomValidPassword(),
 		};
 
-		const response = await authlessAgent.post(`/users/${member.id}`).send(newMemberData);
+		const response = await authlessAgent.post('/users/signup').send(newMemberData);
 
 		expect(response.statusCode).toBe(400);
 
