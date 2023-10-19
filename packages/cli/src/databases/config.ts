@@ -4,18 +4,14 @@ import type { PostgresConnectionOptions } from 'typeorm/driver/postgres/Postgres
 import type { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions';
 import { UserSettings } from 'n8n-core';
 
-import { entities } from './entities';
 import { mysqlMigrations } from './migrations/mysqldb';
 import { postgresMigrations } from './migrations/postgresdb';
 import { sqliteMigrations } from './migrations/sqlite';
 import type { DatabaseType } from '@db/types';
 import config from '@/config';
 
-const entitiesDir = path.resolve(__dirname, 'entities');
-
 const getDBConnectionOptions = (dbType: DatabaseType) => {
 	const entityPrefix = config.getEnv('database.tablePrefix');
-	const migrationsDir = path.resolve(__dirname, 'migrations', dbType);
 	const configDBType = dbType === 'mariadb' ? 'mysqldb' : dbType;
 	const connectionDetails =
 		configDBType === 'sqlite'
@@ -35,9 +31,7 @@ const getDBConnectionOptions = (dbType: DatabaseType) => {
 			  };
 	return {
 		entityPrefix,
-		entities: Object.values(entities),
 		migrationsTableName: `${entityPrefix}migrations`,
-		cli: { entitiesDir, migrationsDir },
 		...connectionDetails,
 	};
 };

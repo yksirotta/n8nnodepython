@@ -8,11 +8,7 @@ module.exports = {
 
 	...sharedOptions(__dirname),
 
-	ignorePatterns: [
-		'jest.config.js',
-		// TODO: Remove these
-		'src/databases/ormconfig.ts',
-	],
+	ignorePatterns: ['jest.config.js'],
 
 	rules: {
 		// TODO: Remove this

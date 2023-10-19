@@ -7,7 +7,6 @@ import { v4 as uuid } from 'uuid';
 import config from '@/config';
 import * as Db from '@/Db';
 import { createCredentialsFromCredentialsEntity } from '@/CredentialsHelper';
-import { entities } from '@db/entities';
 import { CredentialsEntity } from '@db/entities/CredentialsEntity';
 import { mysqlMigrations } from '@db/migrations/mysqldb';
 import { postgresMigrations } from '@db/migrations/postgresdb';
@@ -677,7 +676,6 @@ const getDBOptions = (type: TestDBType, name: string) => ({
 	migrations: type === 'postgres' ? postgresMigrations : mysqlMigrations,
 	migrationsRun: false,
 	migrationsTableName: 'migrations',
-	entities: Object.values(entities),
 	synchronize: false,
 	logging: false,
 });

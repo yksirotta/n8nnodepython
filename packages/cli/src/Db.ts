@@ -10,7 +10,6 @@ import type { IDatabaseCollections } from '@/Interfaces';
 
 import config from '@/config';
 
-import { entities } from '@db/entities';
 import {
 	getMariaDBConnectionOptions,
 	getMysqlConnectionOptions,
@@ -21,6 +20,27 @@ import {
 import { inTest } from '@/constants';
 import { wrapMigration } from '@db/utils/migrationHelpers';
 import type { DatabaseType, Migration } from '@db/types';
+import { AuthIdentity } from '@db/entities/AuthIdentity';
+import { AuthProviderSyncHistory } from '@db/entities/AuthProviderSyncHistory';
+import { CredentialsEntity } from '@db/entities/CredentialsEntity';
+import { EventDestinations } from '@db/entities/EventDestinations';
+import { ExecutionEntity } from '@db/entities/ExecutionEntity';
+import { InstalledNodes } from '@db/entities/InstalledNodes';
+import { InstalledPackages } from '@db/entities/InstalledPackages';
+import { Role } from '@db/entities/Role';
+import { Settings } from '@db/entities/Settings';
+import { SharedCredentials } from '@db/entities/SharedCredentials';
+import { SharedWorkflow } from '@db/entities/SharedWorkflow';
+import { TagEntity } from '@db/entities/TagEntity';
+import { User } from '@db/entities/User';
+import { Variables } from '@db/entities/Variables';
+import { WebhookEntity } from '@db/entities/WebhookEntity';
+import { WorkflowEntity } from '@db/entities/WorkflowEntity';
+import { WorkflowTagMapping } from '@db/entities/WorkflowTagMapping';
+import { WorkflowStatistics } from '@db/entities/WorkflowStatistics';
+import { ExecutionMetadata } from '@db/entities/ExecutionMetadata';
+import { ExecutionData } from '@db/entities/ExecutionData';
+import { WorkflowHistory } from '@db/entities/WorkflowHistory';
 import {
 	AuthIdentityRepository,
 	AuthProviderSyncHistoryRepository,
@@ -41,6 +61,30 @@ import {
 	WorkflowStatisticsRepository,
 	WorkflowTagMappingRepository,
 } from '@db/repositories';
+
+const entities = [
+	AuthIdentity,
+	AuthProviderSyncHistory,
+	CredentialsEntity,
+	EventDestinations,
+	ExecutionEntity,
+	InstalledNodes,
+	InstalledPackages,
+	Role,
+	Settings,
+	SharedCredentials,
+	SharedWorkflow,
+	TagEntity,
+	User,
+	Variables,
+	WebhookEntity,
+	WorkflowEntity,
+	WorkflowTagMapping,
+	WorkflowStatistics,
+	ExecutionMetadata,
+	ExecutionData,
+	WorkflowHistory,
+];
 
 export const collections = {} as IDatabaseCollections;
 
@@ -143,7 +187,7 @@ export async function init(testConnectionOptions?: ConnectionOptions): Promise<v
 	const maxQueryExecutionTime = config.getEnv('database.logging.maxQueryExecutionTime');
 
 	Object.assign(connectionOptions, {
-		entities: Object.values(entities),
+		entities,
 		synchronize: false,
 		logging: loggingOption,
 		maxQueryExecutionTime,
