@@ -35,6 +35,7 @@ import { getInstanceBaseUrl } from '@/UserManagement/UserManagementHelper';
 import { Container } from 'typedi';
 
 import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData';
+import { ENCRYPTION_KEY_TOKEN } from '@/di-tokens';
 
 export const oauth2CredentialController = express.Router();
 
@@ -76,13 +77,7 @@ oauth2CredentialController.get(
 			throw new ResponseHelper.NotFoundError(RESPONSE_ERROR_MESSAGES.NO_CREDENTIAL);
 		}
 
-		let encryptionKey: string;
-		try {
-			encryptionKey = await UserSettings.getEncryptionKey();
-		} catch (error) {
-			throw new ResponseHelper.InternalServerError((error as Error).message);
-		}
-
+		const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 		const additionalData = await WorkflowExecuteAdditionalData.getBase(req.user.id);
 
 		const credentialType = (credential as unknown as ICredentialsEncrypted).type;
@@ -228,7 +223,7 @@ oauth2CredentialController.get(
 				return renderCallbackError(res, errorMessage);
 			}
 
-			const encryptionKey = await UserSettings.getEncryptionKey();
+			const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 			const additionalData = await WorkflowExecuteAdditionalData.getBase(state.cid);
 
 			const mode: WorkflowExecuteMode = 'internal';

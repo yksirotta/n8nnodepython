@@ -1,4 +1,4 @@
-import { UserSettings, Credentials } from 'n8n-core';
+import { Credentials } from 'n8n-core';
 import type { IDataObject, INodeProperties, INodePropertyOptions } from 'n8n-workflow';
 import * as Db from '@/Db';
 import type { ICredentialsDb } from '@/Interfaces';
@@ -10,6 +10,7 @@ import type { IDependency, IJsonSchema } from '../../../types';
 import type { CredentialRequest } from '@/requests';
 import { Container } from 'typedi';
 import { RoleService } from '@/services/role.service';
+import { ENCRYPTION_KEY_TOKEN } from '@/di-tokens';
 
 export async function getCredentials(credentialId: string): Promise<ICredentialsDb | null> {
 	return Db.collections.Credentials.findOneBy({ id: credentialId });
@@ -87,7 +88,7 @@ export async function removeCredential(credentials: CredentialsEntity): Promise<
 }
 
 export async function encryptCredential(credential: CredentialsEntity): Promise<ICredentialsDb> {
-	const encryptionKey = await UserSettings.getEncryptionKey();
+	const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 
 	// Encrypt the data
 	const coreCredential = new Credentials(

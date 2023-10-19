@@ -7,7 +7,6 @@ import request from 'supertest';
 import { URL } from 'url';
 
 import config from '@/config';
-import * as Db from '@/Db';
 import { ExternalHooks } from '@/ExternalHooks';
 import { ActiveWorkflowRunner } from '@/ActiveWorkflowRunner';
 import { workflowsController } from '@/workflows/workflows.controller';
@@ -38,8 +37,6 @@ import type { EndpointGroup, SetupProps, TestServer } from '../types';
 import { mockInstance } from './mocking';
 import { ExternalSecretsController } from '@/ExternalSecrets/ExternalSecrets.controller.ee';
 import { MfaService } from '@/Mfa/mfa.service';
-import { TOTPService } from '@/Mfa/totp.service';
-import { UserSettings } from 'n8n-core';
 import { MetricsService } from '@/services/metrics.service';
 import {
 	SettingsRepository,
@@ -188,9 +185,6 @@ export const setupTestServer = ({
 		}
 
 		if (functionEndpoints.length) {
-			const encryptionKey = await UserSettings.getEncryptionKey();
-			const repositories = Db.collections;
-			const mfaService = new MfaService(repositories.User, new TOTPService(), encryptionKey);
 			const userService = Container.get(UserService);
 
 			for (const group of functionEndpoints) {
@@ -213,14 +207,14 @@ export const setupTestServer = ({
 								config,
 								logger,
 								Container.get(InternalHooks),
-								mfaService,
+								Container.get(MfaService),
 								userService,
 							),
 						);
 						break;
 					case 'mfa':
 						const { MFAController } = await import('@/controllers/mfa.controller');
-						registerController(app, config, new MFAController(mfaService));
+						registerController(app, config, new MFAController(Container.get(MfaService)));
 						break;
 					case 'ldap':
 						Container.get(License).isLdapEnabled = () => true;
@@ -273,7 +267,7 @@ export const setupTestServer = ({
 								Container.get(UserManagementMailer),
 								userService,
 								Container.get(JwtService),
-								mfaService,
+								Container.get(MfaService),
 							),
 						);
 						break;

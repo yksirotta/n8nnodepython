@@ -22,6 +22,7 @@ import { ExternalSecretsManager } from '@/ExternalSecrets/ExternalSecretsManager
 import { initExpressionEvaluator } from '@/ExpressionEvalator';
 import { generateHostInstanceId } from '../databases/utils/generators';
 import { WorkflowHistoryManager } from '@/workflows/workflowHistory/workflowHistoryManager.ee';
+import { ENCRYPTION_KEY_TOKEN } from '@/di-tokens';
 
 export abstract class BaseCommand extends Command {
 	protected logger = LoggerProxy.init(getLogger());
@@ -49,6 +50,7 @@ export abstract class BaseCommand extends Command {
 
 		// Make sure the settings exist
 		this.userSettings = await UserSettings.prepareUserSettings();
+		Container.set(ENCRYPTION_KEY_TOKEN, this.userSettings.encryptionKey);
 
 		await Container.get(LoadNodesAndCredentials).init();
 		this.nodeTypes = Container.get(NodeTypes);

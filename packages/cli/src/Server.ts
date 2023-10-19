@@ -144,7 +144,6 @@ import { SourceControlService } from '@/environments/sourceControl/sourceControl
 import { SourceControlController } from '@/environments/sourceControl/sourceControl.controller.ee';
 import { ExecutionRepository, SettingsRepository } from '@db/repositories';
 import type { ExecutionEntity } from '@db/entities/ExecutionEntity';
-import { TOTPService } from './Mfa/totp.service';
 import { MfaService } from './Mfa/mfa.service';
 import { handleMfaDisable, isMfaFeatureEnabled } from './Mfa/helpers';
 import type { FrontendService } from './services/frontend.service';
@@ -283,15 +282,13 @@ export class Server extends AbstractServer {
 		const repositories = Db.collections;
 		setupAuthMiddlewares(app, ignoredEndpoints, this.restEndpoint);
 
-		const encryptionKey = await UserSettings.getEncryptionKey();
-
 		const logger = LoggerProxy;
 		const internalHooks = Container.get(InternalHooks);
 		const mailer = Container.get(UserManagementMailer);
 		const userService = Container.get(UserService);
 		const jwtService = Container.get(JwtService);
 		const postHog = this.postHog;
-		const mfaService = new MfaService(repositories.User, new TOTPService(), encryptionKey);
+		const mfaService = Container.get(MfaService);
 
 		const controllers: object[] = [
 			new EventBusController(),
@@ -739,7 +736,7 @@ export class Server extends AbstractServer {
 
 				let encryptionKey: string;
 				try {
-					encryptionKey = await UserSettings.getEncryptionKey();
+					encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 				} catch (error) {
 					throw new ResponseHelper.InternalServerError(error.message);
 				}
@@ -889,7 +886,7 @@ export class Server extends AbstractServer {
 
 					let encryptionKey: string;
 					try {
-						encryptionKey = await UserSettings.getEncryptionKey();
+						encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 					} catch (error) {
 						throw new ResponseHelper.InternalServerError(error.message);
 					}

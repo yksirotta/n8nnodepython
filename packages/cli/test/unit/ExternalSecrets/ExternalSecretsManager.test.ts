@@ -4,7 +4,6 @@ import { License } from '@/License';
 import { ExternalSecretsManager } from '@/ExternalSecrets/ExternalSecretsManager.ee';
 import { ExternalSecretsProviders } from '@/ExternalSecrets/ExternalSecretsProviders.ee';
 import { mock } from 'jest-mock-extended';
-import { UserSettings } from 'n8n-core';
 import Container from 'typedi';
 import { mockInstance } from '../../integration/shared/utils';
 import {
@@ -42,9 +41,6 @@ const decryptSettings = (settings: string) => {
 
 describe('External Secrets Manager', () => {
 	beforeAll(() => {
-		jest
-			.spyOn(UserSettings, 'getEncryptionKey')
-			.mockReturnValue(new Promise((resolve) => resolve(encryptionKey)));
 		providersMock = mockInstance(ExternalSecretsProviders, mockProvidersInstance);
 		licenseMock = mockInstance(License, {
 			isExternalSecretsEnabled() {

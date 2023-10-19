@@ -28,6 +28,7 @@ import { RoleService } from '@/services/role.service';
 import { VariablesService } from '../variables/variables.service';
 import { TagRepository } from '@/databases/repositories';
 import { UM_FIX_INSTRUCTION } from '@/constants';
+import { ENCRYPTION_KEY_TOKEN } from '@/di-tokens';
 
 @Service()
 export class SourceControlImportService {
@@ -91,7 +92,7 @@ export class SourceControlImportService {
 		const existingCredentials = await Db.collections.Credentials.find();
 		const ownerCredentialRole = await this.getCredentialOwnerRole();
 		const ownerGlobalRole = await this.getOwnerGlobalRole();
-		const encryptionKey = await UserSettings.getEncryptionKey();
+		const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 		let importCredentialsResult: Array<{ id: string; name: string; type: string }> = [];
 		importCredentialsResult = await Promise.all(
 			credentialFiles.map(async (file) => {
@@ -407,7 +408,7 @@ export class SourceControlImportService {
 				roleId: In([ownerCredentialRole.id, ownerGlobalRole.id]),
 			},
 		});
-		const encryptionKey = await UserSettings.getEncryptionKey();
+		const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 		let importCredentialsResult: Array<{ id: string; name: string; type: string }> = [];
 		importCredentialsResult = await Promise.all(
 			candidates.map(async (candidate) => {

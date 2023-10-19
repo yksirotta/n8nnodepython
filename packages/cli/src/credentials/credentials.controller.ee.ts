@@ -11,6 +11,7 @@ import { OwnershipService } from '@/services/ownership.service';
 import { Container } from 'typedi';
 import { InternalHooks } from '@/InternalHooks';
 import type { CredentialsEntity } from '@/databases/entities/CredentialsEntity';
+import { ENCRYPTION_KEY_TOKEN } from '@/di-tokens';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const EECredentialsController = express.Router();
@@ -61,7 +62,7 @@ EECredentialsController.get(
 
 		const { data: _, ...rest } = credential;
 
-		const key = await EECredentials.getEncryptionKey();
+		const key = Container.get(ENCRYPTION_KEY_TOKEN);
 		const decryptedData = EECredentials.redact(
 			await EECredentials.decrypt(key, credential),
 			credential,
@@ -81,7 +82,7 @@ EECredentialsController.post(
 	ResponseHelper.send(async (req: CredentialRequest.Test): Promise<INodeCredentialTestResult> => {
 		const { credentials } = req.body;
 
-		const encryptionKey = await EECredentials.getEncryptionKey();
+		const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 
 		const credentialId = credentials.id;
 		const { ownsCredential } = await EECredentials.isOwned(req.user, credentialId);

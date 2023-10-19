@@ -37,6 +37,7 @@ import { randomPassword } from '@/Ldap/helpers';
 import { TOTPService } from '@/Mfa/totp.service';
 import { MfaService } from '@/Mfa/mfa.service';
 import type { WorkflowHistory } from '@/databases/entities/WorkflowHistory';
+import { ENCRYPTION_KEY_TOKEN } from '@/di-tokens';
 
 export type TestDBType = 'postgres' | 'mysql';
 
@@ -212,8 +213,6 @@ export async function createLdapUser(attributes: Partial<User>, ldapId: string):
 export async function createUserWithMfaEnabled(
 	data: { numberOfRecoveryCodes: number } = { numberOfRecoveryCodes: 10 },
 ) {
-	const encryptionKey = await UserSettings.getEncryptionKey();
-
 	const email = randomEmail();
 	const password = randomPassword();
 
@@ -221,7 +220,7 @@ export async function createUserWithMfaEnabled(
 
 	const secret = toptService.generateSecret();
 
-	const mfaService = new MfaService(Db.collections.User, toptService, encryptionKey);
+	const mfaService = Container.get(MfaService);
 
 	const recoveryCodes = mfaService.generateRecoveryCodes(data.numberOfRecoveryCodes);
 
@@ -685,7 +684,7 @@ const getDBOptions = (type: TestDBType, name: string) => ({
 // ----------------------------------
 
 async function encryptCredentialData(credential: CredentialsEntity) {
-	const encryptionKey = await UserSettings.getEncryptionKey();
+	const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 
 	const coreCredential = createCredentialsFromCredentialsEntity(credential, true);
 

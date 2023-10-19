@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { Service } from 'typedi';
+import Container, { Service } from 'typedi';
 import { v4 as uuid } from 'uuid';
 import config from '@/config';
 import type { Role } from '@db/entities/Role';
@@ -12,9 +12,7 @@ import { LICENSE_FEATURES, inE2ETests } from '@/constants';
 import { NoAuthRequired, Patch, Post, RestController } from '@/decorators';
 import type { UserSetupPayload } from '@/requests';
 import type { BooleanLicenseFeature } from '@/Interfaces';
-import { UserSettings } from 'n8n-core';
 import { MfaService } from '@/Mfa/mfa.service';
-import { TOTPService } from '@/Mfa/totp.service';
 
 if (!inE2ETests) {
 	console.error('E2E endpoints only allowed during E2E tests');
@@ -141,9 +139,7 @@ export class E2EController {
 			roles.map(([name, scope], index) => ({ name, scope, id: (index + 1).toString() })),
 		);
 
-		const encryptionKey = await UserSettings.getEncryptionKey();
-
-		const mfaService = new MfaService(this.userRepo, new TOTPService(), encryptionKey);
+		const mfaService = Container.get(MfaService);
 
 		const instanceOwner = {
 			id: uuid(),

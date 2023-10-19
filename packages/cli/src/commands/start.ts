@@ -245,7 +245,7 @@ export class Start extends BaseCommand {
 		if (!config.getEnv('userManagement.jwtSecret')) {
 			// If we don't have a JWT secret set, generate
 			// one based and save to config.
-			const encryptionKey = await UserSettings.getEncryptionKey();
+			const encryptionKey = this.userSettings.encryptionKey;
 
 			// For a key off every other letter from encryption key
 			// CAREFUL: do not change this or it breaks all existing tokens.
@@ -255,8 +255,6 @@ export class Start extends BaseCommand {
 			}
 			config.set('userManagement.jwtSecret', createHash('sha256').update(baseKey).digest('hex'));
 		}
-
-		await UserSettings.getEncryptionKey();
 
 		// Load settings from database and set them to config.
 		const databaseSettings = await Db.collections.Settings.findBy({ loadOnStartup: true });

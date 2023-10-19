@@ -18,6 +18,7 @@ import config from '@/config';
 import { ExternalSecretsManager } from '@/ExternalSecrets/ExternalSecretsManager.ee';
 import { CREDENTIAL_BLANKING_VALUE } from '@/constants';
 import type { IDataObject } from 'n8n-workflow';
+import { ENCRYPTION_KEY_TOKEN } from '@/di-tokens';
 
 let authOwnerAgent: SuperAgentTest;
 let authMemberAgent: SuperAgentTest;
@@ -38,14 +39,14 @@ const testServer = utils.setupTestServer({ endpointGroups: ['externalSecrets'] }
 const connectedDate = '2023-08-01T12:32:29.000Z';
 
 async function setExternalSecretsSettings(settings: ExternalSecretsSettings) {
-	const encryptionKey = await UserSettings.getEncryptionKey();
+	const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 	return Container.get(SettingsRepository).saveEncryptedSecretsProviderSettings(
 		AES.encrypt(JSON.stringify(settings), encryptionKey).toString(),
 	);
 }
 
 async function getExternalSecretsSettings(): Promise<ExternalSecretsSettings | null> {
-	const encryptionKey = await UserSettings.getEncryptionKey();
+	const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 	const encSettings = await Container.get(SettingsRepository).getEncryptedSecretsProviderSettings();
 	if (encSettings === null) {
 		return null;

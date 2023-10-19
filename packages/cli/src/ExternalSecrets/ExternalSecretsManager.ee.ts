@@ -5,8 +5,7 @@ import type {
 	SecretsProviderSettings,
 } from '@/Interfaces';
 
-import { UserSettings } from 'n8n-core';
-import Container, { Service } from 'typedi';
+import { Container, Inject, Service } from 'typedi';
 
 import { AES, enc } from 'crypto-js';
 import { getLogger } from '@/Logger';
@@ -21,6 +20,7 @@ import { License } from '@/License';
 import { InternalHooks } from '@/InternalHooks';
 import { ExternalSecretsProviders } from './ExternalSecretsProviders.ee';
 import { OrchestrationMainService } from '@/services/orchestration/main/orchestration.main.service';
+import { ENCRYPTION_KEY_TOKEN } from '@/di-tokens';
 
 const logger = getLogger();
 
@@ -32,11 +32,14 @@ export class ExternalSecretsManager {
 
 	private cachedSettings: ExternalSecretsSettings = {};
 
+	@Inject(ENCRYPTION_KEY_TOKEN)
+	private encryptionKey: string;
+
 	initialized = false;
 
-	updateInterval: NodeJS.Timer;
+	private updateInterval: NodeJS.Timer;
 
-	initRetryTimeouts: Record<string, NodeJS.Timer> = {};
+	private initRetryTimeouts: Record<string, NodeJS.Timer> = {};
 
 	constructor(
 		private settingsRepo: SettingsRepository,
@@ -86,12 +89,8 @@ export class ExternalSecretsManager {
 		await Container.get(OrchestrationMainService).broadcastReloadExternalSecretsProviders();
 	}
 
-	private async getEncryptionKey(): Promise<string> {
-		return UserSettings.getEncryptionKey();
-	}
-
-	private decryptSecretsSettings(value: string, encryptionKey: string): ExternalSecretsSettings {
-		const decryptedData = AES.decrypt(value, encryptionKey);
+	private decryptSecretsSettings(value: string): ExternalSecretsSettings {
+		const decryptedData = AES.decrypt(value, this.encryptionKey);
 
 		try {
 			return JSON.parse(decryptedData.toString(enc.Utf8)) as ExternalSecretsSettings;
@@ -109,8 +108,7 @@ export class ExternalSecretsManager {
 		if (encryptedSettings === null) {
 			return null;
 		}
-		const encryptionKey = await this.getEncryptionKey();
-		return this.decryptSecretsSettings(encryptedSettings, encryptionKey);
+		return this.decryptSecretsSettings(encryptedSettings);
 	}
 
 	private async internalInit() {
@@ -327,13 +325,12 @@ export class ExternalSecretsManager {
 		});
 	}
 
-	encryptSecretsSettings(settings: ExternalSecretsSettings, encryptionKey: string): string {
-		return AES.encrypt(JSON.stringify(settings), encryptionKey).toString();
+	private encryptSecretsSettings(settings: ExternalSecretsSettings): string {
+		return AES.encrypt(JSON.stringify(settings), this.encryptionKey).toString();
 	}
 
 	async saveAndSetSettings(settings: ExternalSecretsSettings, settingsRepo: SettingsRepository) {
-		const encryptionKey = await this.getEncryptionKey();
-		const encryptedSettings = this.encryptSecretsSettings(settings, encryptionKey);
+		const encryptedSettings = this.encryptSecretsSettings(settings);
 		await settingsRepo.saveEncryptedSecretsProviderSettings(encryptedSettings);
 	}
 

@@ -32,6 +32,7 @@ import {
 } from '@/sso/ssoHelpers';
 import { InternalServerError } from '../ResponseHelper';
 import { RoleService } from '@/services/role.service';
+import { ENCRYPTION_KEY_TOKEN } from '@/di-tokens';
 
 /**
  *  Check whether the LDAP feature is disabled in the instance
@@ -113,16 +114,16 @@ export const validateLdapConfigurationSchema = (
 /**
  * Encrypt password using the instance's encryption key
  */
-export const encryptPassword = async (password: string): Promise<string> => {
-	const encryptionKey = await UserSettings.getEncryptionKey();
+export const encryptPassword = (password: string): string => {
+	const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 	return AES.encrypt(password, encryptionKey).toString();
 };
 
 /**
  * Decrypt password using the instance's encryption key
  */
-export const decryptPassword = async (password: string): Promise<string> => {
-	const encryptionKey = await UserSettings.getEncryptionKey();
+const decryptPassword = (password: string): string => {
+	const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 	return AES.decrypt(password, encryptionKey).toString(enc.Utf8);
 };
 
@@ -134,9 +135,7 @@ export const getLdapConfig = async (): Promise<LdapConfig> => {
 		key: LDAP_FEATURE_NAME,
 	});
 	const configurationData = jsonParse<LdapConfig>(configuration.value);
-	configurationData.bindingAdminPassword = await decryptPassword(
-		configurationData.bindingAdminPassword,
-	);
+	configurationData.bindingAdminPassword = decryptPassword(configurationData.bindingAdminPassword);
 	return configurationData;
 };
 
@@ -173,7 +172,7 @@ export const updateLdapConfig = async (ldapConfig: LdapConfig): Promise<void> =>
 
 	LdapManager.updateConfig({ ...ldapConfig });
 
-	ldapConfig.bindingAdminPassword = await encryptPassword(ldapConfig.bindingAdminPassword);
+	ldapConfig.bindingAdminPassword = encryptPassword(ldapConfig.bindingAdminPassword);
 
 	if (!ldapConfig.loginEnabled) {
 		ldapConfig.synchronizationEnabled = false;

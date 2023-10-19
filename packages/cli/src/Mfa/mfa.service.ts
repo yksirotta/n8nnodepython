@@ -1,15 +1,18 @@
 import { v4 as uuid } from 'uuid';
 import { AES, enc } from 'crypto-js';
+import { Inject, Service } from 'typedi';
+import { UserRepository } from '@db/repositories';
+import { ENCRYPTION_KEY_TOKEN } from '@/di-tokens';
 import { TOTPService } from './totp.service';
-import { Service } from 'typedi';
-import { UserRepository } from '@/databases/repositories';
 
 @Service()
 export class MfaService {
+	@Inject(ENCRYPTION_KEY_TOKEN)
+	private encryptionKey: string;
+
 	constructor(
 		private userRepository: UserRepository,
 		public totp: TOTPService,
-		private encryptionKey: string,
 	) {}
 
 	public generateRecoveryCodes(n = 10) {

@@ -16,7 +16,7 @@ export interface IResponseError extends Error {
 }
 
 export interface IUserSettings {
-	encryptionKey?: string;
+	encryptionKey: string;
 	tunnelSubdomain?: string;
 	instanceId?: string;
 }

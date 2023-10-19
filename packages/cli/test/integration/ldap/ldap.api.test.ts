@@ -54,9 +54,7 @@ beforeAll(async () => {
 	owner = await testDb.createUser({ globalRole: globalOwnerRole });
 	authOwnerAgent = testServer.authAgentFor(owner);
 
-	defaultLdapConfig.bindingAdminPassword = await encryptPassword(
-		defaultLdapConfig.bindingAdminPassword,
-	);
+	defaultLdapConfig.bindingAdminPassword = encryptPassword(defaultLdapConfig.bindingAdminPassword);
 
 	await utils.initEncryptionKey();
 

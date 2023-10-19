@@ -1,9 +1,7 @@
 import type { SuperAgentTest } from 'supertest';
-import { UserSettings } from 'n8n-core';
 import * as Db from '@/Db';
 import type { Role } from '@db/entities/Role';
 import type { User } from '@db/entities/User';
-import { RESPONSE_ERROR_MESSAGES } from '@/constants';
 
 import { randomApiKey, randomName, randomString } from '../shared/random';
 import * as utils from '../shared/utils/';
@@ -86,17 +84,6 @@ describe('POST /credentials', () => {
 			const response = await authOwnerAgent.post('/credentials').send(invalidPayload);
 			expect(response.statusCode === 400 || response.statusCode === 415).toBe(true);
 		}
-	});
-
-	test('should fail with missing encryption key', async () => {
-		const mock = jest.spyOn(UserSettings, 'getEncryptionKey');
-		mock.mockRejectedValue(new Error(RESPONSE_ERROR_MESSAGES.NO_ENCRYPTION_KEY));
-
-		const response = await authOwnerAgent.post('/credentials').send(credentialPayload());
-
-		expect(response.statusCode).toBe(500);
-
-		mock.mockRestore();
 	});
 });
 

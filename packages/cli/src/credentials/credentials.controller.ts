@@ -14,6 +14,7 @@ import type { CredentialRequest, ListQuery } from '@/requests';
 import { Container } from 'typedi';
 import { InternalHooks } from '@/InternalHooks';
 import { listQueryMiddleware } from '@/middlewares';
+import { ENCRYPTION_KEY_TOKEN } from '@/di-tokens';
 
 export const credentialsController = express.Router();
 
@@ -86,7 +87,7 @@ credentialsController.get(
 			return { ...rest };
 		}
 
-		const key = await CredentialsService.getEncryptionKey();
+		const key = Container.get(ENCRYPTION_KEY_TOKEN);
 		const decryptedData = CredentialsService.redact(
 			await CredentialsService.decrypt(key, credential),
 			credential,
@@ -106,7 +107,7 @@ credentialsController.post(
 	ResponseHelper.send(async (req: CredentialRequest.Test): Promise<INodeCredentialTestResult> => {
 		const { credentials } = req.body;
 
-		const encryptionKey = await CredentialsService.getEncryptionKey();
+		const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 		const sharing = await CredentialsService.getSharing(req.user, credentials.id);
 
 		const mergedCredentials = deepCopy(credentials);
@@ -127,7 +128,7 @@ credentialsController.post(
 	ResponseHelper.send(async (req: CredentialRequest.Create) => {
 		const newCredential = await CredentialsService.prepareCreateData(req.body);
 
-		const key = await CredentialsService.getEncryptionKey();
+		const key = Container.get(ENCRYPTION_KEY_TOKEN);
 		const encryptedData = CredentialsService.createEncryptedData(key, null, newCredential);
 		const credential = await CredentialsService.save(newCredential, encryptedData, req.user);
 
@@ -165,7 +166,7 @@ credentialsController.patch(
 
 		const { credentials: credential } = sharing;
 
-		const key = await CredentialsService.getEncryptionKey();
+		const key = Container.get(ENCRYPTION_KEY_TOKEN);
 		const decryptedData = await CredentialsService.decrypt(key, credential);
 		const preparedCredentialData = await CredentialsService.prepareUpdateData(
 			req.body,

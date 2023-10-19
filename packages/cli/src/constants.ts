@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { resolve, join, dirname } from 'path';
 import type { n8n } from 'n8n-core';
-import { RESPONSE_ERROR_MESSAGES as CORE_RESPONSE_ERROR_MESSAGES, UserSettings } from 'n8n-core';
+import { UserSettings } from 'n8n-core';
 import { jsonParse } from 'n8n-workflow';
 
 const { NODE_ENV, E2E_TESTS } = process.env;
@@ -34,7 +34,6 @@ export const STARTER_TEMPLATE_NAME = `${NODE_PACKAGE_PREFIX}starter`;
 export const RESPONSE_ERROR_MESSAGES = {
 	NO_CREDENTIAL: 'Credential not found',
 	NO_NODE: 'Node not found',
-	NO_ENCRYPTION_KEY: CORE_RESPONSE_ERROR_MESSAGES.NO_ENCRYPTION_KEY,
 	PACKAGE_NAME_NOT_PROVIDED: 'Package name is required',
 	PACKAGE_NAME_NOT_VALID: `Package name is not valid - it must start with "${NODE_PACKAGE_PREFIX}"`,
 	PACKAGE_NOT_INSTALLED: 'This package is not installed - you must install it first',

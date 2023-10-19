@@ -2,7 +2,7 @@ import { flags } from '@oclif/command';
 import fs from 'fs';
 import path from 'path';
 import type { FindOptionsWhere } from 'typeorm';
-import { Credentials, UserSettings } from 'n8n-core';
+import { Credentials } from 'n8n-core';
 import * as Db from '@/Db';
 import type { ICredentialsDb, ICredentialsDecryptedDb } from '@/Interfaces';
 import { BaseCommand } from '../BaseCommand';
@@ -113,7 +113,7 @@ export class ExportCredentialsCommand extends BaseCommand {
 		const credentials: ICredentialsDb[] = await Db.collections.Credentials.findBy(findQuery);
 
 		if (flags.decrypted) {
-			const encryptionKey = await UserSettings.getEncryptionKey();
+			const { encryptionKey } = this.userSettings;
 
 			for (let i = 0; i < credentials.length; i++) {
 				const { name, type, nodesAccess, data } = credentials[i];

@@ -26,6 +26,8 @@ import { eventMessageGenericDestinationTestEvent } from '../EventMessageClasses/
 import { MessageEventBus } from '../MessageEventBus/MessageEventBus';
 import type { MessageWithCallback } from '../MessageEventBus/MessageEventBus';
 import * as SecretsHelpers from '@/ExternalSecrets/externalSecretsHelper.ee';
+import { ENCRYPTION_KEY_TOKEN } from '@/di-tokens';
+import Container from 'typedi';
 
 export const isMessageEventBusDestinationWebhookOptions = (
 	candidate: unknown,
@@ -135,18 +137,12 @@ export class MessageEventBusDestinationWebhook
 		} as AxiosRequestConfig;
 
 		if (this.credentialsHelper === undefined) {
-			let encryptionKey: string | undefined;
-			try {
-				encryptionKey = await UserSettings.getEncryptionKey();
-			} catch {}
-			if (encryptionKey) {
-				this.credentialsHelper = new CredentialsHelper(encryptionKey);
-			}
+			const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
+			this.credentialsHelper = new CredentialsHelper(encryptionKey);
 		}
 
 		const sendQuery = this.sendQuery;
 		const specifyQuery = this.specifyQuery;
-		const sendPayload = this.sendPayload;
 		const sendHeaders = this.sendHeaders;
 		const specifyHeaders = this.specifyHeaders;
 

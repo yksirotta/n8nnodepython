@@ -1,4 +1,4 @@
-import { Service } from 'typedi';
+import Container, { Service } from 'typedi';
 import path from 'path';
 import {
 	SOURCE_CONTROL_CREDENTIAL_EXPORT_FOLDER,
@@ -27,6 +27,7 @@ import { In } from 'typeorm';
 import type { SourceControlledFile } from './types/sourceControlledFile';
 import { VariablesService } from '../variables/variables.service';
 import { TagRepository } from '@/databases/repositories';
+import { ENCRYPTION_KEY_TOKEN } from '@/di-tokens';
 
 @Service()
 export class SourceControlExportService {
@@ -248,7 +249,7 @@ export class SourceControlExportService {
 					(remote) => foundCredentialIds.findIndex((local) => local === remote) === -1,
 				);
 			}
-			const encryptionKey = await UserSettings.getEncryptionKey();
+			const encryptionKey = Container.get(ENCRYPTION_KEY_TOKEN);
 			await Promise.all(
 				credentialsToBeExported.map(async (sharedCredential) => {
 					const { name, type, nodesAccess, data, id } = sharedCredential.credentials;

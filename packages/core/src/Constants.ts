@@ -9,10 +9,6 @@ export const PLACEHOLDER_EMPTY_EXECUTION_ID = '__UNKNOWN__';
 export const PLACEHOLDER_EMPTY_WORKFLOW_ID = '__EMPTY__';
 export const TUNNEL_SUBDOMAIN_ENV = 'N8N_TUNNEL_SUBDOMAIN';
 
-export const RESPONSE_ERROR_MESSAGES = {
-	NO_ENCRYPTION_KEY: 'Encryption key is missing or was not set',
-};
-
 export const CUSTOM_NODES_CATEGORY = 'Custom Nodes';
 
 export const RESTRICT_FILE_ACCESS_TO = 'N8N_RESTRICT_FILE_ACCESS_TO';

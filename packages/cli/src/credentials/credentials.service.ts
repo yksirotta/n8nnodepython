@@ -1,4 +1,4 @@
-import { Credentials, UserSettings } from 'n8n-core';
+import { Credentials } from 'n8n-core';
 import type {
 	ICredentialDataDecryptedObject,
 	ICredentialsDecrypted,
@@ -12,10 +12,9 @@ import type { FindManyOptions, FindOptionsWhere } from 'typeorm';
 import { In, Like } from 'typeorm';
 
 import * as Db from '@/Db';
-import * as ResponseHelper from '@/ResponseHelper';
 import type { ICredentialsDb } from '@/Interfaces';
 import { CredentialsHelper, createCredentialsFromCredentialsEntity } from '@/CredentialsHelper';
-import { CREDENTIAL_BLANKING_VALUE, RESPONSE_ERROR_MESSAGES } from '@/constants';
+import { CREDENTIAL_BLANKING_VALUE } from '@/constants';
 import { CredentialsEntity } from '@db/entities/CredentialsEntity';
 import { SharedCredentials } from '@db/entities/SharedCredentials';
 import { validateEntity } from '@/GenericHelpers';
@@ -224,14 +223,6 @@ export class CredentialsService {
 		newCredentialData.updatedAt = new Date();
 
 		return newCredentialData;
-	}
-
-	static async getEncryptionKey(): Promise<string> {
-		try {
-			return await UserSettings.getEncryptionKey();
-		} catch (error) {
-			throw new ResponseHelper.InternalServerError(RESPONSE_ERROR_MESSAGES.NO_ENCRYPTION_KEY);
-		}
 	}
 
 	static async decrypt(
