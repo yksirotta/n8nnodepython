@@ -39,13 +39,12 @@ export class UserManagementMailer {
 	private mailer: NodeMailer | undefined;
 
 	constructor() {
-		this.isEmailSetUp =
-			config.getEnv('userManagement.emails.mode') === 'smtp' &&
-			config.getEnv('userManagement.emails.smtp.host') !== '';
+		const emailConfig = config.get('userManagement.emails');
+		this.isEmailSetUp = emailConfig.mode === 'smtp' && emailConfig.smtp.host !== '';
 
 		// Other implementations can be used in the future.
 		if (this.isEmailSetUp) {
-			this.mailer = new NodeMailer();
+			this.mailer = new NodeMailer(emailConfig.smtp);
 		}
 	}
 

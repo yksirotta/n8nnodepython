@@ -4,22 +4,20 @@ import { UserManagementMailer } from '@/UserManagement/email/UserManagementMaile
 
 describe('UserManagementMailer', () => {
 	describe('expect NodeMailer.verifyConnection', () => {
-		let mockInit: jest.SpyInstance<Promise<void>, []>;
 		let mockVerifyConnection: jest.SpyInstance<Promise<void>, []>;
 
 		beforeAll(() => {
 			mockVerifyConnection = jest
 				.spyOn(NodeMailer.prototype, 'verifyConnection')
 				.mockImplementation(async () => {});
-			mockInit = jest.spyOn(NodeMailer.prototype, 'init').mockImplementation(async () => {});
 		});
 
 		afterAll(() => {
 			mockVerifyConnection.mockRestore();
-			mockInit.mockRestore();
 		});
 
 		test('not be called when SMTP not set up', async () => {
+			config.set('userManagement.emails.mode', '');
 			const userManagementMailer = new UserManagementMailer();
 			// NodeMailer.verifyConnection gets called only explicitly
 			await expect(async () => userManagementMailer.verifyConnection()).rejects.toThrow();

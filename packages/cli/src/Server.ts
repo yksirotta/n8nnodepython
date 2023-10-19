@@ -259,7 +259,7 @@ export class Server extends AbstractServer {
 			},
 			deploymentType: config.getEnv('deployment.type'),
 			binaryDataMode: binaryDataConfig.mode,
-			smtp_set_up: config.getEnv('userManagement.emails.mode') === 'smtp',
+			smtp_set_up: Container.get(UserManagementMailer).isEmailSetUp,
 			ldap_allowed: isLdapCurrentAuthenticationMethod(),
 			saml_enabled: isSamlCurrentAuthenticationMethod(),
 			binary_data_s3: isS3Available && isS3Selected && isS3Licensed,
