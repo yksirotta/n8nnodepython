@@ -10,6 +10,10 @@ import * as utils from '../shared/utils/';
 import type { CredentialPayload, SaveCredentialFunction } from '../shared/types';
 import * as testDb from '../shared/testDb';
 
+jest.unmock('fs/promises');
+jest.unmock('crypto-js');
+jest.unmock('typeorm');
+
 let globalMemberRole: Role;
 let credentialOwnerRole: Role;
 let owner: User;

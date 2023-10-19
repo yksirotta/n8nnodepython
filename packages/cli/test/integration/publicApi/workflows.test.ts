@@ -11,6 +11,9 @@ import * as testDb from '../shared/testDb';
 import type { INode } from 'n8n-workflow';
 import { STARTING_NODES } from '@/constants';
 
+jest.unmock('fs/promises');
+jest.unmock('typeorm');
+
 let workflowOwnerRole: Role;
 let owner: User;
 let member: User;

@@ -26,6 +26,8 @@ import * as testDb from '../integration/shared/testDb';
 import type { SaveCredentialFunction } from '../integration/shared/types';
 import { mockNodeTypesData } from './Helpers';
 
+jest.unmock('typeorm');
+
 LoggerProxy.init(mock<ILogger>());
 
 let mockNodeTypes: INodeTypes;

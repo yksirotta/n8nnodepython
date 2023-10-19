@@ -9,6 +9,9 @@ import { randomApiKey } from '../shared/random';
 import * as utils from '../shared/utils/';
 import * as testDb from '../shared/testDb';
 
+jest.unmock('fs/promises');
+jest.unmock('typeorm');
+
 utils.mockInstance(License, {
 	getUsersLimit: jest.fn().mockReturnValue(-1),
 });

@@ -8,6 +8,9 @@ import * as testDb from '../shared/testDb';
 import { LoggerProxy } from 'n8n-workflow';
 import { getLogger } from '@/Logger';
 
+jest.unmock('fs/promises');
+jest.unmock('typeorm');
+
 let owner: User;
 let user1: User;
 let user2: User;

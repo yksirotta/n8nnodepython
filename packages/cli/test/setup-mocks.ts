@@ -13,6 +13,7 @@ jest.mock('ioredis');
 jest.mock('posthog-node');
 jest.mock('syslog-client');
 jest.mock('transliteration');
+jest.mock('typeorm');
 jest.mock('@/eventbus/MessageEventBus/MessageEventBus');
 jest.mock('@/push');
 jest.mock('@/telemetry');
