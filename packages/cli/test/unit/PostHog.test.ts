@@ -2,8 +2,6 @@ import { PostHog } from 'posthog-node';
 import { PostHogClient } from '@/posthog';
 import config from '@/config';
 
-jest.mock('posthog-node');
-
 describe('PostHog', () => {
 	const instanceId = 'test-id';
 	const userId = 'distinct-id';

@@ -13,7 +13,6 @@ jest.mock('@/license/License.service', () => {
 		},
 	};
 });
-jest.mock('@/posthog');
 
 describe('Telemetry', () => {
 	let startPulseSpy: jest.SpyInstance;

@@ -4,8 +4,6 @@ import { Readable } from 'stream';
 import { writeBlockedMessage } from '@/ObjectStore/utils';
 import { initLogger } from './helpers/utils';
 
-jest.mock('axios');
-
 const mockAxios = axios as jest.Mocked<typeof axios>;
 
 const mockBucket = { region: 'us-east-1', name: 'test-bucket' };

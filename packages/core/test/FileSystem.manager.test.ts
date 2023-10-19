@@ -7,7 +7,6 @@ import { isStream } from '@/ObjectStore/utils';
 import { toFileId, toStream } from './utils';
 
 jest.mock('fs');
-jest.mock('fs/promises');
 
 const storagePath = tmpdir();
 

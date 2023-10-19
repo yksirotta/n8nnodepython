@@ -5,8 +5,6 @@ import * as testDb from './shared/testDb';
 import { mockInstance, setupTestServer } from './shared/utils';
 import type { SuperAgentTest } from 'supertest';
 
-jest.mock('fs/promises');
-
 const throwFileNotFound = () => {
 	throw new FileNotFoundError('non/existing/path');
 };

@@ -19,8 +19,6 @@ import { randomEmail, randomName, uniqueId } from './../shared/random';
 import * as testDb from './../shared/testDb';
 import * as utils from '../shared/utils/';
 
-jest.mock('@/telemetry');
-
 let globalMemberRole: Role;
 let owner: User;
 let authOwnerAgent: SuperAgentTest;
@@ -74,8 +72,6 @@ beforeEach(async () => {
 	]);
 
 	await Db.collections.User.delete({ id: Not(owner.id) });
-
-	jest.mock('@/telemetry');
 
 	config.set('userManagement.isInstanceOwnerSetUp', true);
 });

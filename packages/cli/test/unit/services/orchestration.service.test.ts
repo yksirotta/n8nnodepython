@@ -52,7 +52,7 @@ describe('Orchestration Service', () => {
 				return new Redis(args);
 			};
 		});
-		jest.mock('../../../src/services/redis/RedisServicePubSubPublisher', () => {
+		jest.mock('@/services/redis/RedisServicePubSubPublisher', () => {
 			return jest.fn().mockImplementation(() => {
 				return {
 					init: jest.fn(),
@@ -62,7 +62,7 @@ describe('Orchestration Service', () => {
 				};
 			});
 		});
-		jest.mock('../../../src/services/redis/RedisServicePubSubSubscriber', () => {
+		jest.mock('@/services/redis/RedisServicePubSubSubscriber', () => {
 			return jest.fn().mockImplementation(() => {
 				return {
 					subscribeToCommandChannel: jest.fn(),
@@ -75,8 +75,8 @@ describe('Orchestration Service', () => {
 	});
 
 	afterAll(async () => {
-		jest.mock('../../../src/services/redis/RedisServicePubSubPublisher').restoreAllMocks();
-		jest.mock('../../../src/services/redis/RedisServicePubSubSubscriber').restoreAllMocks();
+		jest.mock('@/services/redis/RedisServicePubSubPublisher').restoreAllMocks();
+		jest.mock('@/services/redis/RedisServicePubSubSubscriber').restoreAllMocks();
 		await os.shutdown();
 	});
 

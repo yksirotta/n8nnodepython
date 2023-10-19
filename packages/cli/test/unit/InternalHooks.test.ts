@@ -7,8 +7,6 @@ import { EventsService } from '@/services/events.service';
 import { mockInstance } from '../integration/shared/utils';
 import type { IDiagnosticInfo } from '@/Interfaces';
 
-jest.mock('@/telemetry');
-
 let internalHooks: InternalHooks;
 let telemetry: Telemetry;
 

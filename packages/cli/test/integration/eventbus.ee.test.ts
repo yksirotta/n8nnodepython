@@ -28,9 +28,7 @@ import { EventMessageWorkflow } from '@/eventbus/EventMessageClasses/EventMessag
 import { EventMessageNode } from '@/eventbus/EventMessageClasses/EventMessageNode';
 
 jest.unmock('@/eventbus/MessageEventBus/MessageEventBus');
-jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
-jest.mock('syslog-client');
 const mockedSyslog = syslog as jest.Mocked<typeof syslog>;
 
 let globalOwnerRole: Role;

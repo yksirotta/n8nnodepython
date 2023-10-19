@@ -10,8 +10,6 @@ import { TOTPService } from '@/Mfa/totp.service';
 import Container from 'typedi';
 import { JwtService } from '@/services/jwt.service';
 
-jest.mock('@/telemetry');
-
 let globalOwnerRole: Role;
 let owner: User;
 

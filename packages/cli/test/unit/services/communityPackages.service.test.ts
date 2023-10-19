@@ -26,10 +26,6 @@ import {
 import { randomName } from '../../integration/shared/random';
 import { mockInstance, mockPackageName, mockPackagePair } from '../../integration/shared/utils';
 
-jest.mock('fs/promises');
-jest.mock('child_process');
-jest.mock('axios');
-
 type ExecOptions = NonNullable<Parameters<typeof exec>[1]>;
 type ExecCallback = NonNullable<Parameters<typeof exec>[2]>;
 
