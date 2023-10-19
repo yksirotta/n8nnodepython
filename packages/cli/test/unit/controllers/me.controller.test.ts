@@ -4,7 +4,7 @@ import { mock, anyObject, captor } from 'jest-mock-extended';
 import type { ILogger } from 'n8n-workflow';
 import type { IExternalHooksClass, IInternalHooksClass, PublicUser } from '@/Interfaces';
 import type { User } from '@db/entities/User';
-import { MeController } from '@/controllers';
+import { MeController } from '@/controllers/me.controller';
 import { AUTH_COOKIE_NAME } from '@/constants';
 import { BadRequestError } from '@/ResponseHelper';
 import type { AuthenticatedRequest, MeRequest } from '@/requests';

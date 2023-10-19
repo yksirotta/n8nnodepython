@@ -20,16 +20,6 @@ import { issueJWT } from '@/auth/jwt';
 import { UserManagementMailer } from '@/UserManagement/email/UserManagementMailer';
 import { licenseController } from '@/license/license.controller';
 import { registerController } from '@/decorators';
-import {
-	AuthController,
-	LdapController,
-	MFAController,
-	MeController,
-	OwnerController,
-	PasswordResetController,
-	TagsController,
-	UsersController,
-} from '@/controllers';
 import { rawBodyReader, bodyParser, setupAuthMiddlewares } from '@/middlewares';
 
 import { InternalHooks } from '@/InternalHooks';
@@ -39,8 +29,6 @@ import { LdapManager } from '@/Ldap/LdapManager.ee';
 import { handleLdapInit } from '@/Ldap/helpers';
 import { setSamlLoginEnabled } from '@/sso/saml/samlHelpers';
 import { SamlController } from '@/sso/saml/routes/saml.controller.ee';
-import { EventBusController } from '@/eventbus/eventBus.controller';
-import { EventBusControllerEE } from '@/eventbus/eventBus.controller.ee';
 import { License } from '@/License';
 import { SourceControlController } from '@/environments/sourceControl/sourceControl.controller.ee';
 
@@ -202,9 +190,6 @@ export const setupTestServer = ({
 		if (functionEndpoints.length) {
 			const encryptionKey = await UserSettings.getEncryptionKey();
 			const repositories = Db.collections;
-			const externalHooks = Container.get(ExternalHooks);
-			const internalHooks = Container.get(InternalHooks);
-			const mailer = Container.get(UserManagementMailer);
 			const mfaService = new MfaService(repositories.User, new TOTPService(), encryptionKey);
 			const userService = Container.get(UserService);
 
@@ -214,23 +199,39 @@ export const setupTestServer = ({
 						await Container.get(MetricsService).configureMetrics(app);
 						break;
 					case 'eventBus':
+						const { EventBusController } = await import('@/eventbus/eventBus.controller');
+						const { EventBusControllerEE } = await import('@/eventbus/eventBus.controller.ee');
 						registerController(app, config, new EventBusController());
 						registerController(app, config, new EventBusControllerEE());
 						break;
 					case 'auth':
+						const { AuthController } = await import('@/controllers/auth.controller');
 						registerController(
 							app,
 							config,
-							new AuthController(config, logger, internalHooks, mfaService, userService),
+							new AuthController(
+								config,
+								logger,
+								Container.get(InternalHooks),
+								mfaService,
+								userService,
+							),
 						);
 						break;
 					case 'mfa':
+						const { MFAController } = await import('@/controllers/mfa.controller');
 						registerController(app, config, new MFAController(mfaService));
+						break;
 					case 'ldap':
 						Container.get(License).isLdapEnabled = () => true;
 						await handleLdapInit();
 						const { service, sync } = LdapManager.getInstance();
-						registerController(app, config, new LdapController(service, sync, internalHooks));
+						const { LdapController } = await import('@/controllers/ldap.controller');
+						registerController(
+							app,
+							config,
+							new LdapController(service, sync, Container.get(InternalHooks)),
+						);
 						break;
 					case 'saml':
 						await setSamlLoginEnabled(true);
@@ -244,22 +245,32 @@ export const setupTestServer = ({
 							'@/controllers/communityPackages.controller'
 						);
 						registerController(app, config, Container.get(CommunityPackagesController));
+						break;
 					case 'me':
+						const { MeController } = await import('@/controllers/me.controller');
 						registerController(
 							app,
 							config,
-							new MeController(logger, externalHooks, internalHooks, userService),
+							new MeController(
+								logger,
+								Container.get(ExternalHooks),
+								Container.get(InternalHooks),
+								userService,
+							),
 						);
 						break;
 					case 'passwordReset':
+						const { PasswordResetController } = await import(
+							'@/controllers/passwordReset.controller'
+						);
 						registerController(
 							app,
 							config,
 							new PasswordResetController(
 								logger,
-								externalHooks,
-								internalHooks,
-								mailer,
+								Container.get(ExternalHooks),
+								Container.get(InternalHooks),
+								Container.get(UserManagementMailer),
 								userService,
 								Container.get(JwtService),
 								mfaService,
@@ -267,31 +278,33 @@ export const setupTestServer = ({
 						);
 						break;
 					case 'owner':
+						const { OwnerController } = await import('@/controllers/owner.controller');
 						registerController(
 							app,
 							config,
 							new OwnerController(
 								config,
 								logger,
-								internalHooks,
+								Container.get(InternalHooks),
 								Container.get(SettingsRepository),
 								userService,
 							),
 						);
 						break;
 					case 'users':
+						const { UsersController } = await import('@/controllers/users.controller');
 						registerController(
 							app,
 							config,
 							new UsersController(
 								config,
 								logger,
-								externalHooks,
-								internalHooks,
+								Container.get(ExternalHooks),
+								Container.get(InternalHooks),
 								Container.get(SharedCredentialsRepository),
 								Container.get(SharedWorkflowRepository),
 								Container.get(ActiveWorkflowRunner),
-								mailer,
+								Container.get(UserManagementMailer),
 								Container.get(JwtService),
 								Container.get(RoleService),
 								userService,
@@ -299,6 +312,7 @@ export const setupTestServer = ({
 						);
 						break;
 					case 'tags':
+						const { TagsController } = await import('@/controllers/tags.controller');
 						registerController(app, config, Container.get(TagsController));
 						break;
 					case 'externalSecrets':

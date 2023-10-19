@@ -79,19 +79,17 @@ import type {
 	WorkflowRequest,
 } from '@/requests';
 import { registerController } from '@/decorators';
-import {
-	AuthController,
-	LdapController,
-	MeController,
-	MFAController,
-	NodeTypesController,
-	OwnerController,
-	PasswordResetController,
-	TagsController,
-	TranslationController,
-	UsersController,
-	WorkflowStatisticsController,
-} from '@/controllers';
+import { AuthController } from '@/controllers/auth.controller';
+import { LdapController } from '@/controllers/ldap.controller';
+import { MeController } from '@/controllers/me.controller';
+import { MFAController } from '@/controllers/mfa.controller';
+import { NodeTypesController } from '@/controllers/nodeTypes.controller';
+import { OwnerController } from '@/controllers/owner.controller';
+import { PasswordResetController } from '@/controllers/passwordReset.controller';
+import { TagsController } from '@/controllers/tags.controller';
+import { TranslationController } from '@/controllers/translation.controller';
+import { UsersController } from '@/controllers/users.controller';
+import { WorkflowStatisticsController } from '@/controllers/workflowStatistics.controller';
 
 import { BinaryDataController } from './controllers/binaryData.controller';
 import { ExternalSecretsController } from '@/ExternalSecrets/ExternalSecrets.controller.ee';
