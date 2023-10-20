@@ -4,7 +4,6 @@ import { LoggerProxy } from 'n8n-workflow';
 import { getLogger } from '@/Logger';
 import { OrchestrationMainService } from '@/services/orchestration/main/orchestration.main.service';
 import type { RedisServiceWorkerResponseObject } from '@/services/redis/RedisServiceCommands';
-import { eventBus } from '@/eventbus';
 import { RedisService } from '@/services/redis.service';
 import { mockInstance } from '../../integration/shared/utils';
 import { handleWorkerResponseMessageMain } from '@/services/orchestration/main/handleWorkerResponseMessageMain';
@@ -12,9 +11,11 @@ import { handleCommandMessageMain } from '@/services/orchestration/main/handleCo
 import { OrchestrationHandlerMainService } from '@/services/orchestration/main/orchestration.handler.main.service';
 import * as helpers from '@/services/orchestration/helpers';
 import { ExternalSecretsManager } from '@/ExternalSecrets/ExternalSecretsManager.ee';
+import { MessageEventBus } from '@/eventbus/MessageEventBus/MessageEventBus';
 
 const os = Container.get(OrchestrationMainService);
 const handler = Container.get(OrchestrationHandlerMainService);
+const eventBus = Container.get(MessageEventBus);
 
 let queueModeId: string;
 

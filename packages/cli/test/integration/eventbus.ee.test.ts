@@ -17,7 +17,6 @@ import {
 	defaultMessageEventBusDestinationSyslogOptions,
 	defaultMessageEventBusDestinationWebhookOptions,
 } from 'n8n-workflow';
-import { eventBus } from '@/eventbus';
 import { EventMessageGeneric } from '@/eventbus/EventMessageClasses/EventMessageGeneric';
 import type { MessageEventBusDestinationSyslog } from '@/eventbus/MessageEventBusDestination/MessageEventBusDestinationSyslog.ee';
 import type { MessageEventBusDestinationWebhook } from '@/eventbus/MessageEventBusDestination/MessageEventBusDestinationWebhook.ee';
@@ -26,6 +25,8 @@ import { EventMessageAudit } from '@/eventbus/EventMessageClasses/EventMessageAu
 import type { EventNamesTypes } from '@/eventbus/EventMessageClasses';
 import { EventMessageWorkflow } from '@/eventbus/EventMessageClasses/EventMessageWorkflow';
 import { EventMessageNode } from '@/eventbus/EventMessageClasses/EventMessageNode';
+import Container from 'typedi';
+import { MessageEventBus } from '@/eventbus/MessageEventBus/MessageEventBus';
 
 jest.unmock('@/eventbus/MessageEventBus/MessageEventBus');
 jest.mock('axios');
@@ -64,6 +65,8 @@ const testSentryDestination: MessageEventBusDestinationSentryOptions = {
 	enabled: false,
 	subscribedEvents: ['n8n.test.message', 'n8n.audit.user.updated'],
 };
+
+const eventBus = Container.get(MessageEventBus);
 
 async function confirmIdInAll(id: string) {
 	const sent = await eventBus.getEventsAll();

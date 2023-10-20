@@ -48,29 +48,13 @@ export interface MessageEventBusInitializeOptions {
 
 @Service()
 export class MessageEventBus extends EventEmitter {
-	private static instance: MessageEventBus;
-
-	isInitialized: boolean;
+	isInitialized = false;
 
 	logWriter: MessageEventBusLogWriter;
 
-	destinations: {
-		[key: string]: MessageEventBusDestination;
-	} = {};
+	destinations: Record<string, MessageEventBusDestination> = {};
 
 	private pushIntervalTimer: NodeJS.Timer;
-
-	constructor() {
-		super();
-		this.isInitialized = false;
-	}
-
-	static getInstance(): MessageEventBus {
-		if (!MessageEventBus.instance) {
-			MessageEventBus.instance = new MessageEventBus();
-		}
-		return MessageEventBus.instance;
-	}
 
 	/**
 	 * Needs to be called once at startup to set the event bus instance up. Will launch the event log writer and,
@@ -461,5 +445,3 @@ export class MessageEventBus extends EventEmitter {
 		await this.send(new EventMessageNode(options));
 	}
 }
-
-export const eventBus = Container.get(MessageEventBus);

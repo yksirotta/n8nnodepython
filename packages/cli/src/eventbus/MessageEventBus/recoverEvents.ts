@@ -4,9 +4,9 @@ import type { EventMessageTypes, EventNamesTypes } from '../EventMessageClasses'
 import type { DateTime } from 'luxon';
 import { Push } from '@/push';
 import { Container } from 'typedi';
-import { InternalHooks } from '@/InternalHooks';
 import { getWorkflowHooksMain } from '@/WorkflowExecuteAdditionalData';
 import { ExecutionRepository } from '@db/repositories';
+import { MessageEventBus } from './MessageEventBus';
 
 export async function recoverExecutionDataFromEventLogMessages(
 	executionId: string,
@@ -153,19 +153,7 @@ export async function recoverExecutionDataFromEventLogMessages(
 				status: newStatus,
 				stoppedAt: lastNodeRunTimestamp?.toJSDate(),
 			});
-			await Container.get(InternalHooks).onWorkflowPostExecute(
-				executionId,
-				executionEntry.workflowData,
-				{
-					data: executionData,
-					finished: false,
-					mode: executionEntry.mode,
-					waitTill: executionEntry.waitTill ?? undefined,
-					startedAt: executionEntry.startedAt,
-					stoppedAt: lastNodeRunTimestamp?.toJSDate(),
-					status: newStatus,
-				},
-			);
+
 			const iRunData: IRun = {
 				data: executionData,
 				finished: false,
@@ -175,6 +163,12 @@ export async function recoverExecutionDataFromEventLogMessages(
 				stoppedAt: lastNodeRunTimestamp?.toJSDate(),
 				status: newStatus,
 			};
+			Container.get(MessageEventBus).emit(
+				'onWorkflowPostExecute',
+				executionId,
+				executionEntry.workflowData,
+				iRunData,
+			);
 			const workflowHooks = getWorkflowHooksMain(
 				{
 					userId: '',

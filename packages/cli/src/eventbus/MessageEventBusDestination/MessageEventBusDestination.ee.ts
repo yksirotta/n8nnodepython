@@ -18,8 +18,6 @@ export abstract class MessageEventBusDestination implements MessageEventBusDesti
 	// static abstract deserialize(): MessageEventBusDestination | null;
 	readonly id: string;
 
-	readonly eventBusInstance: MessageEventBus;
-
 	__type: MessageEventBusDestinationTypeNames;
 
 	label: string;
@@ -32,8 +30,10 @@ export abstract class MessageEventBusDestination implements MessageEventBusDesti
 
 	anonymizeAuditMessages: boolean;
 
-	constructor(eventBusInstance: MessageEventBus, options: MessageEventBusDestinationOptions) {
-		this.eventBusInstance = eventBusInstance;
+	constructor(
+		private readonly eventBusInstance: MessageEventBus,
+		options: MessageEventBusDestinationOptions,
+	) {
 		this.id = !options.id || options.id.length !== 36 ? uuid() : options.id;
 		this.__type = options.__type ?? MessageEventBusDestinationTypeNames.abstract;
 		this.label = options.label ?? 'Log Destination';

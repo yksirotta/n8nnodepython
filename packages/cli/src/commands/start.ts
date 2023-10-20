@@ -24,7 +24,6 @@ import * as GenericHelpers from '@/GenericHelpers';
 import { Server } from '@/Server';
 import { TestWebhooks } from '@/TestWebhooks';
 import { EDITOR_UI_DIST_DIR, GENERATED_STATIC_DIR } from '@/constants';
-import { eventBus } from '@/eventbus';
 import { BaseCommand } from './BaseCommand';
 import { InternalHooks } from '@/InternalHooks';
 import { License } from '@/License';
@@ -32,6 +31,7 @@ import { ExecutionRepository } from '@/databases/repositories/execution.reposito
 import { IConfig } from '@oclif/config';
 import { OrchestrationMainService } from '@/services/orchestration/main/orchestration.main.service';
 import { OrchestrationHandlerMainService } from '@/services/orchestration/main/orchestration.handler.main.service';
+import { MessageEventBus } from '@/eventbus/MessageEventBus/MessageEventBus';
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
 const open = require('open');
@@ -150,6 +150,7 @@ export class Start extends BaseCommand {
 			}
 
 			// Finally shut down Event Bus
+			const eventBus = Container.get(MessageEventBus);
 			await eventBus.close();
 		} catch (error) {
 			await this.exitWithCrash('There was an error shutting down n8n.', error);

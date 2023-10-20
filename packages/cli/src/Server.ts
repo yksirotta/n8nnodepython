@@ -129,7 +129,6 @@ import { setupAuthMiddlewares } from './middlewares';
 import { handleLdapInit, isLdapEnabled } from './Ldap/helpers';
 import { AbstractServer } from './AbstractServer';
 import { PostHogClient } from './posthog';
-import { eventBus } from './eventbus';
 import { Container } from 'typedi';
 import { InternalHooks } from './InternalHooks';
 import { License } from './License';
@@ -155,6 +154,7 @@ import { RoleService } from './services/role.service';
 import { UserService } from './services/user.service';
 import { OrchestrationController } from './controllers/orchestration.controller';
 import { WorkflowHistoryController } from './workflows/workflowHistory/workflowHistory.controller.ee';
+import { MessageEventBus } from './eventbus/MessageEventBus/MessageEventBus';
 
 const exec = promisify(callbackExec);
 
@@ -296,8 +296,8 @@ export class Server extends AbstractServer {
 		const mfaService = new MfaService(repositories.User, new TOTPService(), encryptionKey);
 
 		const controllers: object[] = [
-			new EventBusController(),
-			new EventBusControllerEE(),
+			Container.get(EventBusController),
+			Container.get(EventBusControllerEE),
 			new AuthController(config, logger, internalHooks, mfaService, userService, postHog),
 			new OwnerController(
 				config,
@@ -1224,6 +1224,7 @@ export class Server extends AbstractServer {
 		// EventBus Setup
 		// ----------------------------------------
 
+		const eventBus = Container.get(MessageEventBus);
 		if (!eventBus.isInitialized) {
 			await eventBus.initialize();
 		}

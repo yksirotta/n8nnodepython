@@ -4,8 +4,8 @@ import { isEventMessageOptions } from './EventMessageClasses/AbstractEventMessag
 import { EventMessageGeneric } from './EventMessageClasses/EventMessageGeneric';
 import type { EventMessageWorkflowOptions } from './EventMessageClasses/EventMessageWorkflow';
 import { EventMessageWorkflow } from './EventMessageClasses/EventMessageWorkflow';
+import { MessageEventBus } from './MessageEventBus/MessageEventBus';
 import type { EventMessageReturnMode } from './MessageEventBus/MessageEventBus';
-import { eventBus } from './MessageEventBus/MessageEventBus';
 import type { EventMessageTypes, FailedEventSummary } from './EventMessageClasses';
 import { eventNamesAll } from './EventMessageClasses';
 import type { EventMessageAuditOptions } from './EventMessageClasses/EventMessageAudit';
@@ -35,6 +35,8 @@ const isWithQueryString = (candidate: unknown): candidate is { query: string } =
 @Authorized()
 @RestController('/eventbus')
 export class EventBusController {
+	constructor(private eventBus: MessageEventBus) {}
+
 	// ----------------------------------------
 	// Events
 	// ----------------------------------------
@@ -46,24 +48,24 @@ export class EventBusController {
 		if (isWithQueryString(req.query)) {
 			switch (req.query.query as EventMessageReturnMode) {
 				case 'sent':
-					return eventBus.getEventsSent();
+					return this.eventBus.getEventsSent();
 				case 'unsent':
-					return eventBus.getEventsUnsent();
+					return this.eventBus.getEventsUnsent();
 				case 'unfinished':
-					return eventBus.getUnfinishedExecutions();
+					return this.eventBus.getUnfinishedExecutions();
 				case 'all':
 				default:
-					return eventBus.getEventsAll();
+					return this.eventBus.getEventsAll();
 			}
 		} else {
-			return eventBus.getEventsAll();
+			return this.eventBus.getEventsAll();
 		}
 	}
 
 	@Get('/failed')
 	async getFailedEvents(req: express.Request): Promise<FailedEventSummary[]> {
 		const amount = parseInt(req.query?.amount as string) ?? 5;
-		return eventBus.getEventsFailed(amount);
+		return this.eventBus.getEventsFailed(amount);
 	}
 
 	@Get('/execution/:id')
@@ -73,7 +75,7 @@ export class EventBusController {
 			if (req.query?.logHistory) {
 				logHistory = parseInt(req.query.logHistory as string, 10);
 			}
-			return eventBus.getEventsByExecutionId(req.params.id, logHistory);
+			return this.eventBus.getEventsByExecutionId(req.params.id, logHistory);
 		}
 		return;
 	}
@@ -84,7 +86,7 @@ export class EventBusController {
 		if (req.params?.id) {
 			const logHistory = parseInt(req.query.logHistory as string, 10) || undefined;
 			const applyToDb = req.query.applyToDb !== undefined ? !!req.query.applyToDb : true;
-			const messages = await eventBus.getEventsByExecutionId(id, logHistory);
+			const messages = await this.eventBus.getEventsByExecutionId(id, logHistory);
 			if (messages.length > 0) {
 				return recoverExecutionDataFromEventLogMessages(id, messages, applyToDb);
 			}
@@ -111,7 +113,7 @@ export class EventBusController {
 				default:
 					msg = new EventMessageGeneric(req.body);
 			}
-			await eventBus.send(msg);
+			await this.eventBus.send(msg);
 		} else {
 			throw new BadRequestError(
 				'Body is not a serialized EventMessage or eventName does not match format {namespace}.{domain}.{event}',
