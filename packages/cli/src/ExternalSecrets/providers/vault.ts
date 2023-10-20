@@ -239,7 +239,7 @@ export class VaultProvider extends SecretsProvider {
 
 	private refreshAbort = new AbortController();
 
-	async init(settings: SecretsProviderSettings): Promise<void> {
+	init(settings: SecretsProviderSettings) {
 		this.settings = settings.settings as unknown as VaultSettings;
 
 		const baseURL = new URL(this.settings.url);

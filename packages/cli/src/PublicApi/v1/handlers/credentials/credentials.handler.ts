@@ -33,7 +33,7 @@ export = {
 			try {
 				const newCredential = await createCredential(req.body);
 
-				const encryptedData = await encryptCredential(newCredential);
+				const encryptedData = encryptCredential(newCredential);
 
 				Object.assign(newCredential, encryptedData);
 
@@ -84,7 +84,7 @@ export = {
 
 	getCredentialType: [
 		authorize(['owner', 'member']),
-		async (req: CredentialTypeRequest.Get, res: express.Response): Promise<express.Response> => {
+		(req: CredentialTypeRequest.Get, res: express.Response): express.Response => {
 			const { credentialTypeName } = req.params;
 
 			try {

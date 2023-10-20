@@ -311,7 +311,7 @@ export async function executeWebhook(
 					// TODO: pass a custom `fileWriteStreamHandler` to create binary data files directly
 				});
 				req.body = await new Promise((resolve) => {
-					form.parse(req, async (err, data, files) => {
+					form.parse(req, (err, data, files) => {
 						normalizeFormData(data);
 						normalizeFormData(files);
 						resolve({ data, files });
@@ -532,7 +532,7 @@ export async function executeWebhook(
 
 					didSendResponse = true;
 				})
-				.catch(async (error) => {
+				.catch((error) => {
 					ErrorReporter.error(error);
 					Logger.error(
 						`Error with Webhook-Response for execution "${executionId}": "${error.message}"`,

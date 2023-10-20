@@ -68,7 +68,7 @@ export class InfisicalProvider implements SecretsProvider {
 
 	private environment: string;
 
-	async init(settings: SecretsProviderSettings): Promise<void> {
+	init(settings: SecretsProviderSettings): void {
 		this.settings = settings.settings as unknown as InfisicalSettings;
 	}
 

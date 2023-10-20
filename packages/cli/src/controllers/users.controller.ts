@@ -24,7 +24,7 @@ import { ListQuery, UserRequest, UserSettingsUpdatePayload } from '@/requests';
 import { UserManagementMailer } from '@/UserManagement/email';
 import { ActiveWorkflowRunner } from '@/ActiveWorkflowRunner';
 import { Config } from '@/config';
-import { IExternalHooksClass, IInternalHooksClass } from '@/Interfaces';
+import { IExternalHooksClass } from '@/Interfaces';
 import type { PublicUser, ITelemetryUserDeletionData } from '@/Interfaces';
 import { AuthIdentity } from '@db/entities/AuthIdentity';
 import { PostHogClient } from '@/posthog';
@@ -38,6 +38,7 @@ import { JwtService } from '@/services/jwt.service';
 import { RoleService } from '@/services/role.service';
 import { UserService } from '@/services/user.service';
 import { listQueryMiddleware } from '@/middlewares';
+import { InternalHooks } from '@/InternalHooks';
 
 @Authorized(['global', 'owner'])
 @RestController('/users')
@@ -46,7 +47,7 @@ export class UsersController {
 		private readonly config: Config,
 		private readonly logger: ILogger,
 		private readonly externalHooks: IExternalHooksClass,
-		private readonly internalHooks: IInternalHooksClass,
+		private readonly internalHooks: InternalHooks,
 		private readonly sharedCredentialsRepository: SharedCredentialsRepository,
 		private readonly sharedWorkflowRepository: SharedWorkflowRepository,
 		private readonly activeWorkflowRunner: ActiveWorkflowRunner,
@@ -557,7 +558,7 @@ export class UsersController {
 				await transactionManager.delete(User, { id: userToDelete.id });
 			});
 
-			void this.internalHooks.onUserDeletion({
+			this.internalHooks.onUserDeletion({
 				user: req.user,
 				telemetryData,
 				publicApi: false,

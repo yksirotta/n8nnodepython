@@ -4,14 +4,14 @@ import { UserManagementMailer } from '@/UserManagement/email/UserManagementMaile
 
 describe('UserManagementMailer', () => {
 	describe('expect NodeMailer.verifyConnection', () => {
-		let mockInit: jest.SpyInstance<Promise<void>, []>;
+		let mockInit: jest.SpyInstance<void, []>;
 		let mockVerifyConnection: jest.SpyInstance<Promise<void>, []>;
 
 		beforeAll(() => {
 			mockVerifyConnection = jest
 				.spyOn(NodeMailer.prototype, 'verifyConnection')
 				.mockImplementation(async () => {});
-			mockInit = jest.spyOn(NodeMailer.prototype, 'init').mockImplementation(async () => {});
+			mockInit = jest.spyOn(NodeMailer.prototype, 'init').mockImplementation(() => {});
 		});
 
 		afterAll(() => {
@@ -27,7 +27,7 @@ describe('UserManagementMailer', () => {
 			expect(NodeMailer.prototype.verifyConnection).toHaveBeenCalledTimes(0);
 		});
 
-		test('to be called when SMTP set up', async () => {
+		test('to be called when SMTP set up', () => {
 			// host needs to be set, otherwise smtp is skipped
 			config.set('userManagement.emails.smtp.host', 'host');
 			config.set('userManagement.emails.mode', 'smtp');

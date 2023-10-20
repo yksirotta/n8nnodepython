@@ -197,10 +197,8 @@ export class Server extends AbstractServer {
 			// eslint-disable-next-line @typescript-eslint/naming-convention
 			const { FrontendService } = await import('@/services/frontend.service');
 			this.frontendService = Container.get(FrontendService);
-			this.loadNodesAndCredentials.addPostProcessor(async () =>
-				this.frontendService.generateTypes(),
-			);
-			await this.frontendService.generateTypes();
+			this.loadNodesAndCredentials.addPostProcessor(() => this.frontendService.generateTypes());
+			this.frontendService.generateTypes();
 		}
 
 		this.activeExecutionsInstance = Container.get(ActiveExecutions);
@@ -690,21 +688,16 @@ export class Server extends AbstractServer {
 		// ----------------------------------------
 		this.app.post(
 			`/${this.restEndpoint}/curl-to-json`,
-			ResponseHelper.send(
-				async (
-					req: CurlHelper.ToJson,
-					res: express.Response,
-				): Promise<{ [key: string]: string }> => {
-					const curlCommand = req.body.curlCommand ?? '';
+			ResponseHelper.send((req: CurlHelper.ToJson, res: express.Response) => {
+				const curlCommand = req.body.curlCommand ?? '';
 
-					try {
-						const parameters = toHttpNodeParameters(curlCommand);
-						return ResponseHelper.flattenObject(parameters, 'parameters');
-					} catch (e) {
-						throw new ResponseHelper.BadRequestError('Invalid cURL command');
-					}
-				},
-			),
+				try {
+					const parameters = toHttpNodeParameters(curlCommand);
+					return ResponseHelper.flattenObject(parameters, 'parameters');
+				} catch (e) {
+					throw new ResponseHelper.BadRequestError('Invalid cURL command');
+				}
+			}),
 		);
 
 		// ----------------------------------------
@@ -1178,9 +1171,7 @@ export class Server extends AbstractServer {
 		// Returns all the available timezones
 		this.app.get(
 			`/${this.restEndpoint}/options/timezones`,
-			ResponseHelper.send(async (req: express.Request, res: express.Response): Promise<object> => {
-				return timezones;
-			}),
+			ResponseHelper.send(() => timezones),
 		);
 
 		// ----------------------------------------
@@ -1211,7 +1202,7 @@ export class Server extends AbstractServer {
 			// POST endpoint to set preset credentials
 			this.app.post(
 				`/${this.endpointPresetCredentials}`,
-				async (req: express.Request, res: express.Response) => {
+				(req: express.Request, res: express.Response) => {
 					if (!this.presetCredentialsLoaded) {
 						const body = req.body as ICredentialsOverwrite;
 
@@ -1227,7 +1218,7 @@ export class Server extends AbstractServer {
 
 						Container.get(CredentialsOverwrites).setData(body);
 
-						await this.frontendService?.generateTypes();
+						this.frontendService?.generateTypes();
 
 						this.presetCredentialsLoaded = true;
 

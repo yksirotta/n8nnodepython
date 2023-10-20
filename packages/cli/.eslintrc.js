@@ -27,5 +27,6 @@ module.exports = {
 		'@typescript-eslint/ban-types': 'warn',
 		'@typescript-eslint/no-unsafe-enum-comparison': 'warn',
 		'@typescript-eslint/no-unsafe-declaration-merging': 'warn',
+		'@typescript-eslint/require-await': 'error',
 	},
 };

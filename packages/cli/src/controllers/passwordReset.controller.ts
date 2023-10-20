@@ -18,7 +18,7 @@ import { UserManagementMailer } from '@/UserManagement/email';
 import { Response } from 'express';
 import { ILogger } from 'n8n-workflow';
 import { PasswordResetRequest } from '@/requests';
-import { IExternalHooksClass, IInternalHooksClass } from '@/Interfaces';
+import { IExternalHooksClass } from '@/Interfaces';
 import { issueCookie } from '@/auth/jwt';
 import { isLdapEnabled } from '@/Ldap/helpers';
 import { isSamlCurrentAuthenticationMethod } from '@/sso/ssoHelpers';
@@ -30,13 +30,14 @@ import { TokenExpiredError } from 'jsonwebtoken';
 import type { JwtPayload } from '@/services/jwt.service';
 import { JwtService } from '@/services/jwt.service';
 import { MfaService } from '@/Mfa/mfa.service';
+import { InternalHooks } from '@/InternalHooks';
 
 @RestController()
 export class PasswordResetController {
 	constructor(
 		private readonly logger: ILogger,
 		private readonly externalHooks: IExternalHooksClass,
-		private readonly internalHooks: IInternalHooksClass,
+		private readonly internalHooks: InternalHooks,
 		private readonly mailer: UserManagementMailer,
 		private readonly userService: UserService,
 		private readonly jwtService: JwtService,

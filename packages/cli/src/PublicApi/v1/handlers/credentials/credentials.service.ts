@@ -29,9 +29,9 @@ export async function getSharedCredentials(
 	});
 }
 
-export async function createCredential(
+export function createCredential(
 	properties: CredentialRequest.CredentialProperties,
-): Promise<CredentialsEntity> {
+): CredentialsEntity {
 	const newCredential = new CredentialsEntity();
 
 	Object.assign(newCredential, properties);
@@ -86,7 +86,7 @@ export async function removeCredential(credentials: CredentialsEntity): Promise<
 	return Db.collections.Credentials.remove(credentials);
 }
 
-export async function encryptCredential(credential: CredentialsEntity): Promise<ICredentialsDb> {
+export function encryptCredential(credential: CredentialsEntity): ICredentialsDb {
 	// Encrypt the data
 	const coreCredential = new Credentials(
 		{ id: null, name: credential.name },

@@ -223,7 +223,7 @@ export class ActiveExecutions {
 		return returnData;
 	}
 
-	async setStatus(executionId: string, status: ExecutionStatus): Promise<void> {
+	setStatus(executionId: string, status: ExecutionStatus) {
 		if (this.activeExecutions[executionId] === undefined) {
 			LoggerProxy.debug(
 				`There is no active execution with id "${executionId}", can't update status to ${status}.`,

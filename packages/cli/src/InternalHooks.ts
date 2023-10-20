@@ -13,7 +13,6 @@ import { TelemetryHelpers } from 'n8n-workflow';
 import { get as pslGet } from 'psl';
 import type {
 	IDiagnosticInfo,
-	IInternalHooksClass,
 	ITelemetryUserDeletionData,
 	IWorkflowDb,
 	IExecutionTrackProperties,
@@ -50,7 +49,7 @@ function userToPayload(user: User): {
 }
 
 @Service()
-export class InternalHooks implements IInternalHooksClass {
+export class InternalHooks {
 	constructor(
 		private telemetry: Telemetry,
 		private nodeTypes: NodeTypes,
@@ -100,14 +99,11 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onFrontendSettingsAPI(sessionId?: string): Promise<void> {
+	async onFrontendSettingsAPI(sessionId?: string) {
 		return this.telemetry.track('Session started', { session_id: sessionId });
 	}
 
-	async onPersonalizationSurveySubmitted(
-		userId: string,
-		answers: Record<string, string>,
-	): Promise<void> {
+	async onPersonalizationSurveySubmitted(userId: string, answers: Record<string, string>) {
 		const camelCaseKeys = Object.keys(answers);
 		const personalizationSurveyData = { user_id: userId } as Record<string, string | string[]>;
 		camelCaseKeys.forEach((camelCaseKey) => {
@@ -120,7 +116,7 @@ export class InternalHooks implements IInternalHooksClass {
 		);
 	}
 
-	async onWorkflowCreated(user: User, workflow: IWorkflowBase, publicApi: boolean): Promise<void> {
+	onWorkflowCreated(user: User, workflow: IWorkflowBase, publicApi: boolean) {
 		const { nodeGraph } = TelemetryHelpers.generateNodesGraph(workflow, this.nodeTypes);
 		void Promise.all([
 			eventBus.sendAuditEvent({
@@ -140,7 +136,7 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onWorkflowDeleted(user: User, workflowId: string, publicApi: boolean): Promise<void> {
+	onWorkflowDeleted(user: User, workflowId: string, publicApi: boolean) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.workflow.deleted',
@@ -157,7 +153,7 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onWorkflowSaved(user: User, workflow: IWorkflowDb, publicApi: boolean): Promise<void> {
+	async onWorkflowSaved(user: User, workflow: IWorkflowDb, publicApi: boolean) {
 		const { nodeGraph } = TelemetryHelpers.generateNodesGraph(workflow, this.nodeTypes);
 
 		const notesCount = Object.keys(nodeGraph.notes).length;
@@ -196,11 +192,7 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onNodeBeforeExecute(
-		executionId: string,
-		workflow: IWorkflowBase,
-		nodeName: string,
-	): Promise<void> {
+	onNodeBeforeExecute(executionId: string, workflow: IWorkflowBase, nodeName: string) {
 		const nodeInWorkflow = workflow.nodes.find((node) => node.name === nodeName);
 		void eventBus.sendNodeEvent({
 			eventName: 'n8n.node.started',
@@ -214,11 +206,7 @@ export class InternalHooks implements IInternalHooksClass {
 		});
 	}
 
-	async onNodePostExecute(
-		executionId: string,
-		workflow: IWorkflowBase,
-		nodeName: string,
-	): Promise<void> {
+	onNodePostExecute(executionId: string, workflow: IWorkflowBase, nodeName: string) {
 		const nodeInWorkflow = workflow.nodes.find((node) => node.name === nodeName);
 		void eventBus.sendNodeEvent({
 			eventName: 'n8n.node.finished',
@@ -232,10 +220,10 @@ export class InternalHooks implements IInternalHooksClass {
 		});
 	}
 
-	async onWorkflowBeforeExecute(
+	onWorkflowBeforeExecute(
 		executionId: string,
 		data: IWorkflowExecutionDataProcess | IWorkflowBase,
-	): Promise<void> {
+	) {
 		let payload: EventPayloadWorkflow;
 		// this hook is called slightly differently depending on whether it's from a worker or the main instance
 		// in the worker context, meaning in queue mode, only IWorkflowBase is available
@@ -267,12 +255,12 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onWorkflowCrashed(
+	onWorkflowCrashed(
 		executionId: string,
 		executionMode: WorkflowExecuteMode,
 		workflowData?: IWorkflowBase,
 		executionMetadata?: ExecutionMetadata[],
-	): Promise<void> {
+	) {
 		let metaData;
 		try {
 			if (executionMetadata) {
@@ -301,7 +289,7 @@ export class InternalHooks implements IInternalHooksClass {
 		workflow: IWorkflowBase,
 		runData?: IRun,
 		userId?: string,
-	): Promise<void> {
+	) {
 		if (!workflow.id) {
 			return;
 		}
@@ -470,7 +458,7 @@ export class InternalHooks implements IInternalHooksClass {
 		return this.telemetry.track('User updated workflow sharing', properties);
 	}
 
-	async onN8nStop(): Promise<void> {
+	async onN8nStop() {
 		const timeoutPromise = new Promise<void>((resolve) => {
 			setTimeout(() => {
 				resolve();
@@ -480,11 +468,11 @@ export class InternalHooks implements IInternalHooksClass {
 		return Promise.race([timeoutPromise, this.telemetry.trackN8nStop()]);
 	}
 
-	async onUserDeletion(userDeletionData: {
+	onUserDeletion(userDeletionData: {
 		user: User;
 		telemetryData: ITelemetryUserDeletionData;
 		publicApi: boolean;
-	}): Promise<void> {
+	}) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.deleted',
@@ -500,12 +488,12 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onUserInvite(userInviteData: {
+	onUserInvite(userInviteData: {
 		user: User;
 		target_user_id: string[];
 		public_api: boolean;
 		email_sent: boolean;
-	}): Promise<void> {
+	}) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.invited',
@@ -523,11 +511,7 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onUserReinvite(userReinviteData: {
-		user: User;
-		target_user_id: string;
-		public_api: boolean;
-	}): Promise<void> {
+	onUserReinvite(userReinviteData: { user: User; target_user_id: string; public_api: boolean }) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.reinvited',
@@ -544,49 +528,31 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onUserRetrievedUser(userRetrievedData: {
-		user_id: string;
-		public_api: boolean;
-	}): Promise<void> {
+	async onUserRetrievedUser(userRetrievedData: { user_id: string; public_api: boolean }) {
 		return this.telemetry.track('User retrieved user', userRetrievedData);
 	}
 
-	async onUserRetrievedAllUsers(userRetrievedData: {
-		user_id: string;
-		public_api: boolean;
-	}): Promise<void> {
+	async onUserRetrievedAllUsers(userRetrievedData: { user_id: string; public_api: boolean }) {
 		return this.telemetry.track('User retrieved all users', userRetrievedData);
 	}
 
-	async onUserRetrievedExecution(userRetrievedData: {
-		user_id: string;
-		public_api: boolean;
-	}): Promise<void> {
+	async onUserRetrievedExecution(userRetrievedData: { user_id: string; public_api: boolean }) {
 		return this.telemetry.track('User retrieved execution', userRetrievedData);
 	}
 
-	async onUserRetrievedAllExecutions(userRetrievedData: {
-		user_id: string;
-		public_api: boolean;
-	}): Promise<void> {
+	async onUserRetrievedAllExecutions(userRetrievedData: { user_id: string; public_api: boolean }) {
 		return this.telemetry.track('User retrieved all executions', userRetrievedData);
 	}
 
-	async onUserRetrievedWorkflow(userRetrievedData: {
-		user_id: string;
-		public_api: boolean;
-	}): Promise<void> {
+	async onUserRetrievedWorkflow(userRetrievedData: { user_id: string; public_api: boolean }) {
 		return this.telemetry.track('User retrieved workflow', userRetrievedData);
 	}
 
-	async onUserRetrievedAllWorkflows(userRetrievedData: {
-		user_id: string;
-		public_api: boolean;
-	}): Promise<void> {
+	async onUserRetrievedAllWorkflows(userRetrievedData: { user_id: string; public_api: boolean }) {
 		return this.telemetry.track('User retrieved all workflows', userRetrievedData);
 	}
 
-	async onUserUpdate(userUpdateData: { user: User; fields_changed: string[] }): Promise<void> {
+	onUserUpdate(userUpdateData: { user: User; fields_changed: string[] }) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.updated',
@@ -602,10 +568,7 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onUserInviteEmailClick(userInviteClickData: {
-		inviter: User;
-		invitee: User;
-	}): Promise<void> {
+	onUserInviteEmailClick(userInviteClickData: { inviter: User; invitee: User }) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.invitation.accepted',
@@ -624,7 +587,7 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onUserPasswordResetEmailClick(userPasswordResetData: { user: User }): Promise<void> {
+	onUserPasswordResetEmailClick(userPasswordResetData: { user: User }) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.reset',
@@ -642,7 +605,7 @@ export class InternalHooks implements IInternalHooksClass {
 		user_id: string;
 		message_type: 'Reset password' | 'New user invite' | 'Resend invite';
 		public_api: boolean;
-	}): Promise<void> {
+	}) {
 		return this.telemetry.track(
 			'Instance sent transactional email to user',
 			userTransactionalEmailData,
@@ -654,11 +617,11 @@ export class InternalHooks implements IInternalHooksClass {
 		path: string;
 		method: string;
 		api_version: string;
-	}): Promise<void> {
+	}) {
 		return this.telemetry.track('User invoked API', userInvokedApiData);
 	}
 
-	async onApiKeyDeleted(apiKeyDeletedData: { user: User; public_api: boolean }): Promise<void> {
+	onApiKeyDeleted(apiKeyDeletedData: { user: User; public_api: boolean }) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.api.deleted',
@@ -673,7 +636,7 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onApiKeyCreated(apiKeyCreatedData: { user: User; public_api: boolean }): Promise<void> {
+	onApiKeyCreated(apiKeyCreatedData: { user: User; public_api: boolean }) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.api.created',
@@ -688,7 +651,7 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onUserPasswordResetRequestClick(userPasswordResetData: { user: User }): Promise<void> {
+	onUserPasswordResetRequestClick(userPasswordResetData: { user: User }) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.reset.requested',
@@ -702,17 +665,17 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onInstanceOwnerSetup(instanceOwnerSetupData: { user_id: string }): Promise<void> {
+	async onInstanceOwnerSetup(instanceOwnerSetupData: { user_id: string }) {
 		return this.telemetry.track('Owner finished instance setup', instanceOwnerSetupData);
 	}
 
-	async onUserSignup(
+	onUserSignup(
 		user: User,
 		userSignupData: {
 			user_type: AuthProviderType;
 			was_disabled_ldap_user: boolean;
 		},
-	): Promise<void> {
+	) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.signedup',
@@ -727,11 +690,11 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onEmailFailed(failedEmailData: {
+	onEmailFailed(failedEmailData: {
 		user: User;
 		message_type: 'Reset password' | 'New user invite' | 'Resend invite';
 		public_api: boolean;
-	}): Promise<void> {
+	}) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.email.failed',
@@ -746,10 +709,7 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onUserLoginSuccess(userLoginData: {
-		user: User;
-		authenticationMethod: AuthenticationMethod;
-	}): Promise<void> {
+	onUserLoginSuccess(userLoginData: { user: User; authenticationMethod: AuthenticationMethod }) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.login.success',
@@ -761,11 +721,11 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onUserLoginFailed(userLoginData: {
+	onUserLoginFailed(userLoginData: {
 		user: string;
 		authenticationMethod: AuthenticationMethod;
 		reason?: string;
-	}): Promise<void> {
+	}) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.login.failed',
@@ -782,13 +742,13 @@ export class InternalHooks implements IInternalHooksClass {
 	 * Credentials
 	 */
 
-	async onUserCreatedCredentials(userCreatedCredentialsData: {
+	onUserCreatedCredentials(userCreatedCredentialsData: {
 		user: User;
 		credential_name: string;
 		credential_type: string;
 		credential_id: string;
 		public_api: boolean;
-	}): Promise<void> {
+	}) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.credentials.created',
@@ -808,7 +768,7 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onUserSharedCredentials(userSharedCredentialsData: {
+	onUserSharedCredentials(userSharedCredentialsData: {
 		user: User;
 		credential_name: string;
 		credential_type: string;
@@ -816,7 +776,7 @@ export class InternalHooks implements IInternalHooksClass {
 		user_id_sharer: string;
 		user_ids_sharees_added: string[];
 		sharees_removed: number | null;
-	}): Promise<void> {
+	}) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.user.credentials.shared',
@@ -846,7 +806,7 @@ export class InternalHooks implements IInternalHooksClass {
 	 * Community nodes backend telemetry events
 	 */
 
-	async onCommunityPackageInstallFinished(installationData: {
+	onCommunityPackageInstallFinished(installationData: {
 		user: User;
 		input_string: string;
 		package_name: string;
@@ -856,7 +816,7 @@ export class InternalHooks implements IInternalHooksClass {
 		package_author?: string;
 		package_author_email?: string;
 		failure_reason?: string;
-	}): Promise<void> {
+	}) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.package.installed',
@@ -886,7 +846,7 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onCommunityPackageUpdateFinished(updateData: {
+	onCommunityPackageUpdateFinished(updateData: {
 		user: User;
 		package_name: string;
 		package_version_current: string;
@@ -894,7 +854,7 @@ export class InternalHooks implements IInternalHooksClass {
 		package_node_names: string[];
 		package_author?: string;
 		package_author_email?: string;
-	}): Promise<void> {
+	}) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.package.updated',
@@ -920,14 +880,14 @@ export class InternalHooks implements IInternalHooksClass {
 		]);
 	}
 
-	async onCommunityPackageDeleteFinished(deleteData: {
+	onCommunityPackageDeleteFinished(deleteData: {
 		user: User;
 		package_name: string;
 		package_version: string;
 		package_node_names: string[];
 		package_author?: string;
 		package_author_email?: string;
-	}): Promise<void> {
+	}) {
 		void Promise.all([
 			eventBus.sendAuditEvent({
 				eventName: 'n8n.audit.package.deleted',
@@ -956,7 +916,7 @@ export class InternalHooks implements IInternalHooksClass {
 		succeeded: boolean;
 		users_synced: number;
 		error: string;
-	}): Promise<void> {
+	}) {
 		return this.telemetry.track('Ldap general sync finished', data);
 	}
 
@@ -973,25 +933,22 @@ export class InternalHooks implements IInternalHooksClass {
 		synchronizationInterval: number;
 		loginLabel: string;
 		loginEnabled: boolean;
-	}): Promise<void> {
+	}) {
 		return this.telemetry.track('Ldap general sync finished', data);
 	}
 
-	async onLdapLoginSyncFailed(data: { error: string }): Promise<void> {
+	async onLdapLoginSyncFailed(data: { error: string }) {
 		return this.telemetry.track('Ldap login sync failed', data);
 	}
 
-	async userLoginFailedDueToLdapDisabled(data: { user_id: string }): Promise<void> {
+	async userLoginFailedDueToLdapDisabled(data: { user_id: string }) {
 		return this.telemetry.track('User login failed since ldap disabled', data);
 	}
 
 	/*
 	 * Execution Statistics
 	 */
-	async onFirstProductionWorkflowSuccess(data: {
-		user_id: string;
-		workflow_id: string;
-	}): Promise<void> {
+	async onFirstProductionWorkflowSuccess(data: { user_id: string; workflow_id: string }) {
 		return this.telemetry.track('Workflow first prod success', data);
 	}
 
@@ -1002,14 +959,14 @@ export class InternalHooks implements IInternalHooksClass {
 		node_id: string;
 		credential_type?: string;
 		credential_id?: string;
-	}): Promise<void> {
+	}) {
 		return this.telemetry.track('Workflow first data fetched', data);
 	}
 
 	/**
 	 * License
 	 */
-	async onLicenseRenewAttempt(data: { success: boolean }): Promise<void> {
+	async onLicenseRenewAttempt(data: { success: boolean }) {
 		await this.telemetry.track('Instance attempted to refresh license', data);
 	}
 
@@ -1020,7 +977,7 @@ export class InternalHooks implements IInternalHooksClass {
 		return this.telemetry.track('Instance generated security audit via CLI command');
 	}
 
-	async onVariableCreated(createData: { variable_type: string }): Promise<void> {
+	async onVariableCreated(createData: { variable_type: string }) {
 		return this.telemetry.track('User created variable', createData);
 	}
 
@@ -1029,7 +986,7 @@ export class InternalHooks implements IInternalHooksClass {
 		read_only_instance: boolean;
 		repo_type: 'github' | 'gitlab' | 'other';
 		connected: boolean;
-	}): Promise<void> {
+	}) {
 		return this.telemetry.track('User updated source control settings', data);
 	}
 
@@ -1037,20 +994,17 @@ export class InternalHooks implements IInternalHooksClass {
 		workflow_updates: number;
 		workflow_conflicts: number;
 		cred_conflicts: number;
-	}): Promise<void> {
+	}) {
 		return this.telemetry.track('User started pull via UI', data);
 	}
 
-	async onSourceControlUserFinishedPullUI(data: { workflow_updates: number }): Promise<void> {
+	async onSourceControlUserFinishedPullUI(data: { workflow_updates: number }) {
 		return this.telemetry.track('User finished pull via UI', {
 			workflow_updates: data.workflow_updates,
 		});
 	}
 
-	async onSourceControlUserPulledAPI(data: {
-		workflow_updates: number;
-		forced: boolean;
-	}): Promise<void> {
+	async onSourceControlUserPulledAPI(data: { workflow_updates: number; forced: boolean }) {
 		return this.telemetry.track('User pulled via API', data);
 	}
 
@@ -1060,7 +1014,7 @@ export class InternalHooks implements IInternalHooksClass {
 		creds_eligible: number;
 		creds_eligible_with_conflicts: number;
 		variables_eligible: number;
-	}): Promise<void> {
+	}) {
 		return this.telemetry.track('User started push via UI', data);
 	}
 
@@ -1069,7 +1023,7 @@ export class InternalHooks implements IInternalHooksClass {
 		workflows_pushed: number;
 		creds_pushed: number;
 		variables_pushed: number;
-	}): Promise<void> {
+	}) {
 		return this.telemetry.track('User finished push via UI', data);
 	}
 
@@ -1079,7 +1033,7 @@ export class InternalHooks implements IInternalHooksClass {
 		is_valid: boolean;
 		is_new: boolean;
 		error_message?: string | undefined;
-	}): Promise<void> {
+	}) {
 		return this.telemetry.track('User updated external secrets settings', saveData);
 	}
 }

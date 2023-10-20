@@ -138,7 +138,7 @@ export class ExternalSecretsManager {
 		const provider: SecretsProvider = new providerClass();
 
 		try {
-			await provider.init(providerSettings);
+			provider.init(providerSettings);
 		} catch (e) {
 			logger.error(
 				`Error initializing secrets provider ${provider.displayName} (${provider.name}).`,

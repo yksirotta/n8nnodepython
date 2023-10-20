@@ -182,7 +182,7 @@ export function reportError(error: Error) {
  */
 
 export function send<T, R extends Request, S extends Response>(
-	processFunction: (req: R, res: S) => Promise<T>,
+	processFunction: (req: R, res: S) => T | Promise<T>,
 	raw = false,
 ) {
 	return async (req: R, res: S) => {

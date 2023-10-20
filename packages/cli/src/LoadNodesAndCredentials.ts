@@ -49,7 +49,7 @@ export class LoadNodesAndCredentials {
 
 	private downloadFolder: string;
 
-	private postProcessors: Array<() => Promise<void>> = [];
+	private postProcessors: Array<() => void> = [];
 
 	constructor(private readonly instanceSettings: InstanceSettings) {
 		this.downloadFolder = instanceSettings.nodesDownloadDir;
@@ -92,7 +92,7 @@ export class LoadNodesAndCredentials {
 		await this.postProcessLoaders();
 	}
 
-	addPostProcessor(fn: () => Promise<void>) {
+	addPostProcessor(fn: () => void) {
 		this.postProcessors.push(fn);
 	}
 
@@ -178,7 +178,7 @@ export class LoadNodesAndCredentials {
 		return this.runDirectoryLoader(PackageDirectoryLoader, finalNodeUnpackedPath);
 	}
 
-	async unloadPackage(packageName: string) {
+	unloadPackage(packageName: string) {
 		if (packageName in this.loaders) {
 			this.loaders[packageName].reset();
 			delete this.loaders[packageName];

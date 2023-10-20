@@ -2,19 +2,20 @@ import type { CookieOptions, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { mock, anyObject, captor } from 'jest-mock-extended';
 import type { ILogger } from 'n8n-workflow';
-import type { IExternalHooksClass, IInternalHooksClass, PublicUser } from '@/Interfaces';
+import type { IExternalHooksClass, PublicUser } from '@/Interfaces';
 import type { User } from '@db/entities/User';
 import { MeController } from '@/controllers';
 import { AUTH_COOKIE_NAME } from '@/constants';
 import { BadRequestError } from '@/ResponseHelper';
 import type { AuthenticatedRequest, MeRequest } from '@/requests';
-import { badPasswords } from '../shared/testData';
 import type { UserService } from '@/services/user.service';
+import type { InternalHooks } from '@/InternalHooks';
+import { badPasswords } from '../shared/testData';
 
 describe('MeController', () => {
 	const logger = mock<ILogger>();
 	const externalHooks = mock<IExternalHooksClass>();
-	const internalHooks = mock<IInternalHooksClass>();
+	const internalHooks = mock<InternalHooks>();
 	const userService = mock<UserService>();
 	const controller = new MeController(logger, externalHooks, internalHooks, userService);
 

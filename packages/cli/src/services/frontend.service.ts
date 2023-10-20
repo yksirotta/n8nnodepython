@@ -1,7 +1,6 @@
 import { Container, Service } from 'typedi';
 import uniq from 'lodash/uniq';
-import { createWriteStream } from 'fs';
-import { mkdir } from 'fs/promises';
+import { createWriteStream, mkdirSync } from 'fs';
 import path from 'path';
 
 import type {
@@ -188,11 +187,11 @@ export class FrontendService {
 		};
 	}
 
-	async generateTypes() {
+	generateTypes() {
 		this.overwriteCredentialsProperties();
 
 		// pre-render all the node and credential types as static json files
-		await mkdir(path.join(GENERATED_STATIC_DIR, 'types'), { recursive: true });
+		mkdirSync(path.join(GENERATED_STATIC_DIR, 'types'), { recursive: true });
 		const { credentials, nodes } = this.loadNodesAndCredentials.types;
 		this.writeStaticJSON('nodes', nodes);
 		this.writeStaticJSON('credentials', credentials);

@@ -8,10 +8,10 @@ import { Response } from 'express';
 import { ILogger } from 'n8n-workflow';
 import { Config } from '@/config';
 import { OwnerRequest } from '@/requests';
-import { IInternalHooksClass } from '@/Interfaces';
 import { SettingsRepository } from '@db/repositories';
 import { PostHogClient } from '@/posthog';
 import { UserService } from '@/services/user.service';
+import { InternalHooks } from '@/InternalHooks';
 
 @Authorized(['global', 'owner'])
 @RestController('/owner')
@@ -19,7 +19,7 @@ export class OwnerController {
 	constructor(
 		private readonly config: Config,
 		private readonly logger: ILogger,
-		private readonly internalHooks: IInternalHooksClass,
+		private readonly internalHooks: InternalHooks,
 		private readonly settingsRepository: SettingsRepository,
 		private readonly userService: UserService,
 		private readonly postHog?: PostHogClient,

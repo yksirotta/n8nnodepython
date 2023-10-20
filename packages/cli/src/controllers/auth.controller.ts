@@ -16,7 +16,6 @@ import type { User } from '@db/entities/User';
 import { LoginRequest, UserRequest } from '@/requests';
 import type { PublicUser } from '@/Interfaces';
 import { Config } from '@/config';
-import { IInternalHooksClass } from '@/Interfaces';
 import { handleEmailLogin, handleLdapLogin } from '@/auth';
 import { PostHogClient } from '@/posthog';
 import {
@@ -24,7 +23,7 @@ import {
 	isLdapCurrentAuthenticationMethod,
 	isSamlCurrentAuthenticationMethod,
 } from '@/sso/ssoHelpers';
-import { InternalHooks } from '../InternalHooks';
+import { InternalHooks } from '@/InternalHooks';
 import { License } from '@/License';
 import { UserService } from '@/services/user.service';
 import { MfaService } from '@/Mfa/mfa.service';
@@ -34,7 +33,7 @@ export class AuthController {
 	constructor(
 		private readonly config: Config,
 		private readonly logger: ILogger,
-		private readonly internalHooks: IInternalHooksClass,
+		private readonly internalHooks: InternalHooks,
 		private readonly mfaService: MfaService,
 		private readonly userService: UserService,
 		private readonly postHog?: PostHogClient,
@@ -93,14 +92,14 @@ export class AuthController {
 			}
 
 			await issueCookie(res, user);
-			void Container.get(InternalHooks).onUserLoginSuccess({
+			void this.internalHooks.onUserLoginSuccess({
 				user,
 				authenticationMethod: usedAuthenticationMethod,
 			});
 
 			return this.userService.toPublic(user, { posthog: this.postHog });
 		}
-		void Container.get(InternalHooks).onUserLoginFailed({
+		void this.internalHooks.onUserLoginFailed({
 			user: email,
 			authenticationMethod: usedAuthenticationMethod,
 			reason: 'wrong credentials',

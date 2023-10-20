@@ -63,7 +63,7 @@ export class DummyProvider extends SecretsProvider {
 		test2: 'value2',
 	};
 
-	async init(settings: SecretsProviderSettings<IDataObject>): Promise<void> {}
+	async init(settings: SecretsProviderSettings<IDataObject>) {}
 
 	async connect(): Promise<void> {
 		this.state = 'connected';

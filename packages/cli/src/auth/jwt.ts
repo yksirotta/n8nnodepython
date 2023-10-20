@@ -78,7 +78,7 @@ export async function resolveJwt(token: string): Promise<User> {
 	return resolveJwtContent(jwtPayload);
 }
 
-export async function issueCookie(res: Response, user: User): Promise<void> {
+export function issueCookie(res: Response, user: User) {
 	const userData = issueJWT(user);
 	res.cookie(AUTH_COOKIE_NAME, userData.token, {
 		maxAge: userData.expiresIn,

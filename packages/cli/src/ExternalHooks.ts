@@ -18,27 +18,27 @@ export class ExternalHooks implements IExternalHooksClass {
 
 	initDidRun = false;
 
-	async init(): Promise<void> {
+	init() {
 		if (this.initDidRun) {
 			return;
 		}
 
-		await this.loadHooksFiles();
+		this.loadHooksFiles();
 
 		this.initDidRun = true;
 	}
 
-	async reload(externalHooks?: IExternalHooksFileData) {
+	reload(externalHooks?: IExternalHooksFileData) {
 		this.externalHooks = {};
 
 		if (externalHooks === undefined) {
-			await this.loadHooksFiles(true);
+			this.loadHooksFiles(true);
 		} else {
 			this.loadHooks(externalHooks);
 		}
 	}
 
-	async loadHooksFiles(reload = false) {
+	loadHooksFiles(reload = false) {
 		const externalHookFiles = config.getEnv('externalHookFiles').split(':');
 
 		// Load all the provided hook-files

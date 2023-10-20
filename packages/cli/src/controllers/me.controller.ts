@@ -14,11 +14,12 @@ import {
 	UserSettingsUpdatePayload,
 	UserUpdatePayload,
 } from '@/requests';
-import { IExternalHooksClass, IInternalHooksClass } from '@/Interfaces';
+import { IExternalHooksClass } from '@/Interfaces';
 import type { PublicUser } from '@/Interfaces';
 import { randomBytes } from 'crypto';
 import { isSamlLicensedAndEnabled } from '../sso/saml/samlHelpers';
 import { UserService } from '@/services/user.service';
+import { InternalHooks } from '@/InternalHooks';
 
 @Authorized()
 @RestController('/me')
@@ -26,7 +27,7 @@ export class MeController {
 	constructor(
 		private readonly logger: ILogger,
 		private readonly externalHooks: IExternalHooksClass,
-		private readonly internalHooks: IInternalHooksClass,
+		private readonly internalHooks: InternalHooks,
 		private readonly userService: UserService,
 	) {}
 
@@ -79,7 +80,7 @@ export class MeController {
 		await issueCookie(res, user);
 
 		const updatedKeys = Object.keys(payload);
-		void this.internalHooks.onUserUpdate({
+		this.internalHooks.onUserUpdate({
 			user,
 			fields_changed: updatedKeys,
 		});
@@ -130,7 +131,7 @@ export class MeController {
 
 		await issueCookie(res, user);
 
-		void this.internalHooks.onUserUpdate({
+		this.internalHooks.onUserUpdate({
 			user,
 			fields_changed: ['password'],
 		});
@@ -202,7 +203,7 @@ export class MeController {
 	async deleteAPIKey(req: AuthenticatedRequest) {
 		await this.userService.update(req.user.id, { apiKey: null });
 
-		void this.internalHooks.onApiKeyDeleted({
+		this.internalHooks.onApiKeyDeleted({
 			user: req.user,
 			public_api: false,
 		});

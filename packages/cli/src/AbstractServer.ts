@@ -98,9 +98,9 @@ export abstract class AbstractServer {
 
 	protected setupPushServer() {}
 
-	private async setupHealthCheck() {
+	private setupHealthCheck() {
 		// health check should not care about DB connections
-		this.app.get('/healthz', async (req, res) => {
+		this.app.get('/healthz', (req, res) => {
 			res.send({ status: 'ok' });
 		});
 
@@ -147,7 +147,7 @@ export abstract class AbstractServer {
 		this.externalHooks = Container.get(ExternalHooks);
 		this.activeWorkflowRunner = Container.get(ActiveWorkflowRunner);
 
-		await this.setupHealthCheck();
+		this.setupHealthCheck();
 
 		console.log(`n8n ready on ${ADDRESS}, port ${PORT}`);
 	}
@@ -185,7 +185,9 @@ export abstract class AbstractServer {
 			// TODO UM: check if this needs validation with user management.
 			this.app.delete(
 				`/${this.restEndpoint}/test-webhook/:id`,
-				send(async (req) => testWebhooks.cancelTestWebhook(req.params.id)),
+				send((req) => {
+					testWebhooks.cancelTestWebhook(req.params.id);
+				}),
 			);
 		}
 

@@ -17,7 +17,7 @@ import type { Dirent } from 'fs';
 @Service()
 export class NodeTypes implements INodeTypes {
 	constructor(private loadNodesAndCredentials: LoadNodesAndCredentials) {
-		loadNodesAndCredentials.addPostProcessor(async () => this.applySpecialNodeParameters());
+		loadNodesAndCredentials.addPostProcessor(() => this.applySpecialNodeParameters());
 	}
 
 	/**

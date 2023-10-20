@@ -9,7 +9,7 @@ import type SMTPConnection from 'nodemailer/lib/smtp-connection';
 export class NodeMailer {
 	private transport?: Transporter;
 
-	async init(): Promise<void> {
+	init() {
 		const transportConfig: SMTPConnection.Options = {
 			host: config.getEnv('userManagement.emails.smtp.host'),
 			port: config.getEnv('userManagement.emails.smtp.port'),
@@ -45,7 +45,7 @@ export class NodeMailer {
 
 	async verifyConnection(): Promise<void> {
 		if (!this.transport) {
-			await this.init();
+			this.init();
 		}
 		const host = config.getEnv('userManagement.emails.smtp.host');
 		const user = config.getEnv('userManagement.emails.smtp.auth.user');
@@ -64,7 +64,7 @@ export class NodeMailer {
 
 	async sendMail(mailData: MailData): Promise<SendEmailResult> {
 		if (!this.transport) {
-			await this.init();
+			this.init();
 		}
 		let sender = config.getEnv('userManagement.emails.smtp.sender');
 		const user = config.getEnv('userManagement.emails.smtp.auth.user');

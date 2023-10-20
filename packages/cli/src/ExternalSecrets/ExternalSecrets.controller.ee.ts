@@ -17,7 +17,7 @@ export class ExternalSecretsController {
 	}
 
 	@Get('/providers/:provider')
-	async getProvider(req: ExternalSecretsRequest.GetProvider) {
+	getProvider(req: ExternalSecretsRequest.GetProvider) {
 		const providerName = req.params.provider;
 		try {
 			return this.secretsService.getProvider(providerName);

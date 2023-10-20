@@ -33,7 +33,7 @@ export class ExternalSecretsService {
 		};
 	}
 
-	async getProviders() {
+	getProviders() {
 		return Container.get(ExternalSecretsManager)
 			.getProvidersWithSettings()
 			.map(({ provider, settings }) => ({
