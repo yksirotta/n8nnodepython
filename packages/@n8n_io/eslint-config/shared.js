@@ -14,7 +14,9 @@ module.exports = (tsconfigRootDir, mode) => {
 					template: 'vue-eslint-parser',
 				},
 		  }
-		: {};
+		: {
+				EXPERIMENTAL_useSourceOfProjectReferenceRedirect: true,
+		  };
 
 	const settings = {
 		'import/parsers': {
