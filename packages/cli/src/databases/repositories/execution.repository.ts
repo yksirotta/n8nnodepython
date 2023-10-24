@@ -270,9 +270,10 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 	}
 
 	async createNewExecution(execution: ExecutionPayload) {
-		const { data, workflowData, ...rest } = execution;
+		const { data, workflowData: workflow, ...executionData } = execution;
+		const { shared, ...workflowData } = workflow ?? {};
 
-		const newExecution = await this.save(rest);
+		const newExecution = await this.save(executionData);
 		await this.executionDataRepository.save({
 			execution: newExecution,
 			workflowData,

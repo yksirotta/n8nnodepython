@@ -1824,6 +1824,7 @@ export interface IWorkflowBase {
 	staticData?: IDataObject;
 	pinData?: IPinData;
 	versionId?: string;
+	shared?: any[];
 }
 
 export interface IWorkflowCredentials {
