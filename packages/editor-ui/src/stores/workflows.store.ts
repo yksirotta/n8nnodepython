@@ -2,10 +2,8 @@ import {
 	DEFAULT_NEW_WORKFLOW_NAME,
 	DUPLICATE_POSTFFIX,
 	EnterpriseEditionFeature,
-	ERROR_TRIGGER_NODE_TYPE,
 	MAX_WORKFLOW_NAME_LENGTH,
 	PLACEHOLDER_EMPTY_WORKFLOW_ID,
-	START_NODE_TYPE,
 	STORES,
 } from '@/constants';
 import type {
@@ -49,7 +47,6 @@ import type {
 	INodeIssueData,
 	INodeIssueObjectProperty,
 	INodeParameters,
-	INodeTypeData,
 	INodeTypes,
 	IPinData,
 	IRun,
@@ -102,6 +99,16 @@ const defaults: Omit<IWorkflowDb, 'id'> & { settings: NonNullable<IWorkflowDb['s
 	versionId: '',
 	usedCredentials: [],
 };
+
+const nodeTypes: INodeTypes = {
+	getByNameAndVersion: (nodeType: string, version?: number) => {
+		const description = useNodeTypesStore().getNodeType(nodeType, version);
+		if (!description) {
+			throw new Error(`Node type ${nodeType} not found`);
+		}
+		return { description };
+	},
+} as INodeTypes;
 
 const createEmptyWorkflow = (): IWorkflowDb => ({
 	id: PLACEHOLDER_EMPTY_WORKFLOW_ID,
@@ -282,35 +289,6 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, {
 		},
 	},
 	actions: {
-		getNodeTypes(): INodeTypes {
-			const nodeTypes: INodeTypes = {
-				nodeTypes: {},
-				init: async (nodeTypes?: INodeTypeData): Promise<void> => {},
-				// @ts-ignore
-				getByNameAndVersion: (nodeType: string, version?: number): INodeType | undefined => {
-					const nodeTypeDescription = useNodeTypesStore().getNodeType(nodeType, version);
-
-					if (nodeTypeDescription === null) {
-						return undefined;
-					}
-
-					return {
-						description: nodeTypeDescription,
-						// As we do not have the trigger/poll functions available in the frontend
-						// we use the information available to figure out what are trigger nodes
-						// @ts-ignore
-						trigger:
-							(![ERROR_TRIGGER_NODE_TYPE, START_NODE_TYPE].includes(nodeType) &&
-								nodeTypeDescription.inputs.length === 0 &&
-								!nodeTypeDescription.webhooks) ||
-							undefined,
-					};
-				},
-			};
-
-			return nodeTypes;
-		},
-
 		// Returns a shallow copy of the nodes which means that all the data on the lower
 		// levels still only gets referenced but the top level object is a different one.
 		// This has the advantage that it is very fast and does not cause problems with vuex
@@ -333,7 +311,6 @@ export const useWorkflowsStore = defineStore(STORES.WORKFLOWS, {
 				workflowId = undefined;
 			}
 
-			const nodeTypes = this.getNodeTypes();
 			return new Workflow({
 				id: workflowId,
 				name: this.workflowName,
