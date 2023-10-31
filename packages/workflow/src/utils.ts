@@ -88,11 +88,14 @@ type JSONStringifyOptions = {
 	replaceCircularRefs?: boolean;
 };
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const { hasOwnProperty } = Object.prototype;
 const replaceCircularReferences = <T>(value: T, knownObjects = new WeakSet()): T => {
 	if (typeof value !== 'object' || value === null || value instanceof RegExp) return value;
 	if ('toJSON' in value && typeof value.toJSON === 'function') return value.toJSON() as T;
 	if (knownObjects.has(value)) return '[Circular Reference]' as T;
 	knownObjects.add(value);
+	if (hasOwnProperty.call(value, '__skipCircularRefCheck')) return value;
 	const copy = (Array.isArray(value) ? [] : {}) as T;
 	for (const key in value) {
 		copy[key] = replaceCircularReferences(value[key], knownObjects);

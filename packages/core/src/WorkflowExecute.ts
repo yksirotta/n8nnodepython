@@ -1054,6 +1054,12 @@ export class WorkflowExecute {
 									this.mode,
 								);
 								nodeSuccessData = runNodeData.data;
+								Object.defineProperty(nodeSuccessData, '__skipCircularRefCheck', {
+									value: true,
+									configurable: false,
+									enumerable: false,
+									writable: false,
+								});
 
 								if (nodeSuccessData && executionData.node.onError === 'continueErrorOutput') {
 									// If errorOutput is activated check all the output items for error data.
