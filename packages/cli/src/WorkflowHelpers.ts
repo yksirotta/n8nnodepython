@@ -40,9 +40,10 @@ import { UserService } from './services/user.service';
 import type { SharedWorkflow } from '@db/entities/SharedWorkflow';
 import type { RoleNames } from '@db/entities/Role';
 import { RoleService } from './services/role.service';
-import { ExecutionRepository, RoleRepository } from './databases/repositories';
+import { ExecutionRepository } from '@db/repositories/execution.repository';
+import { RoleRepository } from '@db/repositories/role.repository';
 import { VariablesService } from './environments/variables/variables.service';
-import type { CredentialsEntity } from './databases/entities/CredentialsEntity';
+import type { CredentialsEntity } from '@db/entities/CredentialsEntity';
 import { Logger } from './Logger';
 
 const ERROR_TRIGGER_TYPE = config.getEnv('nodes.errorTriggerType');

@@ -29,7 +29,8 @@ import {
 import { recoverExecutionDataFromEventLogMessages } from './recoverEvents';
 import { METRICS_EVENT_NAME } from '../MessageEventBusDestination/Helpers.ee';
 import { Container, Service } from 'typedi';
-import { ExecutionRepository, WorkflowRepository } from '@/databases/repositories';
+import { ExecutionRepository } from '@db/repositories/execution.repository';
+import { WorkflowRepository } from '@db/repositories/workflow.repository';
 import type { AbstractEventMessageOptions } from '../EventMessageClasses/AbstractEventMessageOptions';
 import { getEventMessageObjectByType } from '../EventMessageClasses/Helpers';
 import { OrchestrationMainService } from '@/services/orchestration/main/orchestration.main.service';

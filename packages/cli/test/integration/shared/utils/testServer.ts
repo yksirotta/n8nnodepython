@@ -17,16 +17,6 @@ import { issueJWT } from '@/auth/jwt';
 import { UserManagementMailer } from '@/UserManagement/email/UserManagementMailer';
 import { licenseController } from '@/license/license.controller';
 import { registerController } from '@/decorators';
-import {
-	AuthController,
-	LdapController,
-	MFAController,
-	MeController,
-	OwnerController,
-	PasswordResetController,
-	TagsController,
-	UsersController,
-} from '@/controllers';
 import { rawBodyReader, bodyParser, setupAuthMiddlewares } from '@/middlewares';
 
 import { InternalHooks } from '@/InternalHooks';
@@ -34,20 +24,13 @@ import { PostHogClient } from '@/posthog';
 import { variablesController } from '@/environments/variables/variables.controller';
 import { LdapManager } from '@/Ldap/LdapManager.ee';
 import { handleLdapInit } from '@/Ldap/helpers';
-import { setSamlLoginEnabled } from '@/sso/saml/samlHelpers';
-import { SamlController } from '@/sso/saml/routes/saml.controller.ee';
-import { EventBusController } from '@/eventbus/eventBus.controller';
-import { EventBusControllerEE } from '@/eventbus/eventBus.controller.ee';
 import { License } from '@/License';
-import { SourceControlController } from '@/environments/sourceControl/sourceControl.controller.ee';
 
 import * as testDb from '../../shared/testDb';
 import { AUTHLESS_ENDPOINTS, PUBLIC_API_REST_PATH_SEGMENT, REST_PATH_SEGMENT } from '../constants';
 import type { EndpointGroup, SetupProps, TestServer } from '../types';
 import { mockInstance } from './mocking';
-import { ExternalSecretsController } from '@/ExternalSecrets/ExternalSecrets.controller.ee';
 import { MfaService } from '@/Mfa/mfa.service';
-import { MetricsService } from '@/services/metrics.service';
 import {
 	SettingsRepository,
 	SharedCredentialsRepository,
@@ -57,8 +40,6 @@ import { JwtService } from '@/services/jwt.service';
 import { RoleService } from '@/services/role.service';
 import { UserService } from '@/services/user.service';
 import { executionsController } from '@/executions/executions.controller';
-import { WorkflowHistoryController } from '@/workflows/workflowHistory/workflowHistory.controller.ee';
-import { BinaryDataController } from '@/controllers/binaryData.controller';
 import { Logger } from '@/Logger';
 
 /**
@@ -137,7 +118,7 @@ export const setupTestServer = ({
 	app.use(cookieParser());
 
 	// Mock all telemetry and logging
-	const logger = mockInstance(Logger);
+	mockInstance(Logger);
 	mockInstance(InternalHooks);
 	mockInstance(PostHogClient);
 
@@ -194,37 +175,46 @@ export const setupTestServer = ({
 		}
 
 		if (functionEndpoints.length) {
-			const externalHooks = Container.get(ExternalHooks);
-			const internalHooks = Container.get(InternalHooks);
-			const mailer = Container.get(UserManagementMailer);
-			const mfaService = Container.get(MfaService);
-			const userService = Container.get(UserService);
-
 			for (const group of functionEndpoints) {
 				switch (group) {
 					case 'metrics':
+						const { MetricsService } = await import('@/services/metrics.service');
 						await Container.get(MetricsService).configureMetrics(app);
 						break;
 					case 'eventBus':
+						const { EventBusController } = await import('@/eventbus/eventBus.controller');
 						registerController(app, config, new EventBusController());
+						const { EventBusControllerEE } = await import('@/eventbus/eventBus.controller.ee');
 						registerController(app, config, new EventBusControllerEE());
 						break;
 					case 'auth':
+						const { AuthController } = await import('@/controllers/auth.controller');
 						registerController(app, config, Container.get(AuthController));
 						break;
 					case 'mfa':
-						registerController(app, config, new MFAController(mfaService));
+						const { MFAController } = await import('@/controllers/mfa.controller');
+						registerController(app, config, Container.get(MFAController));
+						break;
 					case 'ldap':
-						Container.get(License).isLdapEnabled = () => true;
 						await handleLdapInit();
 						const { service, sync } = LdapManager.getInstance();
-						registerController(app, config, new LdapController(service, sync, internalHooks));
+						const { LdapController } = await import('@/controllers/ldap.controller');
+						registerController(
+							app,
+							config,
+							new LdapController(service, sync, Container.get(InternalHooks)),
+						);
 						break;
 					case 'saml':
+						const { setSamlLoginEnabled } = await import('@/sso/saml/samlHelpers');
 						await setSamlLoginEnabled(true);
+						const { SamlController } = await import('@/sso/saml/routes/saml.controller.ee');
 						registerController(app, config, Container.get(SamlController));
 						break;
 					case 'sourceControl':
+						const { SourceControlController } = await import(
+							'@/environments/sourceControl/sourceControl.controller.ee'
+						);
 						registerController(app, config, Container.get(SourceControlController));
 						break;
 					case 'community-packages':
@@ -232,66 +222,81 @@ export const setupTestServer = ({
 							'@/controllers/communityPackages.controller'
 						);
 						registerController(app, config, Container.get(CommunityPackagesController));
+						break;
 					case 'me':
+						const { MeController } = await import('@/controllers/me.controller');
 						registerController(app, config, Container.get(MeController));
 						break;
 					case 'passwordReset':
+						const { PasswordResetController } = await import(
+							'@/controllers/passwordReset.controller'
+						);
 						registerController(
 							app,
 							config,
 							new PasswordResetController(
-								logger,
-								externalHooks,
-								internalHooks,
-								mailer,
-								userService,
+								Container.get(Logger),
+								Container.get(ExternalHooks),
+								Container.get(InternalHooks),
+								Container.get(UserManagementMailer),
+								Container.get(UserService),
 								Container.get(JwtService),
-								mfaService,
+								Container.get(MfaService),
 							),
 						);
 						break;
 					case 'owner':
+						const { OwnerController } = await import('@/controllers/owner.controller');
 						registerController(
 							app,
 							config,
 							new OwnerController(
 								config,
-								logger,
-								internalHooks,
+								Container.get(Logger),
+								Container.get(InternalHooks),
 								Container.get(SettingsRepository),
-								userService,
+								Container.get(UserService),
 							),
 						);
 						break;
 					case 'users':
+						const { UsersController } = await import('@/controllers/users.controller');
 						registerController(
 							app,
 							config,
 							new UsersController(
 								config,
-								logger,
-								externalHooks,
-								internalHooks,
+								Container.get(Logger),
+								Container.get(ExternalHooks),
+								Container.get(InternalHooks),
 								Container.get(SharedCredentialsRepository),
 								Container.get(SharedWorkflowRepository),
 								Container.get(ActiveWorkflowRunner),
-								mailer,
+								Container.get(UserManagementMailer),
 								Container.get(JwtService),
 								Container.get(RoleService),
-								userService,
+								Container.get(UserService),
 							),
 						);
 						break;
 					case 'tags':
+						const { TagsController } = await import('@/controllers/tags.controller');
 						registerController(app, config, Container.get(TagsController));
 						break;
 					case 'externalSecrets':
+						const { ExternalSecretsController } = await import(
+							'@/ExternalSecrets/ExternalSecrets.controller.ee'
+						);
 						registerController(app, config, Container.get(ExternalSecretsController));
 						break;
 					case 'workflowHistory':
+						const { WorkflowHistoryController } = await import(
+							'@/workflows/workflowHistory/workflowHistory.controller.ee'
+						);
 						registerController(app, config, Container.get(WorkflowHistoryController));
 						break;
 					case 'binaryData':
+						const { BinaryDataController } = await import('@/controllers/binaryData.controller');
 						registerController(app, config, Container.get(BinaryDataController));
 						break;
 				}

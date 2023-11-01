@@ -41,26 +41,26 @@ import type { Role } from '@db/entities/Role';
 import type { SharedCredentials } from '@db/entities/SharedCredentials';
 import type { TagEntity } from '@db/entities/TagEntity';
 import type { User } from '@db/entities/User';
-import type {
-	AuthIdentityRepository,
-	AuthProviderSyncHistoryRepository,
-	CredentialsRepository,
-	EventDestinationsRepository,
-	ExecutionDataRepository,
-	ExecutionMetadataRepository,
-	ExecutionRepository,
-	InstalledNodesRepository,
-	InstalledPackagesRepository,
-	RoleRepository,
-	SettingsRepository,
-	SharedCredentialsRepository,
-	SharedWorkflowRepository,
-	UserRepository,
-	VariablesRepository,
-	WorkflowRepository,
-	WorkflowStatisticsRepository,
-	WorkflowTagMappingRepository,
-} from '@db/repositories';
+
+import type { AuthIdentityRepository } from '@db/repositories/authIdentity.repository';
+import type { AuthProviderSyncHistoryRepository } from '@db/repositories/authProviderSyncHistory.repository';
+import type { CredentialsRepository } from '@db/repositories/credentials.repository';
+import type { EventDestinationsRepository } from '@db/repositories/eventDestinations.repository';
+import type { ExecutionDataRepository } from '@db/repositories/executionData.repository';
+import type { ExecutionMetadataRepository } from '@db/repositories/executionMetadata.repository';
+import type { ExecutionRepository } from '@db/repositories/execution.repository';
+import type { InstalledNodesRepository } from '@db/repositories/installedNodes.repository';
+import type { InstalledPackagesRepository } from '@db/repositories/installedPackages.repository';
+import type { RoleRepository } from '@db/repositories/role.repository';
+import type { SettingsRepository } from '@db/repositories/settings.repository';
+import type { SharedCredentialsRepository } from '@db/repositories/sharedCredentials.repository';
+import type { SharedWorkflowRepository } from '@db/repositories/sharedWorkflow.repository';
+import type { UserRepository } from '@db/repositories/user.repository';
+import type { VariablesRepository } from '@db/repositories/variables.repository';
+import type { WorkflowRepository } from '@db/repositories/workflow.repository';
+import type { WorkflowStatisticsRepository } from '@db/repositories/workflowStatistics.repository';
+import type { WorkflowTagMappingRepository } from '@db/repositories/workflowTagMapping.repository';
+
 import type { LICENSE_FEATURES, LICENSE_QUOTAS } from './constants';
 import type { WorkflowWithSharingsAndCredentials } from './workflows/workflows.types';
 

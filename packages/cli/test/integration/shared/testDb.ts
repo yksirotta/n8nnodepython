@@ -6,11 +6,7 @@ import { v4 as uuid } from 'uuid';
 import config from '@/config';
 import * as Db from '@/Db';
 import { createCredentialsFromCredentialsEntity } from '@/CredentialsHelper';
-import { entities } from '@db/entities';
 import { CredentialsEntity } from '@db/entities/CredentialsEntity';
-import { mysqlMigrations } from '@db/migrations/mysqldb';
-import { postgresMigrations } from '@db/migrations/postgresdb';
-import { sqliteMigrations } from '@db/migrations/sqlite';
 import { hashPassword } from '@/UserManagement/UserManagementHelper';
 import { AuthIdentity } from '@db/entities/AuthIdentity';
 import type { ExecutionEntity } from '@db/entities/ExecutionEntity';
@@ -63,7 +59,7 @@ export async function init() {
 
 	if (dbType === 'sqlite') {
 		// no bootstrap connection required
-		await Db.init(getSqliteOptions({ name: testDbName }));
+		await Db.init(await getSqliteOptions({ name: testDbName }));
 	} else if (dbType === 'postgresdb') {
 		let bootstrapPostgres;
 		const pgOptions = getBootstrapDBOptions('postgres');
@@ -92,13 +88,13 @@ export async function init() {
 		await bootstrapPostgres.query(`CREATE DATABASE ${testDbName}`);
 		await bootstrapPostgres.destroy();
 
-		await Db.init(getDBOptions('postgres', testDbName));
+		await Db.init(await getDBOptions('postgres', testDbName));
 	} else if (dbType === 'mysqldb' || dbType === 'mariadb') {
 		const bootstrapMysql = await new Connection(getBootstrapDBOptions('mysql')).initialize();
 		await bootstrapMysql.query(`CREATE DATABASE ${testDbName} DEFAULT CHARACTER SET utf8mb4`);
 		await bootstrapMysql.destroy();
 
-		await Db.init(getDBOptions('mysql', testDbName));
+		await Db.init(await getDBOptions('mysql', testDbName));
 	}
 
 	await Db.migrate();
@@ -447,7 +443,7 @@ export async function createManyWorkflows(
  * @param user user to assign the workflow to
  */
 export async function createWorkflow(attributes: Partial<WorkflowEntity> = {}, user?: User) {
-	const { active, name, nodes, connections } = attributes;
+	const { active, name, nodes, connections, versionId } = attributes;
 
 	const workflowEntity = Db.collections.Workflow.create({
 		active: active ?? false,
@@ -463,6 +459,7 @@ export async function createWorkflow(attributes: Partial<WorkflowEntity> = {}, u
 			},
 		],
 		connections: connections ?? {},
+		versionId: versionId ?? uuid(),
 		...attributes,
 	});
 
@@ -632,7 +629,8 @@ export async function createManyWorkflowHistoryItems(
  * Generate options for an in-memory sqlite database connection,
  * one per test suite run.
  */
-const getSqliteOptions = ({ name }: { name: string }): ConnectionOptions => {
+const getSqliteOptions = async ({ name }: { name: string }): Promise<ConnectionOptions> => {
+	const { sqliteMigrations } = await import('@db/migrations/sqlite');
 	return {
 		name,
 		type: 'sqlite',
@@ -665,19 +663,23 @@ export const getBootstrapDBOptions = (type: TestDBType) => ({
 	...baseOptions(type),
 });
 
-const getDBOptions = (type: TestDBType, name: string) => ({
-	type,
-	name,
-	database: name,
-	...baseOptions(type),
-	dropSchema: true,
-	migrations: type === 'postgres' ? postgresMigrations : mysqlMigrations,
-	migrationsRun: false,
-	migrationsTableName: 'migrations',
-	entities: Object.values(entities),
-	synchronize: false,
-	logging: false,
-});
+const getDBOptions = async (type: TestDBType, name: string): Promise<ConnectionOptions> => {
+	const migrations = await import(
+		type === 'postgres' ? '@db/migrations/postgresdb' : '@db/migrations/mysqldb'
+	);
+	return {
+		type,
+		name,
+		database: name,
+		...baseOptions(type),
+		dropSchema: true,
+		migrations,
+		migrationsRun: false,
+		migrationsTableName: 'migrations',
+		synchronize: false,
+		logging: false,
+	};
+};
 
 // ----------------------------------
 //            encryption

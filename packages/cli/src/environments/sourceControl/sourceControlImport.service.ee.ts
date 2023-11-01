@@ -26,7 +26,7 @@ import { getCredentialExportPath, getWorkflowExportPath } from './sourceControlH
 import type { SourceControlledFile } from './types/sourceControlledFile';
 import { RoleService } from '@/services/role.service';
 import { VariablesService } from '../variables/variables.service';
-import { TagRepository } from '@/databases/repositories';
+import { TagRepository } from '@db/repositories/tag.repository';
 import { UM_FIX_INSTRUCTION } from '@/constants';
 import { Logger } from '@/Logger';
 

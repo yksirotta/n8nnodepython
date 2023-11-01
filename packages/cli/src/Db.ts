@@ -10,7 +10,6 @@ import type { IDatabaseCollections } from '@/Interfaces';
 
 import config from '@/config';
 
-import { entities } from '@db/entities';
 import {
 	getMariaDBConnectionOptions,
 	getMysqlConnectionOptions,
@@ -21,26 +20,69 @@ import {
 import { inTest } from '@/constants';
 import { wrapMigration } from '@db/utils/migrationHelpers';
 import type { DatabaseType, Migration } from '@db/types';
-import {
-	AuthIdentityRepository,
-	AuthProviderSyncHistoryRepository,
-	CredentialsRepository,
-	EventDestinationsRepository,
-	ExecutionDataRepository,
-	ExecutionMetadataRepository,
-	ExecutionRepository,
-	InstalledNodesRepository,
-	InstalledPackagesRepository,
-	RoleRepository,
-	SettingsRepository,
-	SharedCredentialsRepository,
-	SharedWorkflowRepository,
-	UserRepository,
-	VariablesRepository,
-	WorkflowRepository,
-	WorkflowStatisticsRepository,
-	WorkflowTagMappingRepository,
-} from '@db/repositories';
+import { AuthIdentity } from '@db/entities/AuthIdentity';
+import { AuthIdentityRepository } from '@db/repositories/authIdentity.repository';
+import { AuthProviderSyncHistory } from '@db/entities/AuthProviderSyncHistory';
+import { AuthProviderSyncHistoryRepository } from '@db/repositories/authProviderSyncHistory.repository';
+import { CredentialsEntity } from '@db/entities/CredentialsEntity';
+import { CredentialsRepository } from '@db/repositories/credentials.repository';
+import { EventDestinations } from '@db/entities/EventDestinations';
+import { EventDestinationsRepository } from '@db/repositories/eventDestinations.repository';
+import { ExecutionData } from '@db/entities/ExecutionData';
+import { ExecutionDataRepository } from '@db/repositories/executionData.repository';
+import { ExecutionEntity } from '@db/entities/ExecutionEntity';
+import { ExecutionMetadata } from '@db/entities/ExecutionMetadata';
+import { ExecutionMetadataRepository } from '@db/repositories/executionMetadata.repository';
+import { ExecutionRepository } from '@db/repositories/execution.repository';
+import { InstalledNodes } from '@db/entities/InstalledNodes';
+import { InstalledNodesRepository } from '@db/repositories/installedNodes.repository';
+import { InstalledPackages } from '@db/entities/InstalledPackages';
+import { InstalledPackagesRepository } from '@db/repositories/installedPackages.repository';
+import { Role } from '@db/entities/Role';
+import { RoleRepository } from '@db/repositories/role.repository';
+import { Settings } from '@db/entities/Settings';
+import { SettingsRepository } from '@db/repositories/settings.repository';
+import { SharedCredentials } from '@db/entities/SharedCredentials';
+import { SharedCredentialsRepository } from '@db/repositories/sharedCredentials.repository';
+import { SharedWorkflow } from '@db/entities/SharedWorkflow';
+import { SharedWorkflowRepository } from '@db/repositories/sharedWorkflow.repository';
+import { TagEntity } from '@db/entities/TagEntity';
+import { User } from '@db/entities/User';
+import { UserRepository } from '@db/repositories/user.repository';
+import { Variables } from '@db/entities/Variables';
+import { VariablesRepository } from '@db/repositories/variables.repository';
+import { WebhookEntity } from '@db/entities/WebhookEntity';
+import { WorkflowEntity } from '@db/entities/WorkflowEntity';
+import { WorkflowHistory } from '@db/entities/WorkflowHistory';
+import { WorkflowRepository } from '@db/repositories/workflow.repository';
+import { WorkflowStatistics } from '@db/entities/WorkflowStatistics';
+import { WorkflowStatisticsRepository } from '@db/repositories/workflowStatistics.repository';
+import { WorkflowTagMapping } from '@db/entities/WorkflowTagMapping';
+import { WorkflowTagMappingRepository } from '@db/repositories/workflowTagMapping.repository';
+
+const entities = [
+	AuthIdentity,
+	AuthProviderSyncHistory,
+	CredentialsEntity,
+	EventDestinations,
+	ExecutionEntity,
+	InstalledNodes,
+	InstalledPackages,
+	Role,
+	Settings,
+	SharedCredentials,
+	SharedWorkflow,
+	TagEntity,
+	User,
+	Variables,
+	WebhookEntity,
+	WorkflowEntity,
+	WorkflowTagMapping,
+	WorkflowStatistics,
+	ExecutionMetadata,
+	ExecutionData,
+	WorkflowHistory,
+];
 
 export const collections = {} as IDatabaseCollections;
 
@@ -82,7 +124,7 @@ export async function transaction<T>(fn: (entityManager: EntityManager) => Promi
 	return connection.transaction(fn);
 }
 
-export function getConnectionOptions(dbType: DatabaseType): ConnectionOptions {
+export async function getConnectionOptions(dbType: DatabaseType): Promise<ConnectionOptions> {
 	switch (dbType) {
 		case 'postgresdb':
 			const sslCa = config.getEnv('database.postgresdb.ssl.ca');
@@ -101,7 +143,7 @@ export function getConnectionOptions(dbType: DatabaseType): ConnectionOptions {
 			}
 
 			return {
-				...getPostgresConnectionOptions(),
+				...(await getPostgresConnectionOptions()),
 				...getOptionOverrides('postgresdb'),
 				ssl,
 			};
@@ -109,7 +151,9 @@ export function getConnectionOptions(dbType: DatabaseType): ConnectionOptions {
 		case 'mariadb':
 		case 'mysqldb':
 			return {
-				...(dbType === 'mysqldb' ? getMysqlConnectionOptions() : getMariaDBConnectionOptions()),
+				...(await (dbType === 'mysqldb'
+					? getMysqlConnectionOptions()
+					: getMariaDBConnectionOptions())),
 				...getOptionOverrides('mysqldb'),
 				timezone: 'Z', // set UTC as default
 			};
@@ -126,7 +170,7 @@ export async function init(testConnectionOptions?: ConnectionOptions): Promise<v
 	if (connectionState.connected) return;
 
 	const dbType = config.getEnv('database.type');
-	const connectionOptions = testConnectionOptions ?? getConnectionOptions(dbType);
+	const connectionOptions = testConnectionOptions ?? (await getConnectionOptions(dbType));
 
 	let loggingOption: LoggerOptions = config.getEnv('database.logging.enabled');
 
@@ -143,7 +187,7 @@ export async function init(testConnectionOptions?: ConnectionOptions): Promise<v
 	const maxQueryExecutionTime = config.getEnv('database.logging.maxQueryExecutionTime');
 
 	Object.assign(connectionOptions, {
-		entities: Object.values(entities),
+		entities,
 		synchronize: false,
 		logging: loggingOption,
 		maxQueryExecutionTime,

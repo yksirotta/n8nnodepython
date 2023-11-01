@@ -4,7 +4,6 @@ import { InstanceSettings, ObjectStoreService } from 'n8n-core';
 import Container, { Service } from 'typedi';
 import { Logger } from '@/Logger';
 import config from '@/config';
-import * as Db from '@/Db';
 import {
 	LICENSE_FEATURES,
 	LICENSE_QUOTAS,
@@ -12,7 +11,8 @@ import {
 	SETTINGS_LICENSE_CERT_KEY,
 	UNLIMITED_LICENSE_QUOTA,
 } from './constants';
-import { WorkflowRepository } from '@/databases/repositories';
+import { SettingsRepository } from '@db/repositories/settings.repository';
+import { WorkflowRepository } from '@db/repositories/workflow.repository';
 import type { BooleanLicenseFeature, N8nInstanceType, NumericLicenseFeature } from './Interfaces';
 import type { RedisServicePubSubPublisher } from './services/redis/RedisServicePubSubPublisher';
 import { RedisService } from './services/redis.service';
@@ -32,6 +32,7 @@ export class License {
 	constructor(
 		private readonly logger: Logger,
 		private readonly instanceSettings: InstanceSettings,
+		private readonly settingsRepository: SettingsRepository,
 	) {}
 
 	async init(instanceType: N8nInstanceType = 'main') {
@@ -94,7 +95,7 @@ export class License {
 		if (ephemeralLicense) {
 			return ephemeralLicense;
 		}
-		const databaseSettings = await Db.collections.Settings.findOne({
+		const databaseSettings = await this.settingsRepository.findOne({
 			where: {
 				key: SETTINGS_LICENSE_CERT_KEY,
 			},
@@ -130,7 +131,7 @@ export class License {
 	async saveCertStr(value: TLicenseBlock): Promise<void> {
 		// if we have an ephemeral license, we don't want to save it to the database
 		if (config.get('license.cert')) return;
-		await Db.collections.Settings.upsert(
+		await this.settingsRepository.upsert(
 			{
 				key: SETTINGS_LICENSE_CERT_KEY,
 				value,

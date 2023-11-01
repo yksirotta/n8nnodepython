@@ -5,18 +5,11 @@ import type { PostgresConnectionOptions } from 'typeorm/driver/postgres/Postgres
 import type { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions';
 import { InstanceSettings } from 'n8n-core';
 
-import { entities } from './entities';
-import { mysqlMigrations } from './migrations/mysqldb';
-import { postgresMigrations } from './migrations/postgresdb';
-import { sqliteMigrations } from './migrations/sqlite';
 import type { DatabaseType } from '@db/types';
 import config from '@/config';
 
-const entitiesDir = path.resolve(__dirname, 'entities');
-
 const getDBConnectionOptions = (dbType: DatabaseType) => {
 	const entityPrefix = config.getEnv('database.tablePrefix');
-	const migrationsDir = path.resolve(__dirname, 'migrations', dbType);
 	const configDBType = dbType === 'mariadb' ? 'mysqldb' : dbType;
 	const connectionDetails =
 		configDBType === 'sqlite'
@@ -36,9 +29,7 @@ const getDBConnectionOptions = (dbType: DatabaseType) => {
 			  };
 	return {
 		entityPrefix,
-		entities: Object.values(entities),
 		migrationsTableName: `${entityPrefix}migrations`,
-		cli: { entitiesDir, migrationsDir },
 		...connectionDetails,
 	};
 };
@@ -51,27 +42,27 @@ export const getOptionOverrides = (dbType: 'postgresdb' | 'mysqldb') => ({
 	password: config.getEnv(`database.${dbType}.password`),
 });
 
-export const getSqliteConnectionOptions = (): SqliteConnectionOptions => ({
+export const getSqliteConnectionOptions = async (): Promise<SqliteConnectionOptions> => ({
 	type: 'sqlite',
 	...getDBConnectionOptions('sqlite'),
-	migrations: sqliteMigrations,
+	migrations: (await import('./migrations/sqlite')).sqliteMigrations,
 });
 
-export const getPostgresConnectionOptions = (): PostgresConnectionOptions => ({
+export const getPostgresConnectionOptions = async (): Promise<PostgresConnectionOptions> => ({
 	type: 'postgres',
 	...getDBConnectionOptions('postgresdb'),
 	schema: config.getEnv('database.postgresdb.schema'),
-	migrations: postgresMigrations,
+	migrations: (await import('./migrations/postgresdb')).postgresMigrations,
 });
 
-export const getMysqlConnectionOptions = (): MysqlConnectionOptions => ({
+export const getMysqlConnectionOptions = async (): Promise<MysqlConnectionOptions> => ({
 	type: 'mysql',
 	...getDBConnectionOptions('mysqldb'),
-	migrations: mysqlMigrations,
+	migrations: (await import('./migrations/mysqldb')).mysqlMigrations,
 });
 
-export const getMariaDBConnectionOptions = (): MysqlConnectionOptions => ({
+export const getMariaDBConnectionOptions = async (): Promise<MysqlConnectionOptions> => ({
 	type: 'mariadb',
 	...getDBConnectionOptions('mysqldb'),
-	migrations: mysqlMigrations,
+	migrations: (await import('./migrations/mysqldb')).mysqlMigrations,
 });

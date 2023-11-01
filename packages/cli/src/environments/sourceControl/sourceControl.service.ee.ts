@@ -20,7 +20,7 @@ import { SourceControlExportService } from './sourceControlExport.service.ee';
 import { BadRequestError } from '@/ResponseHelper';
 import type { ImportResult } from './types/importResult';
 import type { SourceControlPushWorkFolder } from './types/sourceControlPushWorkFolder';
-import type { SourceControllPullOptions } from './types/sourceControlPullWorkFolder';
+import type { SourceControlPullOptions } from './types/sourceControlPullWorkFolder';
 import type { SourceControlledFile } from './types/sourceControlledFile';
 import { SourceControlPreferencesService } from './sourceControlPreferences.service.ee';
 import { writeFileSync } from 'fs';
@@ -33,7 +33,7 @@ import type { Variables } from '@db/entities/Variables';
 import type { SourceControlWorkflowVersionId } from './types/sourceControlWorkflowVersionId';
 import type { ExportableCredential } from './types/exportableCredential';
 import { InternalHooks } from '@/InternalHooks';
-import { TagRepository } from '@/databases/repositories';
+import { TagRepository } from '@/databases/repositories/tag.repository';
 import { Logger } from '@/Logger';
 
 @Service()
@@ -303,7 +303,7 @@ export class SourceControlService {
 	}
 
 	async pullWorkfolder(
-		options: SourceControllPullOptions,
+		options: SourceControlPullOptions,
 	): Promise<{ statusCode: number; statusResult: SourceControlledFile[] }> {
 		await this.sanityCheck();
 

@@ -28,7 +28,7 @@ export class DbRevertMigrationCommand extends Command {
 	async run() {
 		const dbType = config.getEnv('database.type');
 		const connectionOptions: ConnectionOptions = {
-			...getConnectionOptions(dbType),
+			...(await getConnectionOptions(dbType)),
 			subscribers: [],
 			synchronize: false,
 			migrationsRun: false,
