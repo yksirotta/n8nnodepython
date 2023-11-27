@@ -39,7 +39,7 @@ export const initErrorHandling = async () => {
 
 	const seenErrors = new Set<string>();
 	addGlobalEventProcessor((event, { originalException }) => {
-		if (originalException instanceof ExecutionBaseError && originalException.severity === 'warning')
+		if (originalException instanceof ExecutionBaseError && originalException.level === 'warning')
 			return null;
 
 		if (originalException instanceof ApplicationError) {

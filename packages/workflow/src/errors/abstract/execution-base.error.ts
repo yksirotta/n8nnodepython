@@ -1,9 +1,9 @@
-import type { IDataObject, JsonObject, Severity } from '../../Interfaces';
-import { ApplicationError } from '../application.error';
+import type { IDataObject, JsonObject } from '../../Interfaces';
+import { ApplicationError, ReportingOptions } from '../application.error';
 
-interface ExecutionBaseErrorOptions {
+export type ExecutionBaseErrorOptions = ReportingOptions & {
 	cause?: Error | JsonObject;
-}
+};
 
 export abstract class ExecutionBaseError extends ApplicationError {
 	description: string | null | undefined;
@@ -18,8 +18,6 @@ export abstract class ExecutionBaseError extends ApplicationError {
 	context: IDataObject = {};
 
 	lineNumber: number | undefined;
-
-	severity: Severity = 'error';
 
 	constructor(message: string, { cause }: ExecutionBaseErrorOptions) {
 		const options = cause instanceof Error ? { cause } : {};

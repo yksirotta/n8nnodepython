@@ -2374,5 +2374,3 @@ export type BannerName =
 	| 'TRIAL'
 	| 'NON_PRODUCTION_LICENSE'
 	| 'EMAIL_CONFIRMATION';
-
-export type Severity = 'warning' | 'error';

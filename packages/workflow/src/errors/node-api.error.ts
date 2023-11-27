@@ -4,18 +4,17 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
 import { parseString } from 'xml2js';
-import type { INode, JsonObject, IDataObject, IStatusCodeMessages, Severity } from '..';
-import { NodeError } from './abstract/node.error';
+import type { INode, JsonObject, IDataObject, IStatusCodeMessages } from '../Interfaces';
+import { NodeError, NodeErrorOptions } from './abstract/node.error';
 import { removeCircularRefs } from '../utils';
 
-export interface NodeOperationErrorOptions {
+export type NodeOperationErrorOptions = NodeErrorOptions & {
 	message?: string;
 	description?: string;
 	runIndex?: number;
 	itemIndex?: number;
-	severity?: Severity;
 	messageMapping?: { [key: string]: string }; // allows to pass custom mapping for error messages scoped to a node
-}
+};
 
 interface NodeApiErrorOptions extends NodeOperationErrorOptions {
 	message?: string;
@@ -112,7 +111,7 @@ export class NodeApiError extends NodeError {
 			parseXml,
 			runIndex,
 			itemIndex,
-			severity,
+			level,
 			messageMapping,
 		}: NodeApiErrorOptions = {},
 	) {
@@ -159,10 +158,10 @@ export class NodeApiError extends NodeError {
 				this.findProperty(error, ERROR_STATUS_PROPERTIES, ERROR_NESTING_PROPERTIES) ?? null;
 		}
 
-		if (severity) {
-			this.severity = severity;
+		if (level) {
+			this.level = level;
 		} else if (this.httpCode?.charAt(0) !== '5') {
-			this.severity = 'warning';
+			this.level = 'warning';
 		}
 
 		// set description of this error

@@ -15,7 +15,7 @@ export class NodeOperationError extends NodeError {
 		super(node, error);
 
 		if (options.message) this.message = options.message;
-		if (options.severity) this.severity = options.severity;
+		if (options.severity) this.level = options.severity;
 		this.description = options.description;
 		this.context.runIndex = options.runIndex;
 		this.context.itemIndex = options.itemIndex;

@@ -1,6 +1,6 @@
 import { isTraversableObject } from '../../utils';
 import type { IDataObject, INode, JsonObject } from '../..';
-import { ExecutionBaseError } from './execution-base.error';
+import { ExecutionBaseError, ExecutionBaseErrorOptions } from './execution-base.error';
 
 /**
  * Descriptive messages for common errors.
@@ -30,6 +30,8 @@ const COMMON_ERRORS: IDataObject = {
 	GETADDRINFO: 'The server closed the connection unexpectedly',
 };
 
+export type NodeErrorOptions = ExecutionBaseErrorOptions;
+
 /**
  * Base class for specific NodeError-types, with functionality for finding
  * a value recursively inside an error object.
@@ -37,9 +39,9 @@ const COMMON_ERRORS: IDataObject = {
 export abstract class NodeError extends ExecutionBaseError {
 	node: INode;
 
-	constructor(node: INode, error: Error | JsonObject) {
-		const message = error instanceof Error ? error.message : '';
-		super(message, { cause: error });
+	constructor(node: INode, { cause, level }: NodeErrorOptions) {
+		const message = cause instanceof Error ? cause.message : '';
+		super(message, { cause, level });
 		this.node = node;
 	}
 
