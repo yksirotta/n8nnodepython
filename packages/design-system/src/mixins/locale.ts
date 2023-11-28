@@ -2,8 +2,8 @@ import { t } from '../locale';
 
 export default {
 	methods: {
-		t(...args: string[]) {
-			return t.apply(this, args);
+		t(path: string, options: object = {}) {
+			return t.call(this, path, options);
 		},
 	},
 };

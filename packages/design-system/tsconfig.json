@@ -10,7 +10,6 @@
 		"incremental": false,
 		"allowSyntheticDefaultImports": true,
 		"baseUrl": ".",
-		"types": ["webpack-env", "vitest/globals"],
 		"typeRoots": ["@testing-library", "@types"],
 		"paths": {
 			"@/*": ["src/*"]
@@ -20,5 +19,6 @@
 		"noUnusedLocals": false,
 		"noImplicitReturns": false
 	},
-	"include": ["src/**/*.ts", "src/**/*.vue"]
+	"include": ["src/**/*.ts", "src/**/*.vue"],
+	"exclude": ["**/*.stories.ts", "**/__tests__/*"]
 }
