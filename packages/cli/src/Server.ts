@@ -67,7 +67,6 @@ import { ExternalSecretsController } from '@/ExternalSecrets/ExternalSecrets.con
 import { executionsController } from '@/executions/executions.controller';
 import { isApiEnabled, loadPublicApiVersions } from '@/PublicApi';
 import { whereClause } from '@/UserManagement/UserManagementHelper';
-import { UserManagementMailer } from '@/UserManagement/email';
 import type { ICredentialsOverwrite, IDiagnosticInfo, IExecutionsStopData } from '@/Interfaces';
 import { ActiveExecutions } from '@/ActiveExecutions';
 import { CredentialsOverwrites } from '@/CredentialsOverwrites';
@@ -79,7 +78,7 @@ import { WaitTracker } from '@/WaitTracker';
 import { toHttpNodeParameters } from '@/CurlConverterHelper';
 import { EventBusController } from '@/eventbus/eventBus.controller';
 import { EventBusControllerEE } from '@/eventbus/eventBus.controller.ee';
-import { licenseController } from './license/license.controller';
+import { LicenseController } from '@/license/license.controller';
 import { setupPushServer, setupPushHandler } from '@/push';
 import { setupAuthMiddlewares } from './middlewares';
 import { handleLdapInit, isLdapEnabled } from './Ldap/helpers';
@@ -247,7 +246,6 @@ export class Server extends AbstractServer {
 		setupAuthMiddlewares(app, ignoredEndpoints, this.restEndpoint);
 
 		const internalHooks = Container.get(InternalHooks);
-		const mailer = Container.get(UserManagementMailer);
 		const userService = Container.get(UserService);
 		const postHog = this.postHog;
 		const mfaService = Container.get(MfaService);
@@ -256,6 +254,7 @@ export class Server extends AbstractServer {
 			new EventBusController(),
 			new EventBusControllerEE(),
 			Container.get(AuthController),
+			Container.get(LicenseController),
 			Container.get(OAuth1CredentialController),
 			Container.get(OAuth2CredentialController),
 			new OwnerController(
@@ -413,11 +412,6 @@ export class Server extends AbstractServer {
 		// Workflow
 		// ----------------------------------------
 		this.app.use(`/${this.restEndpoint}/workflows`, workflowsController);
-
-		// ----------------------------------------
-		// License
-		// ----------------------------------------
-		this.app.use(`/${this.restEndpoint}/license`, licenseController);
 
 		// ----------------------------------------
 		// SAML

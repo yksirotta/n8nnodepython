@@ -1,61 +1,29 @@
-import express from 'express';
-import { Container } from 'typedi';
-
+import { Container, Service } from 'typedi';
+import { Get, Post, RestController } from '@/decorators';
 import { Logger } from '@/Logger';
-import * as ResponseHelper from '@/ResponseHelper';
-import type { ILicensePostResponse, ILicenseReadResponse } from '@/Interfaces';
-import { LicenseService } from './License.service';
 import { License } from '@/License';
-import type { AuthenticatedRequest, LicenseRequest } from '@/requests';
+import { LicenseRequest } from '@/requests';
 import { InternalHooks } from '@/InternalHooks';
-import { UnauthorizedError } from '@/errors/response-errors/unauthorized.error';
 import { BadRequestError } from '@/errors/response-errors/bad-request.error';
 
-export const licenseController = express.Router();
+@Service()
+@RestController('/license')
+export class LicenseController {
+	constructor(
+		private readonly license: License,
+		private readonly internalHooks: InternalHooks,
+	) {}
 
-const OWNER_ROUTES = ['/activate', '/renew'];
-
-/**
- * Owner checking
- */
-licenseController.use((req: AuthenticatedRequest, res, next) => {
-	if (OWNER_ROUTES.includes(req.path) && req.user) {
-		if (!req.user.isOwner) {
-			Container.get(Logger).info('Non-owner attempted to activate or renew a license', {
-				userId: req.user.id,
-			});
-			ResponseHelper.sendErrorResponse(
-				res,
-				new UnauthorizedError('Only an instance owner may activate or renew a license'),
-			);
-			return;
-		}
+	@Get('/')
+	async getLicenseData() {
+		return this.license.getLicenseData();
 	}
-	next();
-});
 
-/**
- * GET /license
- * Get the license data, usable by everyone
- */
-licenseController.get(
-	'/',
-	ResponseHelper.send(async (): Promise<ILicenseReadResponse> => {
-		return LicenseService.getLicenseData();
-	}),
-);
-
-/**
- * POST /license/activate
- * Only usable by the instance owner, activates a license.
- */
-licenseController.post(
-	'/activate',
-	ResponseHelper.send(async (req: LicenseRequest.Activate): Promise<ILicensePostResponse> => {
-		// Call the license manager activate function and tell it to throw an error
-		const license = Container.get(License);
+	@Post('/activate')
+	// TODO: add RequireGlobalScope('license:activate')
+	async activateLicense(req: LicenseRequest.Activate) {
 		try {
-			await license.activate(req.body.activationKey);
+			await this.license.activate(req.body.activationKey);
 		} catch (e) {
 			const error = e as Error & { errorId?: string };
 
@@ -90,40 +58,33 @@ licenseController.post(
 
 		// Return the read data, plus the management JWT
 		return {
-			managementToken: license.getManagementJwt(),
-			...(await LicenseService.getLicenseData()),
+			managementToken: this.license.getManagementJwt(),
+			...(await this.license.getLicenseData()),
 		};
-	}),
-);
+	}
 
-/**
- * POST /license/renew
- * Only usable by instance owner, renews a license
- */
-licenseController.post(
-	'/renew',
-	ResponseHelper.send(async (): Promise<ILicensePostResponse> => {
-		// Call the license manager activate function and tell it to throw an error
-		const license = Container.get(License);
+	@Post('/renew')
+	// TODO: add RequireGlobalScope('license:renew')
+	async renewLicense() {
 		try {
-			await license.renew();
+			await this.license.renew();
 		} catch (e) {
 			const error = e as Error & { errorId?: string };
 
 			// not awaiting so as not to make the endpoint hang
-			void Container.get(InternalHooks).onLicenseRenewAttempt({ success: false });
+			void this.internalHooks.onLicenseRenewAttempt({ success: false });
 			if (error instanceof Error) {
 				throw new BadRequestError(error.message);
 			}
 		}
 
 		// not awaiting so as not to make the endpoint hang
-		void Container.get(InternalHooks).onLicenseRenewAttempt({ success: true });
+		void this.internalHooks.onLicenseRenewAttempt({ success: true });
 
 		// Return the read data, plus the management JWT
 		return {
-			managementToken: license.getManagementJwt(),
-			...(await LicenseService.getLicenseData()),
+			managementToken: this.license.getManagementJwt(),
+			...(await this.license.getLicenseData()),
 		};
-	}),
-);
+	}
+}

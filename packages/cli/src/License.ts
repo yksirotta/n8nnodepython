@@ -13,7 +13,12 @@ import {
 } from './constants';
 import { SettingsRepository } from '@db/repositories/settings.repository';
 import { WorkflowRepository } from '@db/repositories/workflow.repository';
-import type { BooleanLicenseFeature, N8nInstanceType, NumericLicenseFeature } from './Interfaces';
+import type {
+	BooleanLicenseFeature,
+	ILicenseReadResponse,
+	N8nInstanceType,
+	NumericLicenseFeature,
+} from '@/Interfaces';
 import type { RedisServicePubSubPublisher } from './services/redis/RedisServicePubSubPublisher';
 import { RedisService } from './services/redis.service';
 import { MultiMainSetup } from '@/services/orchestration/main/MultiMainSetup.ee';
@@ -92,6 +97,26 @@ export class License {
 				value: await this.workflowRepository.count({ where: { active: true } }),
 			},
 		];
+	}
+
+	// Helper for getting the basic license data that we want to return
+	async getLicenseData(): Promise<ILicenseReadResponse> {
+		const triggerCount = await this.workflowRepository.getActiveTriggerCount();
+		const mainPlan = this.getMainPlan();
+
+		return {
+			usage: {
+				executions: {
+					value: triggerCount,
+					limit: this.getTriggerLimit(),
+					warningThreshold: 0.8,
+				},
+			},
+			license: {
+				planId: mainPlan?.productId ?? '',
+				planName: this.getPlanName(),
+			},
+		};
 	}
 
 	async loadCertStr(): Promise<TLicenseBlock> {
