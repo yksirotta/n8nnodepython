@@ -22,7 +22,6 @@ import type {
 import { Telemetry } from '@/telemetry';
 import type { AuthProviderType } from '@db/entities/AuthIdentity';
 import { eventBus } from './eventbus';
-import { EventsService } from '@/services/events.service';
 import type { User } from '@db/entities/User';
 import { N8N_VERSION } from '@/constants';
 import { NodeTypes } from './NodeTypes';
@@ -54,16 +53,8 @@ export class InternalHooks implements IInternalHooksClass {
 		private telemetry: Telemetry,
 		private nodeTypes: NodeTypes,
 		private roleService: RoleService,
-		eventsService: EventsService,
 		private readonly instanceSettings: InstanceSettings,
-	) {
-		eventsService.on('telemetry.onFirstProductionWorkflowSuccess', async (metrics) =>
-			this.onFirstProductionWorkflowSuccess(metrics),
-		);
-		eventsService.on('telemetry.onFirstWorkflowDataLoad', async (metrics) =>
-			this.onFirstWorkflowDataLoad(metrics),
-		);
-	}
+	) {}
 
 	async init() {
 		await this.telemetry.init();

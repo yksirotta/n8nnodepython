@@ -3,6 +3,7 @@ import { Container, Service } from 'typedi';
 import type { INode, IRun, IWorkflowBase } from 'n8n-workflow';
 import { StatisticsNames } from '@db/entities/WorkflowStatistics';
 import { WorkflowStatisticsRepository } from '@db/repositories/workflowStatistics.repository';
+import { InternalHooks } from '@/InternalHooks';
 import { UserService } from '@/services/user.service';
 import { Logger } from '@/Logger';
 import { OwnershipService } from './ownership.service';
@@ -13,6 +14,7 @@ export class EventsService extends EventEmitter {
 		private readonly logger: Logger,
 		private readonly repository: WorkflowStatisticsRepository,
 		private readonly ownershipService: OwnershipService,
+		internalHooks: InternalHooks,
 	) {
 		super({ captureRejections: true });
 		if ('SKIP_STATISTICS_EVENTS' in process.env) return;
@@ -20,6 +22,13 @@ export class EventsService extends EventEmitter {
 		this.on('nodeFetchedData', async (workflowId, node) => this.nodeFetchedData(workflowId, node));
 		this.on('workflowExecutionCompleted', async (workflowData, runData) =>
 			this.workflowExecutionCompleted(workflowData, runData),
+		);
+
+		this.on('telemetry.onFirstProductionWorkflowSuccess', async (metrics) =>
+			internalHooks.onFirstProductionWorkflowSuccess(metrics),
+		);
+		this.on('telemetry.onFirstWorkflowDataLoad', async (metrics) =>
+			internalHooks.onFirstWorkflowDataLoad(metrics),
 		);
 	}
 
