@@ -544,8 +544,8 @@ importers:
         specifier: 4.7.7
         version: 4.7.7
       infisical-node:
-        specifier: 1.3.0
-        version: 1.3.0
+        specifier: 1.5.0
+        version: 1.5.0
       inquirer:
         specifier: 7.3.3
         version: 7.3.3
@@ -16241,8 +16241,8 @@ packages:
     dev: false
     optional: true
 
-  /infisical-node@1.3.0:
-    resolution: {integrity: sha512-tTnnExRAO/ZyqiRdnSlBisErNToYWgtunMWh+8opClEt5qjX7l6HC/b4oGo2AuR2Pf41IR+oqo+dzkM1TCvlUA==}
+  /infisical-node@1.5.0:
+    resolution: {integrity: sha512-mMdhhu50J7pI4Y89M2HMbNWRyRY6ian3oBIXW+pAWz1z8XWn5yT0ge6/YNXwTPKLnBuR1py+GwiNQUaqxkOXZw==}
     dependencies:
       axios: 1.4.0
       dotenv: 16.3.1

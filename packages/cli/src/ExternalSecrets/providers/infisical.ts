@@ -124,7 +124,7 @@ export class InfisicalProvider implements SecretsProvider {
 	}
 
 	async test(): Promise<[boolean] | [boolean, string]> {
-		if (!this.client) {
+		if (!this.client?.clientConfig) {
 			return [false, 'Client not initialized'];
 		}
 		try {
