@@ -1,5 +1,5 @@
 import type { IDataObject, IExecuteFunctions, IGetNodeParameterOptions, INode } from 'n8n-workflow';
-import { constructExecutionMetaData } from 'n8n-core';
+import { constructExecutionMetaData } from 'n8n-core/dist/NodeExecuteFunctions/execute.functions';
 import get from 'lodash/get';
 import { composeReturnItem, parseJsonParameter, validateEntry } from '../../v2/helpers/utils';
 import type { SetNodeOptions } from '../../v2/helpers/interfaces';

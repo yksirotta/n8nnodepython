@@ -1,5 +1,5 @@
 import type { IDataObject, INode, INodeType } from 'n8n-workflow';
-import { validateValueAgainstSchema } from '@/NodeExecuteFunctions';
+import { validateValueAgainstSchema } from '@/NodeExecuteFunctions/parameters.helpers';
 
 describe('Validation', () => {
 	test('should validate fixedCollection values parameter', () => {

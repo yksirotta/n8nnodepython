@@ -41,7 +41,7 @@ import {
 	ApplicationError,
 } from 'n8n-workflow';
 import get from 'lodash/get';
-import * as NodeExecuteFunctions from './NodeExecuteFunctions';
+import { NodeExecuteFunctions } from './NodeExecuteFunctions/';
 
 export class WorkflowExecute {
 	private status: ExecutionStatus = 'new';

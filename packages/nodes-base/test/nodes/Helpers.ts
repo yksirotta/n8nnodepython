@@ -3,7 +3,8 @@ import path from 'path';
 import { tmpdir } from 'os';
 import { isEmpty } from 'lodash';
 import { get } from 'lodash';
-import { BinaryDataService, Credentials, constructExecutionMetaData } from 'n8n-core';
+import { BinaryDataService, Credentials } from 'n8n-core';
+import { constructExecutionMetaData } from 'n8n-core/dist/NodeExecuteFunctions/execute.functions';
 import { Container } from 'typedi';
 import type {
 	CredentialLoadingDetails,
@@ -93,7 +94,7 @@ class CredentialType implements ICredentialTypes {
 
 export class CredentialsHelper extends ICredentialsHelper {
 	constructor(private credentialTypes: ICredentialTypes) {
-		super('');
+		super();
 	}
 
 	async authenticate(

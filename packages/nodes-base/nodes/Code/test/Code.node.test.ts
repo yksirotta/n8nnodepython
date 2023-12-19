@@ -2,7 +2,7 @@ import { anyNumber, mock } from 'jest-mock-extended';
 import { NodeVM } from '@n8n/vm2';
 import type { IExecuteFunctions, IWorkflowDataProxyData } from 'n8n-workflow';
 import { ApplicationError, NodeHelpers } from 'n8n-workflow';
-import { normalizeItems } from 'n8n-core';
+import { normalizeItems } from 'n8n-core/dist/NodeExecuteFunctions/execute.functions';
 import { Code } from '../Code.node';
 import { ValidationError } from '../ValidationError';
 import { testWorkflows, getWorkflowFilenames, initBinaryDataService } from '@test/nodes/Helpers';

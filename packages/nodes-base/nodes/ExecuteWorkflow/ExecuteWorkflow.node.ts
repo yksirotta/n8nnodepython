@@ -185,9 +185,7 @@ export class ExecuteWorkflow implements INodeType {
 			for (let i = 0; i < items.length; i++) {
 				try {
 					const workflowInfo = await getWorkflowInfo.call(this, source, i);
-					const workflowResult: INodeExecutionData[][] = await this.executeWorkflow(workflowInfo, [
-						items[i],
-					]);
+					const workflowResult = await this.executeWorkflow(workflowInfo, [items[i]]);
 
 					for (const [outputIndex, outputData] of workflowResult.entries()) {
 						for (const item of outputData) {

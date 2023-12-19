@@ -1,5 +1,3 @@
-import * as NodeExecuteFunctions from './NodeExecuteFunctions';
-
 export * from './errors';
 export * from './ActiveWorkflows';
 export * from './BinaryData/BinaryData.service';
@@ -11,9 +9,9 @@ export * from './Credentials';
 export * from './DirectoryLoader';
 export * from './Interfaces';
 export { InstanceSettings } from './InstanceSettings';
-export * from './NodeExecuteFunctions';
 export * from './WorkflowExecute';
-export { NodeExecuteFunctions };
+export { NodeExecuteFunctions } from './NodeExecuteFunctions/';
+export { parseIncomingMessage } from './NodeExecuteFunctions/request.helpers';
 export * from './errors';
 export { ObjectStoreService } from './ObjectStore/ObjectStore.service.ee';
 export { BinaryData } from './BinaryData/types';

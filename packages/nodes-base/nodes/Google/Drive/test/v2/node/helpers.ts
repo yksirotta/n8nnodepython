@@ -1,7 +1,8 @@
 import type { IDataObject, IExecuteFunctions, IGetNodeParameterOptions, INode } from 'n8n-workflow';
 
 import { get } from 'lodash';
-import { constructExecutionMetaData, returnJsonArray } from 'n8n-core';
+import { constructExecutionMetaData } from 'n8n-core/dist/NodeExecuteFunctions/execute.functions';
+import { returnJsonArray } from 'n8n-core/dist/NodeExecuteFunctions/request.helpers';
 
 export const driveNode: INode = {
 	id: '11',

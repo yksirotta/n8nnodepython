@@ -1,7 +1,7 @@
 import { get } from 'lodash';
 import { mock } from 'jest-mock-extended';
 import type { IDataObject, IExecuteFunctions, IGetNodeParameterOptions, INode } from 'n8n-workflow';
-import { constructExecutionMetaData } from 'n8n-core';
+import { constructExecutionMetaData } from 'n8n-core/dist/NodeExecuteFunctions/execute.functions';
 import {
 	prepareOutput,
 	updateByAutoMaping,

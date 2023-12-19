@@ -788,7 +788,7 @@ export type IExecuteFunctions = ExecuteFunctions.GetNodeParameterFn &
 		executeWorkflow(
 			workflowInfo: IExecuteWorkflowInfo,
 			inputData?: INodeExecutionData[],
-		): Promise<any>;
+		): Promise<INodeExecutionData[][]>;
 		getInputConnectionData(
 			inputName: ConnectionTypes,
 			itemIndex: number,
@@ -1012,6 +1012,19 @@ export interface INodeExecutionData {
 }
 
 export interface INodeExecuteFunctions {
+	getAdditionalKeys(
+		additionalData: IWorkflowExecuteAdditionalData,
+		mode: WorkflowExecuteMode,
+		runExecutionData: IRunExecutionData | null,
+		options?: { secretsEnabled?: boolean },
+	): IWorkflowDataProxyAdditionalKeys;
+	getCredentialTestFunctions(): ICredentialTestFunctions;
+	getLoadOptionsFunctions(
+		workflow: Workflow,
+		node: INode,
+		path: string,
+		additionalData: IWorkflowExecuteAdditionalData,
+	): ILoadOptionsFunctions;
 	getExecutePollFunctions: IGetExecutePollFunctions;
 	getExecuteTriggerFunctions: IGetExecuteTriggerFunctions;
 	getExecuteFunctions: IGetExecuteFunctions;
@@ -1900,7 +1913,7 @@ export interface IWorkflowExecuteHooks {
 
 export interface IWorkflowExecuteAdditionalData {
 	credentialsHelper: ICredentialsHelper;
-	executeWorkflow: (
+	executeWorkflow(
 		workflowInfo: IExecuteWorkflowInfo,
 		additionalData: IWorkflowExecuteAdditionalData,
 		options: {
@@ -1912,7 +1925,7 @@ export interface IWorkflowExecuteAdditionalData {
 			loadedRunData?: any;
 			parentWorkflowSettings?: IWorkflowSettings;
 		},
-	) => Promise<any>;
+	): Promise<any>;
 	executionId?: string;
 	restartExecutionId?: string;
 	hooks?: WorkflowHooks;

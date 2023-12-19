@@ -1,5 +1,5 @@
 import type { IDataObject, IExecuteFunctions } from 'n8n-workflow';
-import { constructExecutionMetaData } from 'n8n-core';
+import { constructExecutionMetaData } from 'n8n-core/dist/NodeExecuteFunctions/execute.functions';
 import { mock } from 'jest-mock-extended';
 import { prepareOutput } from '../../../v2/helpers/utils';
 
