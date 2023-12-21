@@ -1,4 +1,9 @@
 import express from 'express';
+import url from 'url';
+import querystring from 'querystring';
+import { validate } from 'class-validator';
+import type { PostBindingContext } from 'samlify/types/src/entity';
+
 import {
 	Authorized,
 	Get,
@@ -16,8 +21,6 @@ import { SamlService } from '../saml.service.ee';
 import { SamlConfiguration } from '../types/requests';
 import { getInitSSOFormView } from '../views/initSsoPost';
 import { issueCookie } from '@/auth/jwt';
-import { validate } from 'class-validator';
-import type { PostBindingContext } from 'samlify/types/src/entity';
 import { isConnectionTestRequest, isSamlLicensedAndEnabled } from '../samlHelpers';
 import type { SamlLoginBinding } from '../types';
 import { AuthenticatedRequest } from '@/requests';
@@ -29,8 +32,6 @@ import {
 import { getSamlConnectionTestSuccessView } from '../views/samlConnectionTestSuccess';
 import { getSamlConnectionTestFailedView } from '../views/samlConnectionTestFailed';
 import { InternalHooks } from '@/InternalHooks';
-import url from 'url';
-import querystring from 'querystring';
 import { BadRequestError } from '@/errors/response-errors/bad-request.error';
 import { AuthError } from '@/errors/response-errors/auth.error';
 import { UrlService } from '@/services/url.service';
@@ -40,8 +41,8 @@ import { UrlService } from '@/services/url.service';
 export class SamlController {
 	constructor(
 		private readonly samlService: SamlService,
-		private readonly urlService: UrlService,
 		private readonly internalHooks: InternalHooks,
+		private readonly urlService: UrlService,
 	) {}
 
 	@NoAuthRequired()

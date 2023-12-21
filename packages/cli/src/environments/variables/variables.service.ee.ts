@@ -1,25 +1,25 @@
-import { Container, Service } from 'typedi';
+import { Service } from 'typedi';
 import type { Variables } from '@db/entities/Variables';
 import { InternalHooks } from '@/InternalHooks';
 import { generateNanoId } from '@db/utils/generators';
-import { canCreateNewVariable } from './environmentHelpers';
 import { CacheService } from '@/services/cache/cache.service';
 import { VariablesRepository } from '@db/repositories/variables.repository';
 import { VariableCountLimitReachedError } from '@/errors/variable-count-limit-reached.error';
 import { VariableValidationError } from '@/errors/variable-validation.error';
 
+import { canCreateNewVariable } from './environmentHelpers';
+
 @Service()
 export class VariablesService {
 	constructor(
-		protected cacheService: CacheService,
-		protected variablesRepository: VariablesRepository,
+		private readonly internalHooks: InternalHooks,
+		private readonly cacheService: CacheService,
+		private readonly variablesRepository: VariablesRepository,
 	) {}
 
 	async getAllCached(): Promise<Variables[]> {
 		const variables = await this.cacheService.get('variables', {
-			async refreshFn() {
-				return Container.get(VariablesService).findAll();
-			},
+			refreshFn: async () => this.findAll(),
 		});
 		return (variables as Array<Partial<Variables>>).map((v) => this.variablesRepository.create(v));
 	}
@@ -70,7 +70,7 @@ export class VariablesService {
 		}
 		this.validateVariable(variable);
 
-		void Container.get(InternalHooks).onVariableCreated({ variable_type: variable.type });
+		void this.internalHooks.onVariableCreated({ variable_type: variable.type });
 		const saveResult = await this.variablesRepository.save({
 			...variable,
 			id: generateNanoId(),

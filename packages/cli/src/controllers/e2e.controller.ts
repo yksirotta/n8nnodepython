@@ -6,7 +6,7 @@ import { RoleRepository } from '@db/repositories/role.repository';
 import { SettingsRepository } from '@db/repositories/settings.repository';
 import { UserRepository } from '@db/repositories/user.repository';
 import { ActiveWorkflowRunner } from '@/ActiveWorkflowRunner';
-import { eventBus } from '@/eventbus/MessageEventBus/MessageEventBus';
+import { MessageEventBus } from '@/eventbus';
 import { License } from '@/License';
 import { LICENSE_FEATURES, inE2ETests } from '@/constants';
 import { NoAuthRequired, Patch, Post, RestController } from '@/decorators';
@@ -95,6 +95,7 @@ export class E2EController {
 		private readonly cacheService: CacheService,
 		private readonly push: Push,
 		private readonly passwordUtility: PasswordUtility,
+		private readonly eventBus: MessageEventBus,
 	) {
 		license.isFeatureEnabled = (feature: BooleanLicenseFeature) =>
 			this.enabledFeatures[feature] ?? false;
@@ -140,8 +141,8 @@ export class E2EController {
 	}
 
 	private async resetLogStreaming() {
-		for (const id in eventBus.destinations) {
-			await eventBus.removeDestination(id, false);
+		for (const id in this.eventBus.destinations) {
+			await this.eventBus.removeDestination(id, false);
 		}
 	}
 

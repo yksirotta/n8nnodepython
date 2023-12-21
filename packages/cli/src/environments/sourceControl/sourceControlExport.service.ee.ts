@@ -1,4 +1,4 @@
-import Container, { Service } from 'typedi';
+import { Service } from 'typedi';
 import path from 'path';
 import {
 	SOURCE_CONTROL_CREDENTIAL_EXPORT_FOLDER,
@@ -42,6 +42,10 @@ export class SourceControlExportService {
 		private readonly logger: Logger,
 		private readonly variablesService: VariablesService,
 		private readonly tagRepository: TagRepository,
+		private readonly sharedCredentialsRepository: SharedCredentialsRepository,
+		private readonly sharedWorkflowRepository: SharedWorkflowRepository,
+		private readonly workflowRepository: WorkflowRepository,
+		private readonly workflowTagMappingRepository: WorkflowTagMappingRepository,
 		instanceSettings: InstanceSettings,
 	) {
 		this.gitFolder = path.join(instanceSettings.n8nFolder, SOURCE_CONTROL_GIT_FOLDER);
@@ -104,9 +108,8 @@ export class SourceControlExportService {
 		try {
 			sourceControlFoldersExistCheck([this.workflowExportFolder]);
 			const workflowIds = candidates.map((e) => e.id);
-			const sharedWorkflows =
-				await Container.get(SharedWorkflowRepository).findByWorkflowIds(workflowIds);
-			const workflows = await Container.get(WorkflowRepository).findByIds(workflowIds);
+			const sharedWorkflows = await this.sharedWorkflowRepository.findByWorkflowIds(workflowIds);
+			const workflows = await this.workflowRepository.findByIds(workflowIds);
 
 			// determine owner of each workflow to be exported
 			const owners: Record<string, string> = {};
@@ -173,7 +176,7 @@ export class SourceControlExportService {
 					files: [],
 				};
 			}
-			const mappings = await Container.get(WorkflowTagMappingRepository).find();
+			const mappings = await this.workflowTagMappingRepository.find();
 			const fileName = path.join(this.gitFolder, SOURCE_CONTROL_TAGS_EXPORT_FILE);
 			await fsWriteFile(
 				fileName,
@@ -228,9 +231,8 @@ export class SourceControlExportService {
 		try {
 			sourceControlFoldersExistCheck([this.credentialExportFolder]);
 			const credentialIds = candidates.map((e) => e.id);
-			const credentialsToBeExported = await Container.get(
-				SharedCredentialsRepository,
-			).findByCredentialIds(credentialIds);
+			const credentialsToBeExported =
+				await this.sharedCredentialsRepository.findByCredentialIds(credentialIds);
 			let missingIds: string[] = [];
 			if (credentialsToBeExported.length !== credentialIds.length) {
 				const foundCredentialIds = credentialsToBeExported.map((e) => e.credentialsId);

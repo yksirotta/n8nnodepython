@@ -1,5 +1,5 @@
 import express from 'express';
-import { eventBus } from './MessageEventBus/MessageEventBus';
+import { MessageEventBus } from './MessageEventBus/MessageEventBus';
 import {
 	isMessageEventBusDestinationSentryOptions,
 	MessageEventBusDestinationSentry,
@@ -53,6 +53,8 @@ const isMessageEventBusDestinationOptions = (
 @Authorized()
 @RestController('/eventbus')
 export class EventBusControllerEE {
+	constructor(private readonly eventBus: MessageEventBus) {}
+
 	// ----------------------------------------
 	// Destinations
 	// ----------------------------------------
@@ -61,9 +63,9 @@ export class EventBusControllerEE {
 	@RequireGlobalScope('eventBusDestination:list')
 	async getDestination(req: express.Request): Promise<MessageEventBusDestinationOptions[]> {
 		if (isWithIdString(req.query)) {
-			return eventBus.findDestination(req.query.id);
+			return this.eventBus.findDestination(req.query.id);
 		} else {
-			return eventBus.findDestination();
+			return this.eventBus.findDestination();
 		}
 	}
 
@@ -75,22 +77,22 @@ export class EventBusControllerEE {
 			switch (req.body.__type) {
 				case MessageEventBusDestinationTypeNames.sentry:
 					if (isMessageEventBusDestinationSentryOptions(req.body)) {
-						result = await eventBus.addDestination(
-							new MessageEventBusDestinationSentry(eventBus, req.body),
+						result = await this.eventBus.addDestination(
+							new MessageEventBusDestinationSentry(this.eventBus, req.body),
 						);
 					}
 					break;
 				case MessageEventBusDestinationTypeNames.webhook:
 					if (isMessageEventBusDestinationWebhookOptions(req.body)) {
-						result = await eventBus.addDestination(
-							new MessageEventBusDestinationWebhook(eventBus, req.body),
+						result = await this.eventBus.addDestination(
+							new MessageEventBusDestinationWebhook(this.eventBus, req.body),
 						);
 					}
 					break;
 				case MessageEventBusDestinationTypeNames.syslog:
 					if (isMessageEventBusDestinationSyslogOptions(req.body)) {
-						result = await eventBus.addDestination(
-							new MessageEventBusDestinationSyslog(eventBus, req.body),
+						result = await this.eventBus.addDestination(
+							new MessageEventBusDestinationSyslog(this.eventBus, req.body),
 						);
 					}
 					break;
@@ -115,7 +117,7 @@ export class EventBusControllerEE {
 	@RequireGlobalScope('eventBusDestination:test')
 	async sendTestMessage(req: express.Request): Promise<boolean> {
 		if (isWithIdString(req.query)) {
-			return eventBus.testDestination(req.query.id);
+			return this.eventBus.testDestination(req.query.id);
 		}
 		return false;
 	}
@@ -124,7 +126,7 @@ export class EventBusControllerEE {
 	@RequireGlobalScope('eventBusDestination:delete')
 	async deleteDestination(req: AuthenticatedRequest) {
 		if (isWithIdString(req.query)) {
-			return eventBus.removeDestination(req.query.id);
+			return this.eventBus.removeDestination(req.query.id);
 		} else {
 			throw new BadRequestError('Query is missing id');
 		}

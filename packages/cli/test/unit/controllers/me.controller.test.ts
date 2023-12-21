@@ -111,7 +111,6 @@ describe('MeController', () => {
 			});
 			const reqBody = { email: 'valid@email.com', firstName: 'John', lastName: 'Potato' };
 			const req = mock<MeRequest.UserUpdate>({ user, body: reqBody });
-			userService.findOneOrFail.mockResolvedValue(user);
 
 			externalHooks.run.mockImplementationOnce(async (hookName) => {
 				if (hookName === 'user.profile.beforeUpdate') {

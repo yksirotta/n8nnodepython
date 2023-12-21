@@ -37,6 +37,7 @@ beforeAll(async () => {
 		mock(),
 		mock(),
 		activeWorkflowRunner,
+		mock(),
 	);
 });
 

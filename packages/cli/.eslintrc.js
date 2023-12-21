@@ -22,7 +22,7 @@ module.exports = {
 		'n8n-local-rules/no-dynamic-import-template': 'error',
 
 		// TODO: Remove this
-		'import/no-cycle': 'warn',
+		// 'import/no-cycle': 'warn',
 		'import/order': 'off',
 		'import/extensions': 'warn',
 		'@typescript-eslint/ban-ts-comment': ['warn', { 'ts-ignore': true }],

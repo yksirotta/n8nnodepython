@@ -2,7 +2,7 @@ import Container from 'typedi';
 import config from '@/config';
 import { SingleMainSetup } from '@/services/orchestration/main/SingleMainSetup';
 import type { RedisServiceWorkerResponseObject } from '@/services/redis/RedisServiceCommands';
-import { eventBus } from '@/eventbus';
+import { MessageEventBus } from '@/eventbus';
 import { RedisService } from '@/services/redis.service';
 import { handleWorkerResponseMessageMain } from '@/services/orchestration/main/handleWorkerResponseMessageMain';
 import { handleCommandMessageMain } from '@/services/orchestration/main/handleCommandMessageMain';
@@ -111,15 +111,15 @@ describe('Orchestration Service', () => {
 	});
 
 	test('should reject command messages from iteslf', async () => {
-		jest.spyOn(eventBus, 'restart');
+		const spy = jest.spyOn(MessageEventBus.prototype, 'restart');
 		const response = await handleCommandMessageMain(
 			JSON.stringify({ ...workerRestartEventbusResponse, senderId: queueModeId }),
 		);
 		expect(response).toBeDefined();
 		expect(response!.command).toEqual('restartEventBus');
 		expect(response!.senderId).toEqual(queueModeId);
-		expect(eventBus.restart).not.toHaveBeenCalled();
-		jest.spyOn(eventBus, 'restart').mockRestore();
+		expect(MessageEventBus.prototype.restart).not.toHaveBeenCalled();
+		spy.mockRestore();
 	});
 
 	test('should send command messages', async () => {

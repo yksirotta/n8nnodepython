@@ -343,7 +343,7 @@ const config = (module.exports = {
 		/**
 		 * https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/no-cycle.md
 		 */
-		'import/no-cycle': ['error', { ignoreExternal: false, maxDepth: 3 }],
+		'import/no-cycle': ['error', { ignoreExternal: false, maxDepth: 30 }],
 
 		/**
 		 * https://github.com/import-js/eslint-plugin-import/blob/master/docs/rules/no-default-export.md

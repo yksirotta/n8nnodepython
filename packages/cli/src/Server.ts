@@ -73,7 +73,7 @@ import { setupAuthMiddlewares } from './middlewares';
 import { isLdapEnabled } from './Ldap/helpers';
 import { AbstractServer } from './AbstractServer';
 import { PostHogClient } from './posthog';
-import { eventBus } from './eventbus';
+import { MessageEventBus } from '@/eventbus';
 import { InternalHooks } from './InternalHooks';
 import { License } from './License';
 import { getStatusUsingPreviousExecutionStatusMethod } from './executions/executionHelpers';
@@ -639,6 +639,7 @@ export class Server extends AbstractServer {
 		// EventBus Setup
 		// ----------------------------------------
 
+		const eventBus = Container.get(MessageEventBus);
 		if (!eventBus.isInitialized) {
 			await eventBus.initialize();
 		}

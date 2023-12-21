@@ -7,6 +7,8 @@ import type {
 	IHttpRequestMethods,
 	IRunData,
 } from 'n8n-workflow';
+import { NodeExecuteFunctions } from 'n8n-core';
+
 import type {
 	IResponseCallbackData,
 	IWebhookManager,
@@ -21,7 +23,6 @@ import { TEST_WEBHOOK_TIMEOUT } from '@/constants';
 import { NotFoundError } from '@/errors/response-errors/not-found.error';
 import { WorkflowMissingIdError } from '@/errors/workflow-missing-id.error';
 import { WebhookNotFoundError } from '@/errors/response-errors/webhook-not-found.error';
-import * as NodeExecuteFunctions from 'n8n-core';
 import { removeTrailingSlash } from './utils';
 import { TestWebhookRegistrationsService } from '@/services/test-webhook-registrations.service';
 import { MultiMainSetup } from './services/orchestration/main/MultiMainSetup.ee';

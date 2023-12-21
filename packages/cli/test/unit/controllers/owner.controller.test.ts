@@ -1,22 +1,22 @@
+import { Container } from 'typedi';
 import type { CookieOptions, Response } from 'express';
 import { anyObject, captor, mock } from 'jest-mock-extended';
 import jwt from 'jsonwebtoken';
 import type { User } from '@db/entities/User';
 import type { SettingsRepository } from '@db/repositories/settings.repository';
+import { UserRepository } from '@db/repositories/user.repository';
 import config from '@/config';
 import type { OwnerRequest } from '@/requests';
 import { OwnerController } from '@/controllers/owner.controller';
 import { AUTH_COOKIE_NAME } from '@/constants';
 import { UserService } from '@/services/user.service';
 import { License } from '@/License';
+import { BadRequestError } from '@/errors/response-errors/bad-request.error';
+import { PasswordUtility } from '@/services/password.utility';
+import type { InternalHooks } from '@/InternalHooks';
 
 import { mockInstance } from '../../shared/mocking';
 import { badPasswords } from '../shared/testData';
-import { BadRequestError } from '@/errors/response-errors/bad-request.error';
-import { PasswordUtility } from '@/services/password.utility';
-import Container from 'typedi';
-import type { InternalHooks } from '@/InternalHooks';
-import { UserRepository } from '@/databases/repositories/user.repository';
 
 describe('OwnerController', () => {
 	const configGetSpy = jest.spyOn(config, 'getEnv');
