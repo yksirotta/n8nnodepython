@@ -87,9 +87,7 @@ export class MemoryRedisChat implements INodeType {
 			redisOptions.password = credentials.password as string;
 		}
 
-		const client = createClient({
-			...redisOptions,
-		});
+		const client = createClient(redisOptions);
 
 		client.on('error', async (error: Error) => {
 			await client.quit();
