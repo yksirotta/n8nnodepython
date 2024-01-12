@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface NextCloudOAuth2ApiCredential {
+	webDavUrl: string;
+}
+
 export class NextCloudOAuth2Api implements ICredentialType {
 	name = 'nextCloudOAuth2Api';
 

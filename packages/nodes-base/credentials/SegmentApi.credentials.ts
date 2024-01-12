@@ -1,9 +1,8 @@
-import type {
-	ICredentialDataDecryptedObject,
-	ICredentialType,
-	IHttpRequestOptions,
-	INodeProperties,
-} from 'n8n-workflow';
+import type { ICredentialType, IHttpRequestOptions, INodeProperties } from 'n8n-workflow';
+
+export interface SegmentApiCredential {
+	writekey: string;
+}
 
 export class SegmentApi implements ICredentialType {
 	name = 'segmentApi';
@@ -23,10 +22,10 @@ export class SegmentApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ writekey }: SegmentApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
-		const base64Key = Buffer.from(`${credentials.writekey}:`).toString('base64');
+		const base64Key = Buffer.from(`${writekey}:`).toString('base64');
 		requestOptions.headers!.Authorization = `Basic ${base64Key}`;
 		return requestOptions;
 	}

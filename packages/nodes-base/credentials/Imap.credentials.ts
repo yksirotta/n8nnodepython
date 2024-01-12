@@ -1,5 +1,14 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface ImapCredential {
+	host: string;
+	port: number;
+	user: string;
+	password: string;
+	secure: boolean;
+	allowUnauthorizedCerts: boolean;
+}
+
 export class Imap implements ICredentialType {
 	name = 'imap';
 
@@ -51,17 +60,8 @@ export class Imap implements ICredentialType {
 	];
 }
 
-export interface ICredentialsDataImap {
-	host: string;
-	port: number;
-	user: string;
-	password: string;
-	secure: boolean;
-	allowUnauthorizedCerts: boolean;
-}
-
-export function isCredentialsDataImap(candidate: unknown): candidate is ICredentialsDataImap {
-	const o = candidate as ICredentialsDataImap;
+export function isCredentialsDataImap(candidate: unknown): candidate is ImapCredential {
+	const o = candidate as ImapCredential;
 	return (
 		o.host !== undefined &&
 		o.password !== undefined &&

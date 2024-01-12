@@ -5,6 +5,10 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface FacebookGraphApiCredential {
+	accessToken: string;
+}
+
 export class FacebookGraphApi implements ICredentialType {
 	name = 'facebookGraphApi';
 

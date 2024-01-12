@@ -1,6 +1,5 @@
 import type {
 	IExecuteFunctions,
-	ICredentialDataDecryptedObject,
 	ICredentialsDecrypted,
 	ICredentialTestFunctions,
 	INodeCredentialTestResult,
@@ -11,6 +10,7 @@ import type {
 
 import * as mqtt from 'mqtt';
 import { formatPrivateKey } from '@utils/utilities';
+import type { MqttCredential } from '@credentials/Mqtt.credentials';
 
 export class Mqtt implements INodeType {
 	description: INodeTypeDescription = {
@@ -107,21 +107,21 @@ export class Mqtt implements INodeType {
 		credentialTest: {
 			async mqttConnectionTest(
 				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
+				credential: ICredentialsDecrypted<MqttCredential>,
 			): Promise<INodeCredentialTestResult> {
-				const credentials = credential.data as ICredentialDataDecryptedObject;
+				const credentials = credential.data;
 				try {
-					const protocol = (credentials.protocol as string) || 'mqtt';
-					const host = credentials.host as string;
+					const protocol = credentials.protocol || 'mqtt';
+					const host = credentials.host;
 					const brokerUrl = `${protocol}://${host}`;
-					const port = (credentials.port as number) || 1883;
+					const port = credentials.port || 1883;
 					const clientId =
-						(credentials.clientId as string) || `mqttjs_${Math.random().toString(16).substr(2, 8)}`;
+						credentials.clientId || `mqttjs_${Math.random().toString(16).substr(2, 8)}`;
 					const clean = credentials.clean as boolean;
 					const ssl = credentials.ssl as boolean;
-					const ca = formatPrivateKey(credentials.ca as string);
-					const cert = formatPrivateKey(credentials.cert as string);
-					const key = formatPrivateKey(credentials.key as string);
+					const ca = formatPrivateKey(credentials.ca);
+					const cert = formatPrivateKey(credentials.cert);
+					const key = formatPrivateKey(credentials.key);
 					const rejectUnauthorized = credentials.rejectUnauthorized as boolean;
 
 					let client: mqtt.MqttClient;
@@ -134,8 +134,8 @@ export class Mqtt implements INodeType {
 						};
 
 						if (credentials.username && credentials.password) {
-							clientOptions.username = credentials.username as string;
-							clientOptions.password = credentials.password as string;
+							clientOptions.username = credentials.username;
+							clientOptions.password = credentials.password;
 						}
 						client = mqtt.connect(brokerUrl, clientOptions);
 					} else {
@@ -149,8 +149,8 @@ export class Mqtt implements INodeType {
 							rejectUnauthorized,
 						};
 						if (credentials.username && credentials.password) {
-							clientOptions.username = credentials.username as string;
-							clientOptions.password = credentials.password as string;
+							clientOptions.username = credentials.username;
+							clientOptions.password = credentials.password;
 						}
 
 						client = mqtt.connect(brokerUrl, clientOptions);
@@ -183,20 +183,19 @@ export class Mqtt implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const length = items.length;
-		const credentials = await this.getCredentials('mqtt');
+		const credentials = await this.getCredentials<MqttCredential>('mqtt');
 
-		const protocol = (credentials.protocol as string) || 'mqtt';
-		const host = credentials.host as string;
+		const protocol = credentials.protocol || 'mqtt';
+		const host = credentials.host;
 		const brokerUrl = `${protocol}://${host}`;
-		const port = (credentials.port as number) || 1883;
-		const clientId =
-			(credentials.clientId as string) || `mqttjs_${Math.random().toString(16).substr(2, 8)}`;
-		const clean = credentials.clean as boolean;
-		const ssl = credentials.ssl as boolean;
-		const ca = credentials.ca as string;
-		const cert = credentials.cert as string;
-		const key = credentials.key as string;
-		const rejectUnauthorized = credentials.rejectUnauthorized as boolean;
+		const port = credentials.port || 1883;
+		const clientId = credentials.clientId || `mqttjs_${Math.random().toString(16).substr(2, 8)}`;
+		const clean = credentials.clean;
+		const ssl = credentials.ssl;
+		const ca = credentials.ca;
+		const cert = credentials.cert;
+		const key = credentials.key;
+		const rejectUnauthorized = credentials.rejectUnauthorized;
 
 		let client: mqtt.MqttClient;
 
@@ -208,8 +207,8 @@ export class Mqtt implements INodeType {
 			};
 
 			if (credentials.username && credentials.password) {
-				clientOptions.username = credentials.username as string;
-				clientOptions.password = credentials.password as string;
+				clientOptions.username = credentials.username;
+				clientOptions.password = credentials.password;
 			}
 
 			client = mqtt.connect(brokerUrl, clientOptions);
@@ -224,8 +223,8 @@ export class Mqtt implements INodeType {
 				rejectUnauthorized,
 			};
 			if (credentials.username && credentials.password) {
-				clientOptions.username = credentials.username as string;
-				clientOptions.password = credentials.password as string;
+				clientOptions.username = credentials.username;
+				clientOptions.password = credentials.password;
 			}
 
 			client = mqtt.connect(brokerUrl, clientOptions);

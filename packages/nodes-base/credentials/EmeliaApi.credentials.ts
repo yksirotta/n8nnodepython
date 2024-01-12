@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface EmeliaApiCredential {
+	apiKey: string;
+}
+
 export class EmeliaApi implements ICredentialType {
 	name = 'emeliaApi';
 

@@ -1,10 +1,16 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface WooCommerceCredential {
+	consumerKey: string;
+	consumerSecret: string;
+	url: string;
+	includeCredentialsInQuery: boolean;
+}
 
 export class WooCommerceApi implements ICredentialType {
 	name = 'wooCommerceApi';
@@ -46,15 +52,15 @@ export class WooCommerceApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		credentials: WooCommerceCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		requestOptions.auth = {
 			// @ts-ignore
-			user: credentials.consumerKey as string,
-			password: credentials.consumerSecret as string,
+			user: credentials.consumerKey,
+			password: credentials.consumerSecret,
 		};
-		if (credentials.includeCredentialsInQuery === true && requestOptions.qs) {
+		if (credentials.includeCredentialsInQuery && requestOptions.qs) {
 			delete requestOptions.auth;
 			Object.assign(requestOptions.qs, {
 				consumer_key: credentials.consumerKey,

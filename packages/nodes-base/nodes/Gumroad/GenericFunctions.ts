@@ -8,6 +8,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { GumroadApiCredential } from '@credentials/GumroadApi.credentials';
 
 export async function gumroadApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions,
@@ -19,7 +20,7 @@ export async function gumroadApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('gumroadApi');
+	const credentials = await this.getCredentials<GumroadApiCredential>('gumroadApi');
 	body = Object.assign({ access_token: credentials.accessToken }, body);
 
 	let options: OptionsWithUri = {

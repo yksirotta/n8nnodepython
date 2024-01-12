@@ -6,6 +6,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { ApplicationError, NodeApiError, NodeOperationError } from 'n8n-workflow';
+import type { FileMakerCredential } from '@credentials/FileMaker.credentials';
 
 import type { OptionsWithUri } from 'request';
 
@@ -30,12 +31,12 @@ interface ScriptObject {
 }
 
 export async function getToken(this: ILoadOptionsFunctions | IExecuteFunctions): Promise<any> {
-	const credentials = await this.getCredentials('fileMaker');
+	const credentials = await this.getCredentials<FileMakerCredential>('fileMaker');
 
-	const host = credentials.host as string;
-	const db = credentials.db as string;
-	const login = credentials.login as string;
-	const password = credentials.password as string;
+	const host = credentials.host;
+	const db = credentials.db;
+	const login = credentials.login;
+	const password = credentials.password;
 
 	const url = `https://${host}/fmi/data/v1/databases/${db}/sessions`;
 
@@ -108,10 +109,10 @@ export async function layoutsApiRequest(
 	this: ILoadOptionsFunctions | IExecuteFunctions,
 ): Promise<INodePropertyOptions[]> {
 	const token = await getToken.call(this);
-	const credentials = await this.getCredentials('fileMaker');
+	const credentials = await this.getCredentials<FileMakerCredential>('fileMaker');
 
-	const host = credentials.host as string;
-	const db = credentials.db as string;
+	const host = credentials.host;
+	const db = credentials.db;
 
 	const url = `https://${host}/fmi/data/v1/databases/${db}/layouts`;
 	const options: OptionsWithUri = {
@@ -139,11 +140,11 @@ export async function layoutsApiRequest(
  */
 export async function getFields(this: ILoadOptionsFunctions): Promise<any> {
 	const token = await getToken.call(this);
-	const credentials = await this.getCredentials('fileMaker');
+	const credentials = await this.getCredentials<FileMakerCredential>('fileMaker');
 	const layout = this.getCurrentNodeParameter('layout') as string;
 
-	const host = credentials.host as string;
-	const db = credentials.db as string;
+	const host = credentials.host;
+	const db = credentials.db;
 
 	const url = `https://${host}/fmi/data/v1/databases/${db}/layouts/${layout}`;
 	const options: OptionsWithUri = {
@@ -170,11 +171,11 @@ export async function getFields(this: ILoadOptionsFunctions): Promise<any> {
  */
 export async function getPortals(this: ILoadOptionsFunctions): Promise<any> {
 	const token = await getToken.call(this);
-	const credentials = await this.getCredentials('fileMaker');
+	const credentials = await this.getCredentials<FileMakerCredential>('fileMaker');
 	const layout = this.getCurrentNodeParameter('layout') as string;
 
-	const host = credentials.host as string;
-	const db = credentials.db as string;
+	const host = credentials.host;
+	const db = credentials.db;
 
 	const url = `https://${host}/fmi/data/v1/databases/${db}/layouts/${layout}`;
 	const options: OptionsWithUri = {
@@ -216,10 +217,10 @@ function parseScriptsList(scripts: ScriptObject[]): INodePropertyOptions[] {
  */
 export async function getScripts(this: ILoadOptionsFunctions): Promise<any> {
 	const token = await getToken.call(this);
-	const credentials = await this.getCredentials('fileMaker');
+	const credentials = await this.getCredentials<FileMakerCredential>('fileMaker');
 
-	const host = credentials.host as string;
-	const db = credentials.db as string;
+	const host = credentials.host;
+	const db = credentials.db;
 
 	const url = `https://${host}/fmi/data/v1/databases/${db}/scripts`;
 	const options: OptionsWithUri = {
@@ -246,10 +247,10 @@ export async function logout(
 	this: ILoadOptionsFunctions | IExecuteFunctions,
 	token: string,
 ): Promise<any> {
-	const credentials = await this.getCredentials('fileMaker');
+	const credentials = await this.getCredentials<FileMakerCredential>('fileMaker');
 
-	const host = credentials.host as string;
-	const db = credentials.db as string;
+	const host = credentials.host;
+	const db = credentials.db;
 
 	const url = `https://${host}/fmi/data/v1/databases/${db}/sessions/${token}`;
 

@@ -2,6 +2,8 @@ import type { OptionsWithUri } from 'request';
 
 import type { IDataObject, IExecuteFunctions, IHookFunctions, JsonObject } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { DropboxApiCredential } from '@credentials/DropboxApi.credentials';
+import type { DropboxOAuth2ApiCredential } from '@credentials/DropboxOAuth2Api.credentials';
 
 /**
  * Make an API request to Dropbox
@@ -111,8 +113,8 @@ export function simplify(data: IDataObject[]) {
 export async function getCredentials(this: IExecuteFunctions) {
 	const authenticationMethod = this.getNodeParameter('authentication', 0) as string;
 	if (authenticationMethod === 'accessToken') {
-		return (await this.getCredentials('dropboxApi')) as IDataObject;
+		return this.getCredentials<DropboxApiCredential>('dropboxApi');
 	} else {
-		return (await this.getCredentials('dropboxOAuth2Api')) as IDataObject;
+		return this.getCredentials<DropboxOAuth2ApiCredential>('dropboxOAuth2Api');
 	}
 }

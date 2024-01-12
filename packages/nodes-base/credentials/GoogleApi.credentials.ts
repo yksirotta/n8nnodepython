@@ -1,17 +1,16 @@
-import type {
-	ICredentialDataDecryptedObject,
-	ICredentialType,
-	IHttpRequestOptions,
-	INodeProperties,
-} from 'n8n-workflow';
-
 import moment from 'moment-timezone';
-
 import jwt from 'jsonwebtoken';
-
 import type { AxiosRequestConfig } from 'axios';
-
 import axios from 'axios';
+import type { ICredentialType, IHttpRequestOptions, INodeProperties } from 'n8n-workflow';
+
+export interface GoogleApiCredential {
+	privateKey: string;
+	scopes: string;
+	email: string;
+	delegatedEmail?: string;
+	httpNode: boolean;
+}
 
 export class GoogleApi implements ICredentialType {
 	name = 'googleApi';
@@ -99,14 +98,14 @@ export class GoogleApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		credentials: GoogleApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		if (!credentials.httpNode) return requestOptions;
 
-		const privateKey = (credentials.privateKey as string).replace(/\\n/g, '\n').trim();
-		const credentialsScopes = (credentials.scopes as string).replace(/\\n/g, '\n').trim();
-		credentials.email = (credentials.email as string).trim();
+		const privateKey = credentials.privateKey.replace(/\\n/g, '\n').trim();
+		const credentialsScopes = credentials.scopes.replace(/\\n/g, '\n').trim();
+		credentials.email = credentials.email.trim();
 
 		const regex = /[,\s\n]+/;
 		const scopes = credentialsScopes

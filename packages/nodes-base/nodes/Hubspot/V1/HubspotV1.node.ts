@@ -1,5 +1,4 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialsDecrypted,
 	ICredentialTestFunctions,
 	IDataObject,
@@ -45,6 +44,8 @@ import { ticketFields, ticketOperations } from './TicketDescription';
 import type { IForm } from './FormInterface';
 
 import type { IAssociation, IDeal } from './DealInterface';
+import type { HubspotAppTokenCredential } from '@credentials/HubspotAppToken.credentials';
+import type { HubspotDeveloperApiCredential } from '@credentials/HubspotDeveloperApi.credentials';
 
 export class HubspotV1 implements INodeType {
 	description: INodeTypeDescription;
@@ -178,10 +179,12 @@ export class HubspotV1 implements INodeType {
 		credentialTest: {
 			async hubspotApiTest(
 				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
+				credential: ICredentialsDecrypted<
+					HubspotAppTokenCredential | HubspotDeveloperApiCredential
+				>,
 			): Promise<INodeCredentialTestResult> {
 				try {
-					await validateCredentials.call(this, credential.data as ICredentialDataDecryptedObject);
+					await validateCredentials.call(this, credential.data);
 				} catch (error) {
 					const err = error as JsonObject;
 					if (err.statusCode === 401) {

@@ -5,6 +5,11 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface DropboxApiCredential {
+	accessToken: string;
+	accessType: 'folder' | 'full';
+}
+
 export class DropboxApi implements ICredentialType {
 	name = 'dropboxApi';
 

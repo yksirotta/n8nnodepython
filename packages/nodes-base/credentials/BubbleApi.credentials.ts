@@ -1,5 +1,13 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface BubbleApiCredential {
+	apiToken: string;
+	appName: string;
+	environment: 'development' | 'live';
+	hosting: 'bubbleHosted' | 'selfHosted';
+	domain: string;
+}
+
 export class BubbleApi implements ICredentialType {
 	name = 'bubbleApi';
 

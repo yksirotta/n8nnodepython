@@ -6,21 +6,13 @@ import type {
 	IWebhookResponseData,
 	IHttpRequestOptions,
 } from 'n8n-workflow';
-
-interface ICrowdDevCreds {
-	url: string;
-	tenantId: string;
-	token: string;
-	allowUnauthorizedCerts: boolean;
-}
-
-const credsName = 'crowdDevApi';
+import type { CrowdDevApiCredential } from '@credentials/CrowdDevApi.credentials';
 
 const getCreds = async (hookFns: IHookFunctions) =>
-	hookFns.getCredentials(credsName) as unknown as ICrowdDevCreds;
+	hookFns.getCredentials<CrowdDevApiCredential>('crowdDevApi');
 
 const createRequest = (
-	creds: ICrowdDevCreds,
+	creds: CrowdDevApiCredential,
 	opts: Partial<IHttpRequestOptions>,
 ): IHttpRequestOptions => {
 	const defaults: IHttpRequestOptions = {
@@ -96,7 +88,7 @@ export class CrowdDevTrigger implements INodeType {
 						});
 						const data = await this.helpers.httpRequestWithAuthentication.call(
 							this,
-							credsName,
+							'crowdDevApi',
 							options,
 						);
 						if (data.settings.url === webhookUrl) {
@@ -158,7 +150,7 @@ export class CrowdDevTrigger implements INodeType {
 							url: `/automation/${webhookData.webhookId}`,
 							method: 'DELETE',
 						});
-						await this.helpers.httpRequestWithAuthentication.call(this, credsName, options);
+						await this.helpers.httpRequestWithAuthentication.call(this, 'crowdDevApi', options);
 					} catch (error) {
 						return false;
 					}

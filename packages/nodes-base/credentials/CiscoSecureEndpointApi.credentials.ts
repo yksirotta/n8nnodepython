@@ -1,5 +1,4 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
@@ -7,6 +6,20 @@ import type {
 } from 'n8n-workflow';
 
 import axios from 'axios';
+
+const regions = {
+	'apjc.amp': 'Asia Pacific, Japan, and China',
+	'eu.amp': 'Europe',
+	amp: 'North America',
+} as const;
+
+type Region = keyof typeof regions;
+
+export interface CiscoSecureEndpointApiCredential {
+	clientId: string;
+	clientSecret: string;
+	region: Region;
+}
 
 export class CiscoSecureEndpointApi implements ICredentialType {
 	name = 'ciscoSecureEndpointApi';
@@ -28,20 +41,7 @@ export class CiscoSecureEndpointApi implements ICredentialType {
 			displayName: 'Region',
 			name: 'region',
 			type: 'options',
-			options: [
-				{
-					name: 'Asia Pacific, Japan, and China',
-					value: 'apjc.amp',
-				},
-				{
-					name: 'Europe',
-					value: 'eu.amp',
-				},
-				{
-					name: 'North America',
-					value: 'amp',
-				},
-			],
+			options: Object.entries(regions).map(([value, name]) => ({ name, value })),
 			default: 'amp',
 		},
 		{
@@ -64,13 +64,10 @@ export class CiscoSecureEndpointApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		credentials: CiscoSecureEndpointApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
-		const clientId = credentials.clientId as string;
-		const clientSecret = credentials.clientSecret as string;
-		const region = credentials.region as string;
-
+		const { clientId, clientSecret, region } = credentials;
 		const secureXToken = await axios({
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',

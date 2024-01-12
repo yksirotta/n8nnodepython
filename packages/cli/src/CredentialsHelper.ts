@@ -259,11 +259,11 @@ export class CredentialsHelper extends ICredentialsHelper {
 	/**
 	 * Returns the credentials instance
 	 */
-	async getCredentials(
+	async getCredentials<T extends object>(
 		nodeCredential: INodeCredentialsDetails,
 		type: string,
 		userId?: string,
-	): Promise<Credentials> {
+	): Promise<Credentials<T>> {
 		if (!nodeCredential.id) {
 			throw new ApplicationError('Found credential with no ID.', {
 				extra: { credentialName: nodeCredential.name },
@@ -338,7 +338,7 @@ export class CredentialsHelper extends ICredentialsHelper {
 	/**
 	 * Returns the decrypted credential data with applied overwrites
 	 */
-	async getDecrypted(
+	async getDecrypted<T extends object>(
 		additionalData: IWorkflowExecuteAdditionalData,
 		nodeCredentials: INodeCredentialsDetails,
 		type: string,
@@ -346,8 +346,8 @@ export class CredentialsHelper extends ICredentialsHelper {
 		executeData?: IExecuteData,
 		raw?: boolean,
 		expressionResolveValues?: ICredentialsExpressionResolveValues,
-	): Promise<ICredentialDataDecryptedObject> {
-		const credentials = await this.getCredentials(nodeCredentials, type);
+	): Promise<T> {
+		const credentials = await this.getCredentials<T>(nodeCredentials, type);
 		const decryptedDataOriginal = credentials.getData();
 
 		if (raw === true) {
@@ -372,15 +372,15 @@ export class CredentialsHelper extends ICredentialsHelper {
 	/**
 	 * Applies credential default data and overwrites
 	 */
-	applyDefaultsAndOverwrites(
+	applyDefaultsAndOverwrites<T extends object>(
 		additionalData: IWorkflowExecuteAdditionalData,
-		decryptedDataOriginal: ICredentialDataDecryptedObject,
+		decryptedDataOriginal: T,
 		type: string,
 		mode: WorkflowExecuteMode,
 		executeData?: IExecuteData,
 		expressionResolveValues?: ICredentialsExpressionResolveValues,
 		canUseSecrets?: boolean,
-	): ICredentialDataDecryptedObject {
+	): T {
 		const credentialsProperties = this.getCredentialsProperties(type);
 
 		// Load and apply the credentials overwrites if any exist

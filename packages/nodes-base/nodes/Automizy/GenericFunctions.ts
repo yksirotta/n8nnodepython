@@ -7,17 +7,17 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { AutomizyApiCredential } from '@credentials/AutomizyApi.credentials';
 
 export async function automizyApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
 	method: string,
 	path: string,
-
 	body: any = {},
 	qs: IDataObject = {},
 	option = {},
 ): Promise<any> {
-	const credentials = (await this.getCredentials('automizyApi')) as IDataObject;
+	const credentials = await this.getCredentials<AutomizyApiCredential>('automizyApi');
 
 	const options: OptionsWithUri = {
 		headers: {

@@ -1,4 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { OAuth2CredentialData } from '@n8n/client-oauth2';
+
+export interface OAuth2ApiCredential extends Omit<OAuth2CredentialData, 'oauthTokenData'> {
+	clientSecret: string;
+}
 
 export class OAuth2Api implements ICredentialType {
 	name = 'oAuth2Api';

@@ -8,6 +8,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { AcuitySchedulingApiCredential } from '@credentials/AcuitySchedulingApi.credentials';
 
 export async function acuitySchedulingApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions,
@@ -34,11 +35,12 @@ export async function acuitySchedulingApiRequest(
 
 	try {
 		if (authenticationMethod === 'apiKey') {
-			const credentials = await this.getCredentials('acuitySchedulingApi');
+			const credentials =
+				await this.getCredentials<AcuitySchedulingApiCredential>('acuitySchedulingApi');
 
 			options.auth = {
-				user: credentials.userId as string,
-				password: credentials.apiKey as string,
+				user: credentials.userId,
+				password: credentials.apiKey,
 			};
 
 			return await this.helpers.request(options);

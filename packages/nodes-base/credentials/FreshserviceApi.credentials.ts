@@ -1,5 +1,10 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface FreshserviceApiCredential {
+	apiKey: string;
+	domain: string;
+}
+
 export class FreshserviceApi implements ICredentialType {
 	name = 'freshserviceApi';
 

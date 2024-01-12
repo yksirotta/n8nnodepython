@@ -8,6 +8,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { FigmaApiCredential } from '@credentials/FigmaApi.credentials';
 
 export async function figmaApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -19,7 +20,7 @@ export async function figmaApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('figmaApi');
+	const credentials = await this.getCredentials<FigmaApiCredential>('figmaApi');
 
 	let options: OptionsWithUri = {
 		headers: { 'X-FIGMA-TOKEN': credentials.accessToken },

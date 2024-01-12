@@ -1,5 +1,11 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface ContentfulApiCredential {
+	spaceId: string;
+	ContentPreviewaccessToken: string;
+	ContentDeliveryaccessToken: string;
+}
+
 //https://www.contentful.com/developers/docs/references/authentication/
 export class ContentfulApi implements ICredentialType {
 	name = 'contentfulApi';

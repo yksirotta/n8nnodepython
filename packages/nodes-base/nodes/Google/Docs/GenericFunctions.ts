@@ -9,6 +9,7 @@ import type {
 import { NodeApiError } from 'n8n-workflow';
 
 import { getGoogleAccessToken } from '../GenericFunctions';
+import type { GoogleApiCredential } from '@credentials/GoogleApi.credentials';
 
 export async function googleApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
@@ -40,7 +41,7 @@ export async function googleApiRequest(
 	}
 	try {
 		if (authenticationMethod === 'serviceAccount') {
-			const credentials = await this.getCredentials('googleApi');
+			const credentials = await this.getCredentials<GoogleApiCredential>('googleApi');
 
 			const { access_token } = await getGoogleAccessToken.call(this, credentials, 'docs');
 

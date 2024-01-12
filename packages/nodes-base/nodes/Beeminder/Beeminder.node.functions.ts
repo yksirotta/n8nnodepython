@@ -7,12 +7,13 @@ import type {
 } from 'n8n-workflow';
 
 import { beeminderApiRequest, beeminderApiRequestAllItems } from './GenericFunctions';
+import type { BeeminderApiCredential } from '@credentials/BeeminderApi.credentials';
 
 export async function createDatapoint(
 	this: IExecuteFunctions | IWebhookFunctions | IHookFunctions | ILoadOptionsFunctions,
 	data: IDataObject,
 ) {
-	const credentials = await this.getCredentials('beeminderApi');
+	const credentials = await this.getCredentials<BeeminderApiCredential>('beeminderApi');
 
 	const endpoint = `/users/${credentials.user}/goals/${data.goalName}/datapoints.json`;
 
@@ -23,7 +24,7 @@ export async function getAllDatapoints(
 	this: IExecuteFunctions | IHookFunctions | ILoadOptionsFunctions,
 	data: IDataObject,
 ) {
-	const credentials = await this.getCredentials('beeminderApi');
+	const credentials = await this.getCredentials<BeeminderApiCredential>('beeminderApi');
 
 	const endpoint = `/users/${credentials.user}/goals/${data.goalName}/datapoints.json`;
 
@@ -38,7 +39,7 @@ export async function updateDatapoint(
 	this: IExecuteFunctions | IWebhookFunctions | IHookFunctions | ILoadOptionsFunctions,
 	data: IDataObject,
 ) {
-	const credentials = await this.getCredentials('beeminderApi');
+	const credentials = await this.getCredentials<BeeminderApiCredential>('beeminderApi');
 
 	const endpoint = `/users/${credentials.user}/goals/${data.goalName}/datapoints/${data.datapointId}.json`;
 
@@ -49,7 +50,7 @@ export async function deleteDatapoint(
 	this: IExecuteFunctions | IWebhookFunctions | IHookFunctions | ILoadOptionsFunctions,
 	data: IDataObject,
 ) {
-	const credentials = await this.getCredentials('beeminderApi');
+	const credentials = await this.getCredentials<BeeminderApiCredential>('beeminderApi');
 
 	const endpoint = `/users/${credentials.user}/goals/${data.goalName}/datapoints/${data.datapointId}.json`;
 

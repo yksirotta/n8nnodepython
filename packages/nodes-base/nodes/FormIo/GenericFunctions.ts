@@ -1,25 +1,18 @@
 import type {
-	IExecuteFunctions,
 	ILoadOptionsFunctions,
 	IHookFunctions,
 	IWebhookFunctions,
 	JsonObject,
 } from 'n8n-workflow';
 import { ApplicationError, NodeApiError } from 'n8n-workflow';
-
-interface IFormIoCredentials {
-	environment: 'cloudHosted' | ' selfHosted';
-	domain?: string;
-	email: string;
-	password: string;
-}
+import type { FormIoApiCredential } from '@credentials/FormIoApi.credentials';
 
 /**
  * Method has the logic to get jwt token from Form.io
  */
 async function getToken(
-	this: IExecuteFunctions | IWebhookFunctions | IHookFunctions | ILoadOptionsFunctions,
-	credentials: IFormIoCredentials,
+	this: IHookFunctions | ILoadOptionsFunctions | IWebhookFunctions,
+	credentials: FormIoApiCredential,
 ) {
 	const base = credentials.domain || 'https://formio.form.io';
 	const options = {
@@ -59,7 +52,7 @@ export async function formIoApiRequest(
 	body = {},
 	qs = {},
 ): Promise<any> {
-	const credentials = (await this.getCredentials('formIoApi')) as unknown as IFormIoCredentials;
+	const credentials = await this.getCredentials<FormIoApiCredential>('formIoApi');
 
 	const token = await getToken.call(this, credentials);
 

@@ -1,4 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { OAuth2ApiCredential } from './OAuth2Api.credentials';
+
+export interface GoToWebinarOAuth2ApiCredential extends OAuth2ApiCredential {
+	oauthTokenData: { account_key: string; organizer_key: string };
+}
 
 export class GoToWebinarOAuth2Api implements ICredentialType {
 	name = 'goToWebinarOAuth2Api';

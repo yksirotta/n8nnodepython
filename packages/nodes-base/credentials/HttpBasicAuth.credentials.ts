@@ -1,5 +1,10 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface HttpBasicAuthCredential {
+	user: string;
+	password: string;
+}
+
 export class HttpBasicAuth implements ICredentialType {
 	name = 'httpBasicAuth';
 

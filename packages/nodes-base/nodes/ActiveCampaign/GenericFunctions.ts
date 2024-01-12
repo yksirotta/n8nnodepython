@@ -9,6 +9,7 @@ import type {
 import { NodeApiError } from 'n8n-workflow';
 
 import type { OptionsWithUri } from 'request';
+import type { ActiveCampaignApiCredential } from '@credentials/ActiveCampaignApi.credentials';
 
 export interface IProduct {
 	fields: {
@@ -28,7 +29,7 @@ export async function activeCampaignApiRequest(
 	query?: IDataObject,
 	dataKey?: string,
 ): Promise<any> {
-	const credentials = await this.getCredentials('activeCampaignApi');
+	const credentials = await this.getCredentials<ActiveCampaignApiCredential>('activeCampaignApi');
 
 	if (query === undefined) {
 		query = {};

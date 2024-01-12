@@ -7,6 +7,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { BitbucketApiCredential } from '@credentials/BitbucketApi.credentials';
 
 export async function bitbucketApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -18,12 +19,12 @@ export async function bitbucketApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('bitbucketApi');
+	const credentials = await this.getCredentials<BitbucketApiCredential>('bitbucketApi');
 	let options: OptionsWithUri = {
 		method,
 		auth: {
-			user: credentials.username as string,
-			password: credentials.appPassword as string,
+			user: credentials.username,
+			password: credentials.appPassword,
 		},
 		qs,
 		body,

@@ -1,4 +1,5 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { OAuth2ApiCredential } from './OAuth2Api.credentials';
 
 const scopes = [
 	'crm.objects.contacts.read',
@@ -8,6 +9,11 @@ const scopes = [
 	'crm.objects.deals.read',
 	'crm.schemas.deals.read',
 ];
+
+export interface HubspotDeveloperApiCredential extends OAuth2ApiCredential {
+	apiKey: string;
+	appId: string;
+}
 
 // eslint-disable-next-line n8n-nodes-base/cred-class-name-missing-oauth2-suffix
 export class HubspotDeveloperApi implements ICredentialType {

@@ -8,6 +8,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { HomeAssistantApiCredential } from '@credentials/HomeAssistantApi.credentials';
 
 export async function homeAssistantApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
@@ -18,7 +19,7 @@ export async function homeAssistantApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ) {
-	const credentials = await this.getCredentials('homeAssistantApi');
+	const credentials = await this.getCredentials<HomeAssistantApiCredential>('homeAssistantApi');
 
 	let options: OptionsWithUri = {
 		headers: {
@@ -29,7 +30,7 @@ export async function homeAssistantApiRequest(
 		body,
 		uri:
 			uri ??
-			`${credentials.ssl === true ? 'https' : 'http'}://${credentials.host}:${
+			`${credentials.ssl ? 'https' : 'http'}://${credentials.host}:${
 				credentials.port
 			}/api${resource}`,
 		json: true,

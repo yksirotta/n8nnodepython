@@ -5,6 +5,11 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface CalApiCredential {
+	apiKey: string;
+	host: string;
+}
+
 export class CalApi implements ICredentialType {
 	name = 'calApi';
 

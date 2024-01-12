@@ -5,6 +5,11 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface BeeminderApiCredential {
+	user: string;
+	authToken: string;
+}
+
 export class BeeminderApi implements ICredentialType {
 	name = 'beeminderApi';
 

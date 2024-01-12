@@ -13,6 +13,7 @@ import * as ContentTypeDescription from './ContentTypeDescription';
 import * as EntryDescription from './EntryDescription';
 import * as AssetDescription from './AssetDescription';
 import * as LocaleDescription from './LocaleDescription';
+import type { ContentfulApiCredential } from '@credentials/ContentfulApi.credentials';
 
 export class Contentful implements INodeType {
 	description: INodeTypeDescription = {
@@ -98,7 +99,7 @@ export class Contentful implements INodeType {
 			try {
 				if (resource === 'space') {
 					if (operation === 'get') {
-						const credentials = await this.getCredentials('contentfulApi');
+						const credentials = await this.getCredentials<ContentfulApiCredential>('contentfulApi');
 
 						responseData = await contentfulApiRequest.call(
 							this,
@@ -109,7 +110,7 @@ export class Contentful implements INodeType {
 				}
 				if (resource === 'contentType') {
 					if (operation === 'get') {
-						const credentials = await this.getCredentials('contentfulApi');
+						const credentials = await this.getCredentials<ContentfulApiCredential>('contentfulApi');
 
 						const env = this.getNodeParameter('environmentId', 0) as string;
 
@@ -130,7 +131,7 @@ export class Contentful implements INodeType {
 				}
 				if (resource === 'entry') {
 					if (operation === 'get') {
-						const credentials = await this.getCredentials('contentfulApi');
+						const credentials = await this.getCredentials<ContentfulApiCredential>('contentfulApi');
 
 						const env = this.getNodeParameter('environmentId', 0) as string;
 
@@ -150,7 +151,7 @@ export class Contentful implements INodeType {
 							responseData = responseData.fields;
 						}
 					} else if (operation === 'getAll') {
-						const credentials = await this.getCredentials('contentfulApi');
+						const credentials = await this.getCredentials<ContentfulApiCredential>('contentfulApi');
 
 						const returnAll = this.getNodeParameter('returnAll', 0);
 
@@ -229,7 +230,7 @@ export class Contentful implements INodeType {
 				}
 				if (resource === 'asset') {
 					if (operation === 'get') {
-						const credentials = await this.getCredentials('contentfulApi');
+						const credentials = await this.getCredentials<ContentfulApiCredential>('contentfulApi');
 
 						const env = this.getNodeParameter('environmentId', 0) as string;
 
@@ -249,7 +250,7 @@ export class Contentful implements INodeType {
 							responseData = responseData.fields;
 						}
 					} else if (operation === 'getAll') {
-						const credentials = await this.getCredentials('contentfulApi');
+						const credentials = await this.getCredentials<ContentfulApiCredential>('contentfulApi');
 
 						const returnAll = this.getNodeParameter('returnAll', 0);
 
@@ -328,7 +329,7 @@ export class Contentful implements INodeType {
 				}
 				if (resource === 'locale') {
 					if (operation === 'getAll') {
-						const credentials = await this.getCredentials('contentfulApi');
+						const credentials = await this.getCredentials<ContentfulApiCredential>('contentfulApi');
 
 						const returnAll = this.getNodeParameter('returnAll', 0);
 

@@ -1,5 +1,12 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface HomeAssistantApiCredential {
+	host: string;
+	port: number;
+	ssl: boolean;
+	accessToken: string;
+}
+
 export class HomeAssistantApi implements ICredentialType {
 	name = 'homeAssistantApi';
 

@@ -1,14 +1,14 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialsDecrypted,
 	ICredentialTestFunctions,
 	IHttpRequestOptions,
 	INodeCredentialTestResult,
 } from 'n8n-workflow';
+import type { BambooHrApiCredential } from '@credentials/BambooHrApi.credentials';
 
 async function validateCredentials(
 	this: ICredentialTestFunctions,
-	decryptedCredentials: ICredentialDataDecryptedObject,
+	decryptedCredentials: BambooHrApiCredential,
 ): Promise<any> {
 	const credentials = decryptedCredentials;
 
@@ -31,10 +31,10 @@ async function validateCredentials(
 
 export async function bambooHrApiCredentialTest(
 	this: ICredentialTestFunctions,
-	credential: ICredentialsDecrypted,
+	credential: ICredentialsDecrypted<BambooHrApiCredential>,
 ): Promise<INodeCredentialTestResult> {
 	try {
-		await validateCredentials.call(this, credential.data as ICredentialDataDecryptedObject);
+		await validateCredentials.call(this, credential.data);
 	} catch (error) {
 		return {
 			status: 'Error',

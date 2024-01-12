@@ -1,6 +1,5 @@
 import type {
 	IExecuteFunctions,
-	ICredentialDataDecryptedObject,
 	ICredentialsDecrypted,
 	ICredentialTestFunctions,
 	INodeCredentialTestResult,
@@ -13,6 +12,7 @@ import { versionDescription } from './actions/versionDescription';
 import { loadOptions } from './methods';
 import { router } from './actions/router';
 import { validateCredentials } from './transport';
+import type { SyncroMspApiCredential } from '@credentials/SyncroMspApi.credentials';
 
 export class SyncroMspV1 implements INodeType {
 	description: INodeTypeDescription;
@@ -29,10 +29,10 @@ export class SyncroMspV1 implements INodeType {
 		credentialTest: {
 			async syncroMspApiCredentialTest(
 				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
+				credential: ICredentialsDecrypted<SyncroMspApiCredential>,
 			): Promise<INodeCredentialTestResult> {
 				try {
-					await validateCredentials.call(this, credential.data as ICredentialDataDecryptedObject);
+					await validateCredentials.call(this, credential.data);
 				} catch (error) {
 					if (error.statusCode === 401) {
 						return {

@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface DhlApiCredential {
+	apiKey: string;
+}
+
 export class DhlApi implements ICredentialType {
 	name = 'dhlApi';
 

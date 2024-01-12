@@ -18,6 +18,7 @@ import {
 } from './Beeminder.node.functions';
 
 import { beeminderApiRequest } from './GenericFunctions';
+import type { BeeminderApiCredential } from '@credentials/BeeminderApi.credentials';
 
 export class Beeminder implements INodeType {
 	description: INodeTypeDescription = {
@@ -271,7 +272,7 @@ export class Beeminder implements INodeType {
 			// Get all the available groups to display them to user so that they can
 			// select them easily
 			async getGoals(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const credentials = await this.getCredentials('beeminderApi');
+				const credentials = await this.getCredentials<BeeminderApiCredential>('beeminderApi');
 
 				const endpoint = `/users/${credentials.user}/goals.json`;
 

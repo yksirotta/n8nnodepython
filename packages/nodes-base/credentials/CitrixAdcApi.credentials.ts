@@ -5,6 +5,12 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface CitrixAdcApiCredential {
+	url: string;
+	username: string;
+	password: string;
+}
+
 export class CitrixAdcApi implements ICredentialType {
 	name = 'citrixAdcApi';
 

@@ -1,4 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { OAuth2ApiCredential } from './OAuth2Api.credentials';
+
+export interface DiscordOAuth2ApiCredential extends OAuth2ApiCredential {
+	botToken: string;
+}
 
 export class DiscordOAuth2Api implements ICredentialType {
 	name = 'discordOAuth2Api';

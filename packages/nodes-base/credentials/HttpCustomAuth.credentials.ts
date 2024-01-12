@@ -2,6 +2,10 @@
 /* eslint-disable n8n-nodes-base/cred-class-name-unsuffixed */
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface HttpCustomAuthCredential {
+	json: string;
+}
+
 export class HttpCustomAuth implements ICredentialType {
 	name = 'httpCustomAuth';
 

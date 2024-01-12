@@ -39,6 +39,7 @@ import {
 	odooUpdate,
 	processNameValueFields,
 } from './GenericFunctions';
+import type { OdooApiCredential } from '@credentials/OdooApi.credentials';
 
 export class Odoo implements INodeType {
 	description: INodeTypeDescription = {
@@ -109,15 +110,15 @@ export class Odoo implements INodeType {
 					if (!resource) return [];
 				}
 
-				const credentials = await this.getCredentials('odooApi');
-				const url = credentials.url as string;
-				const username = credentials.username as string;
-				const password = credentials.password as string;
-				const db = odooGetDBName(credentials.db as string, url);
+				const credentials = await this.getCredentials<OdooApiCredential>('odooApi');
+				const url = credentials.url;
+				const username = credentials.username;
+				const password = credentials.password;
+				const db = odooGetDBName(credentials.db, url);
 				const userID = await odooGetUserID.call(this, db, username, password, url);
 
-				const responce = await odooGetModelFields.call(this, db, userID, password, resource, url);
-				const options = Object.values(responce).map((field) => {
+				const response = await odooGetModelFields.call(this, db, userID, password, resource, url);
+				const options = Object.values(response).map((field) => {
 					const optionField = field as { [key: string]: string };
 					let name = '';
 					try {
@@ -136,11 +137,11 @@ export class Odoo implements INodeType {
 				return options.sort((a, b) => a.name?.localeCompare(b.name) || 0);
 			},
 			async getModels(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const credentials = await this.getCredentials('odooApi');
-				const url = credentials.url as string;
-				const username = credentials.username as string;
-				const password = credentials.password as string;
-				const db = odooGetDBName(credentials.db as string, url);
+				const credentials = await this.getCredentials<OdooApiCredential>('odooApi');
+				const url = credentials.url;
+				const username = credentials.username;
+				const password = credentials.password;
+				const db = odooGetDBName(credentials.db, url);
 				const userID = await odooGetUserID.call(this, db, username, password, url);
 
 				const body = {
@@ -162,9 +163,9 @@ export class Odoo implements INodeType {
 					id: Math.floor(Math.random() * 100),
 				};
 
-				const responce = (await odooJSONRPCRequest.call(this, body, url)) as IDataObject[];
+				const response = (await odooJSONRPCRequest.call(this, body, url)) as IDataObject[];
 
-				const options = responce.map((model) => {
+				const options = response.map((model) => {
 					return {
 						name: model.name,
 						value: model.model,
@@ -174,11 +175,11 @@ export class Odoo implements INodeType {
 				return options as INodePropertyOptions[];
 			},
 			async getStates(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const credentials = await this.getCredentials('odooApi');
-				const url = credentials.url as string;
-				const username = credentials.username as string;
-				const password = credentials.password as string;
-				const db = odooGetDBName(credentials.db as string, url);
+				const credentials = await this.getCredentials<OdooApiCredential>('odooApi');
+				const url = credentials.url;
+				const username = credentials.username;
+				const password = credentials.password;
+				const db = odooGetDBName(credentials.db, url);
 				const userID = await odooGetUserID.call(this, db, username, password, url);
 
 				const body = {
@@ -192,9 +193,9 @@ export class Odoo implements INodeType {
 					id: Math.floor(Math.random() * 100),
 				};
 
-				const responce = (await odooJSONRPCRequest.call(this, body, url)) as IDataObject[];
+				const response = (await odooJSONRPCRequest.call(this, body, url)) as IDataObject[];
 
-				const options = responce.map((state) => {
+				const options = response.map((state) => {
 					return {
 						name: state.name as string,
 						value: state.id,
@@ -203,11 +204,11 @@ export class Odoo implements INodeType {
 				return options.sort((a, b) => a.name?.localeCompare(b.name) || 0) as INodePropertyOptions[];
 			},
 			async getCountries(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const credentials = await this.getCredentials('odooApi');
-				const url = credentials.url as string;
-				const username = credentials.username as string;
-				const password = credentials.password as string;
-				const db = odooGetDBName(credentials.db as string, url);
+				const credentials = await this.getCredentials<OdooApiCredential>('odooApi');
+				const url = credentials.url;
+				const username = credentials.username;
+				const password = credentials.password;
+				const db = odooGetDBName(credentials.db, url);
 				const userID = await odooGetUserID.call(this, db, username, password, url);
 
 				const body = {
@@ -221,9 +222,9 @@ export class Odoo implements INodeType {
 					id: Math.floor(Math.random() * 100),
 				};
 
-				const responce = (await odooJSONRPCRequest.call(this, body, url)) as IDataObject[];
+				const response = (await odooJSONRPCRequest.call(this, body, url)) as IDataObject[];
 
-				const options = responce.map((country) => {
+				const options = response.map((country) => {
 					return {
 						name: country.name as string,
 						value: country.id,
@@ -303,11 +304,11 @@ export class Odoo implements INodeType {
 		const resource = this.getNodeParameter('resource', 0);
 		const operation = this.getNodeParameter('operation', 0);
 
-		const credentials = await this.getCredentials('odooApi');
-		const url = (credentials.url as string).replace(/\/$/, '');
-		const username = credentials.username as string;
-		const password = credentials.password as string;
-		const db = odooGetDBName(credentials.db as string, url);
+		const credentials = await this.getCredentials<OdooApiCredential>('odooApi');
+		const url = credentials.url.replace(/\/$/, '');
+		const username = credentials.username;
+		const password = credentials.password;
+		const db = odooGetDBName(credentials.db, url);
 		const userID = await odooGetUserID.call(this, db, username, password, url);
 
 		//----------------------------------------------------------------------

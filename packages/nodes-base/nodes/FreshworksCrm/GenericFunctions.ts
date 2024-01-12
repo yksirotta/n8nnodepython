@@ -9,12 +9,8 @@ import { NodeApiError, NodeOperationError } from 'n8n-workflow';
 import type { OptionsWithUri } from 'request';
 
 import omit from 'lodash/omit';
-import type {
-	FreshworksConfigResponse,
-	FreshworksCrmApiCredentials,
-	SalesAccounts,
-	ViewsResponse,
-} from './types';
+import type { FreshworksConfigResponse, SalesAccounts, ViewsResponse } from './types';
+import type { FreshworksCrmApiCredential } from '@credentials/FreshworksCrmApi.credentials';
 
 export async function freshworksCrmApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
@@ -23,7 +19,7 @@ export async function freshworksCrmApiRequest(
 	body: IDataObject = {},
 	qs: IDataObject = {},
 ) {
-	const { domain } = (await this.getCredentials('freshworksCrmApi')) as FreshworksCrmApiCredentials;
+	const { domain } = await this.getCredentials<FreshworksCrmApiCredential>('freshworksCrmApi');
 
 	const options: OptionsWithUri = {
 		method,

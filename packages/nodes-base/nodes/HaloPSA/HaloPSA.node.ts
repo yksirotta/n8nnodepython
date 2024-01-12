@@ -1,6 +1,5 @@
 import type {
 	IExecuteFunctions,
-	ICredentialDataDecryptedObject,
 	ICredentialsDecrypted,
 	ICredentialTestFunctions,
 	IDataObject,
@@ -32,6 +31,7 @@ import {
 	simplifyHaloPSAGetOutput,
 	validateCredentials,
 } from './GenericFunctions';
+import type { HaloPSAApiCredential } from '@credentials/HaloPSAApi.credentials';
 
 export class HaloPSA implements INodeType {
 	description: INodeTypeDescription = {
@@ -197,10 +197,10 @@ export class HaloPSA implements INodeType {
 		credentialTest: {
 			async haloPSAApiCredentialTest(
 				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
+				credential: ICredentialsDecrypted<HaloPSAApiCredential>,
 			): Promise<INodeCredentialTestResult> {
 				try {
-					await validateCredentials.call(this, credential.data as ICredentialDataDecryptedObject);
+					await validateCredentials.call(this, credential.data);
 				} catch (error) {
 					return {
 						status: 'Error',

@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface AutopilotApiCredential {
+	apiKey: string;
+}
+
 export class AutopilotApi implements ICredentialType {
 	name = 'autopilotApi';
 

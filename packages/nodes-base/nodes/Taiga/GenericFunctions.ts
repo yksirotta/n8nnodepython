@@ -2,7 +2,6 @@ import { createHash } from 'crypto';
 import type { OptionsWithUri } from 'request';
 
 import type {
-	ICredentialDataDecryptedObject,
 	IDataObject,
 	IExecuteFunctions,
 	IHookFunctions,
@@ -11,10 +10,11 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError, NodeOperationError } from 'n8n-workflow';
+import type { TaigaApiCredential } from '@credentials/TaigaApi.credentials';
 
 export async function getAuthorization(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions,
-	credentials?: ICredentialDataDecryptedObject,
+	credentials?: TaigaApiCredential,
 ): Promise<string> {
 	if (credentials === undefined) {
 		throw new NodeOperationError(this.getNode(), 'No credentials got returned!');
@@ -51,7 +51,7 @@ export async function taigaApiRequest(
 	uri?: string | undefined,
 	option = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('taigaApi');
+	const credentials = await this.getCredentials<TaigaApiCredential>('taigaApi');
 
 	const authToken = await getAuthorization.call(this, credentials);
 
@@ -114,7 +114,7 @@ export async function taigaApiRequestAllItems(
 	return returnData;
 }
 
-export function getAutomaticSecret(credentials: ICredentialDataDecryptedObject) {
+export function getAutomaticSecret(credentials: TaigaApiCredential) {
 	const data = `${credentials.username},${credentials.password}`;
 	return createHash('md5').update(data).digest('hex');
 }

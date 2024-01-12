@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface EventbriteApiCredential {
+	apiKey: string;
+}
+
 export class EventbriteApi implements ICredentialType {
 	name = 'eventbriteApi';
 

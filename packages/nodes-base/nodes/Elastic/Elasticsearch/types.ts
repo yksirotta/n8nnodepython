@@ -1,10 +1,3 @@
-export type ElasticsearchApiCredentials = {
-	username: string;
-	password: string;
-	baseUrl: string;
-	ignoreSSLIssues: boolean;
-};
-
 export type DocumentGetAllOptions = Partial<{
 	allow_no_indices: boolean;
 	allow_partial_search_results: boolean;

@@ -1,5 +1,10 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface CockpitApiCredential {
+	url: string;
+	accessToken: string;
+}
+
 export class CockpitApi implements ICredentialType {
 	name = 'cockpitApi';
 

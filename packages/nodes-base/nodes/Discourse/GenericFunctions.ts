@@ -7,6 +7,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { DiscourseApiCredential } from '@credentials/DiscourseApi.credentials';
 
 export async function discourseApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
@@ -17,7 +18,7 @@ export async function discourseApiRequest(
 	qs: IDataObject = {},
 	_option = {},
 ): Promise<any> {
-	const credentials = (await this.getCredentials('discourseApi')) as { url: string };
+	const credentials = await this.getCredentials<DiscourseApiCredential>('discourseApi');
 
 	const options: OptionsWithUri = {
 		method,

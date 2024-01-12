@@ -1,5 +1,4 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
@@ -8,9 +7,13 @@ import type {
 
 const getAuthenticationType = (data: string): 'accessToken' | 'apiKey' => {
 	// The access token is a JWT, so it will always include dots to separate
-	// header, payoload and signature.
+	// header, payload and signature.
 	return data.includes('.') ? 'accessToken' : 'apiKey';
 };
+
+export interface CalendlyApiCredential {
+	apiKey: string;
+}
 
 export class CalendlyApi implements ICredentialType {
 	name = 'calendlyApi';
@@ -32,11 +35,10 @@ export class CalendlyApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ apiKey }: CalendlyApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		//check whether the token is an API Key or an access token
-		const { apiKey } = credentials as { apiKey: string };
 		const tokenType = getAuthenticationType(apiKey);
 		// remove condition once v1 is deprecated
 		// and only inject credentials as an access token

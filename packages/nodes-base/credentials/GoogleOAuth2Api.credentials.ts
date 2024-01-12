@@ -1,4 +1,7 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { OAuth2ApiCredential } from './OAuth2Api.credentials';
+
+export interface GoogleOAuth2ApiCredential extends OAuth2ApiCredential {}
 
 export class GoogleOAuth2Api implements ICredentialType {
 	name = 'googleOAuth2Api';

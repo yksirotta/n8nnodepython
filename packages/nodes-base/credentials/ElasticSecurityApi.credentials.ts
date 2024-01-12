@@ -1,5 +1,11 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface ElasticSecurityApiCredential {
+	username: string;
+	password: string;
+	baseUrl: string;
+}
+
 export class ElasticSecurityApi implements ICredentialType {
 	name = 'elasticSecurityApi';
 

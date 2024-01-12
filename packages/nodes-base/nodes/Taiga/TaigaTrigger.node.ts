@@ -10,10 +10,7 @@ import type {
 } from 'n8n-workflow';
 
 import { getAutomaticSecret, taigaApiRequest } from './GenericFunctions';
-
-// import {
-// 	createHmac,
-// } from 'crypto';
+import type { TaigaApiCredential } from '@credentials/TaigaApi.credentials';
 
 export class TaigaTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -164,7 +161,7 @@ export class TaigaTrigger implements INodeType {
 				return false;
 			},
 			async create(this: IHookFunctions): Promise<boolean> {
-				const credentials = await this.getCredentials('taigaApi');
+				const credentials = await this.getCredentials<TaigaApiCredential>('taigaApi');
 
 				const webhookUrl = this.getNodeWebhookUrl('default') as string;
 

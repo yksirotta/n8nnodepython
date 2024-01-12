@@ -9,6 +9,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { CitrixAdcApiCredential } from '@credentials/CitrixAdcApi.credentials';
 
 export async function citrixADCApiRequest(
 	this: IExecuteFunctions | IWebhookFunctions | IHookFunctions | ILoadOptionsFunctions,
@@ -19,7 +20,7 @@ export async function citrixADCApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const { url } = (await this.getCredentials('citrixAdcApi')) as { url: string };
+	const { url } = await this.getCredentials<CitrixAdcApiCredential>('citrixAdcApi');
 
 	let options: OptionsWithUri = {
 		headers: {

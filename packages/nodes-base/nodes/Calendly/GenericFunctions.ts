@@ -1,7 +1,6 @@
 import type { OptionsWithUri } from 'request';
 
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestFunctions,
 	IDataObject,
 	IExecuteFunctions,
@@ -9,6 +8,7 @@ import type {
 	IHookFunctions,
 	IWebhookFunctions,
 } from 'n8n-workflow';
+import type { CalendlyApiCredential } from '@credentials/CalendlyApi.credentials';
 
 export function getAuthenticationType(data: string): 'accessToken' | 'apiKey' {
 	// The access token is a JWT, so it will always include dots to separate
@@ -26,7 +26,7 @@ export async function calendlyApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const { apiKey } = (await this.getCredentials('calendlyApi')) as { apiKey: string };
+	const { apiKey } = await this.getCredentials<CalendlyApiCredential>('calendlyApi');
 
 	const authenticationType = getAuthenticationType(apiKey);
 
@@ -62,14 +62,8 @@ export async function calendlyApiRequest(
 
 export async function validateCredentials(
 	this: ICredentialTestFunctions,
-	decryptedCredentials: ICredentialDataDecryptedObject,
+	{ apiKey }: CalendlyApiCredential,
 ): Promise<any> {
-	const credentials = decryptedCredentials;
-
-	const { apiKey } = credentials as {
-		apiKey: string;
-	};
-
 	const authenticationType = getAuthenticationType(apiKey);
 
 	const options: OptionsWithUri = {

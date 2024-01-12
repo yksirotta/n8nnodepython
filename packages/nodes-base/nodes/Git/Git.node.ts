@@ -18,6 +18,7 @@ import {
 	pushFields,
 	tagFields,
 } from './descriptions';
+import type { GitPasswordCredential } from '@credentials/GitPassword.credentials';
 
 export class Git implements INodeType {
 	description: INodeTypeDescription = {
@@ -201,11 +202,11 @@ export class Git implements INodeType {
 			const authentication = this.getNodeParameter('authentication', 0) as string;
 
 			if (authentication === 'gitPassword') {
-				const gitCredentials = await this.getCredentials('gitPassword');
+				const gitCredentials = await this.getCredentials<GitPasswordCredential>('gitPassword');
 
 				const url = new URL(repositoryPath);
-				url.username = gitCredentials.username as string;
-				url.password = gitCredentials.password as string;
+				url.username = gitCredentials.username;
+				url.password = gitCredentials.password;
 
 				return url.toString();
 			}

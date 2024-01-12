@@ -12,6 +12,7 @@ import type {
 import { NodeOperationError } from 'n8n-workflow';
 
 import { hubspotApiRequest, propertyEvents } from './V1/GenericFunctions';
+import type { HubspotDeveloperApiCredential } from '@credentials/HubspotDeveloperApi.credentials';
 
 export class HubspotTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -308,7 +309,8 @@ export class HubspotTrigger implements INodeType {
 				// Check all the webhooks which exist already if it is identical to the
 				// one that is supposed to get created.
 				const currentWebhookUrl = this.getNodeWebhookUrl('default') as string;
-				const { appId } = await this.getCredentials('hubspotDeveloperApi');
+				const { appId } =
+					await this.getCredentials<HubspotDeveloperApiCredential>('hubspotDeveloperApi');
 
 				try {
 					const { targetUrl } = await hubspotApiRequest.call(
@@ -353,7 +355,8 @@ export class HubspotTrigger implements INodeType {
 			},
 			async create(this: IHookFunctions): Promise<boolean> {
 				const webhookUrl = this.getNodeWebhookUrl('default');
-				const { appId } = await this.getCredentials('hubspotDeveloperApi');
+				const { appId } =
+					await this.getCredentials<HubspotDeveloperApiCredential>('hubspotDeveloperApi');
 				const events =
 					((this.getNodeParameter('eventsUi') as IDataObject)?.eventValues as IDataObject[]) || [];
 				const additionalFields = this.getNodeParameter('additionalFields') as IDataObject;
@@ -386,7 +389,8 @@ export class HubspotTrigger implements INodeType {
 				return true;
 			},
 			async delete(this: IHookFunctions): Promise<boolean> {
-				const { appId } = await this.getCredentials('hubspotDeveloperApi');
+				const { appId } =
+					await this.getCredentials<HubspotDeveloperApiCredential>('hubspotDeveloperApi');
 
 				const { results: subscriptions } = await hubspotApiRequest.call(
 					this,
@@ -415,7 +419,8 @@ export class HubspotTrigger implements INodeType {
 	};
 
 	async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
-		const credentials = await this.getCredentials('hubspotDeveloperApi');
+		const credentials =
+			await this.getCredentials<HubspotDeveloperApiCredential>('hubspotDeveloperApi');
 
 		if (credentials === undefined) {
 			throw new NodeOperationError(this.getNode(), 'No credentials found!');

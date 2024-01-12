@@ -24,6 +24,7 @@ import {
 	parseScripts,
 	parseSort,
 } from './GenericFunctions';
+import type { FileMakerCredential } from '@credentials/FileMaker.credentials';
 
 export class FileMaker implements INodeType {
 	description: INodeTypeDescription = {
@@ -673,7 +674,7 @@ export class FileMaker implements INodeType {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
 
-		const credentials = await this.getCredentials('fileMaker');
+		const credentials = await this.getCredentials<FileMakerCredential>('fileMaker');
 
 		let token;
 
@@ -685,8 +686,8 @@ export class FileMaker implements INodeType {
 
 		let requestOptions: OptionsWithUri;
 
-		const host = credentials.host as string;
-		const database = credentials.db as string;
+		const host = credentials.host;
+		const database = credentials.db;
 
 		const url = `https://${host}/fmi/data/v1`;
 

@@ -1,5 +1,11 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface AgileCrmApiCredential {
+	email: string;
+	apiKey: string;
+	subdomain: string;
+}
+
 export class AgileCrmApi implements ICredentialType {
 	name = 'agileCrmApi';
 

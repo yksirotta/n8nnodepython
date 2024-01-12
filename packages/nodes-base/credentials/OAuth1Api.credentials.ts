@@ -1,5 +1,14 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface OAuth1ApiCredential {
+	authUrl: string;
+	accessTokenUrl: string;
+	consumerKey: string;
+	consumerSecret: string;
+	requestTokenUrl: string;
+	signatureMethod: 'HMAC-SHA256' | 'HMAC-SHA512' | 'HMAC-SHA1';
+}
+
 export class OAuth1Api implements ICredentialType {
 	name = 'oAuth1Api';
 

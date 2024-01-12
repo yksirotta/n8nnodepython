@@ -6,6 +6,7 @@ import type {
 } from 'n8n-workflow';
 import { jsonParse, NodeApiError } from 'n8n-workflow';
 import type { OptionsWithUri } from 'request';
+import type { CockpitApiCredential } from '@credentials/CockpitApi.credentials';
 
 export async function cockpitApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
@@ -16,7 +17,7 @@ export async function cockpitApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('cockpitApi');
+	const credentials = await this.getCredentials<CockpitApiCredential>('cockpitApi');
 	let options: OptionsWithUri = {
 		headers: {
 			Accept: 'application/json',

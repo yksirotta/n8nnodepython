@@ -1,5 +1,10 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface SyncroMspApiCredential {
+	apiKey: string;
+	subdomain: string;
+}
+
 export class SyncroMspApi implements ICredentialType {
 	name = 'syncroMspApi';
 

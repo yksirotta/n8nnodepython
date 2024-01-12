@@ -1,10 +1,14 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface UProcApiCredential {
+	email: string;
+	apiKey: string;
+}
 
 export class UProcApi implements ICredentialType {
 	name = 'uprocApi';
@@ -31,10 +35,10 @@ export class UProcApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ email, apiKey }: UProcApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
-		const token = Buffer.from(`${credentials.email}:${credentials.apiKey}`).toString('base64');
+		const token = Buffer.from(`${email}:${apiKey}`).toString('base64');
 		requestOptions.headers = {
 			...requestOptions.headers,
 			Authorization: `Basic ${token}`,

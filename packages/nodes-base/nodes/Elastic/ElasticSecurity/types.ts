@@ -1,9 +1,3 @@
-export type ElasticSecurityApiCredentials = {
-	username: string;
-	password: string;
-	baseUrl: string;
-};
-
 export type ConnectorType = '.jira' | '.servicenow' | '.resilient';
 
 export type Connector = {

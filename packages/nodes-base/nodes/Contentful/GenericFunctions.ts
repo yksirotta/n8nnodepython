@@ -7,6 +7,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { ContentfulApiCredential } from '@credentials/ContentfulApi.credentials';
 
 export async function contentfulApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
@@ -18,7 +19,7 @@ export async function contentfulApiRequest(
 	uri?: string,
 	_option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('contentfulApi');
+	const credentials = await this.getCredentials<ContentfulApiCredential>('contentfulApi');
 	const source = this.getNodeParameter('source', 0) as string;
 	const isPreview = source === 'previewApi';
 

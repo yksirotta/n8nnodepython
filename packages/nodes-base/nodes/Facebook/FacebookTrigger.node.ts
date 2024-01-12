@@ -19,6 +19,7 @@ import { snakeCase } from 'change-case';
 import { facebookApiRequest, getAllFields, getFields } from './GenericFunctions';
 
 import type { FacebookWebhookSubscription } from './types';
+import type { FacebookGraphAppApiCredential } from '@credentials/FacebookGraphAppApi.credentials';
 
 export class FacebookTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -259,7 +260,8 @@ export class FacebookTrigger implements INodeType {
 		const res = this.getResponseObject();
 		const req = this.getRequestObject();
 		const headerData = this.getHeaderData() as IDataObject;
-		const credentials = await this.getCredentials('facebookGraphAppApi');
+		const credentials =
+			await this.getCredentials<FacebookGraphAppApiCredential>('facebookGraphAppApi');
 		// Check if we're getting facebook's challenge request (https://developers.facebook.com/docs/graph-api/webhooks/getting-started)
 		if (this.getWebhookName() === 'setup') {
 			if (query['hub.challenge']) {
@@ -278,7 +280,7 @@ export class FacebookTrigger implements INodeType {
 
 		// validate signature if app secret is set
 		if (credentials.appSecret !== '') {
-			const computedSignature = createHmac('sha1', credentials.appSecret as string)
+			const computedSignature = createHmac('sha1', credentials.appSecret)
 				.update(req.rawBody)
 				.digest('hex');
 			if (headerData['x-hub-signature'] !== `sha1=${computedSignature}`) {

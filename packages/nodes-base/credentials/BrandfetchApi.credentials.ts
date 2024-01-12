@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface BrandfetchApiCredential {
+	apiKey: string;
+}
+
 export class BrandfetchApi implements ICredentialType {
 	name = 'brandfetchApi';
 

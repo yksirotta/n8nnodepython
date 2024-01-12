@@ -9,6 +9,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { DriftApiCredential } from '@credentials/DriftApi.credentials';
 
 export async function driftApiRequest(
 	this: IExecuteFunctions | IWebhookFunctions | IHookFunctions | ILoadOptionsFunctions,
@@ -41,7 +42,7 @@ export async function driftApiRequest(
 
 	try {
 		if (authenticationMethod === 'accessToken') {
-			const credentials = await this.getCredentials('driftApi');
+			const credentials = await this.getCredentials<DriftApiCredential>('driftApi');
 
 			options.headers!.Authorization = `Bearer ${credentials.accessToken}`;
 

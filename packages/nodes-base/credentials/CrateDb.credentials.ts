@@ -1,5 +1,14 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface CrateDbCredential {
+	host: string;
+	port: number;
+	database: string;
+	user: string;
+	password: string;
+	ssl?: 'allow' | 'disable' | 'require' | 'verify' | 'verify-full';
+}
+
 export class CrateDb implements ICredentialType {
 	name = 'crateDb';
 

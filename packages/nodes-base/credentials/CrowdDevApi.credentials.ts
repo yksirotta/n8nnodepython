@@ -5,6 +5,13 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface CrowdDevApiCredential {
+	url: string;
+	tenantId: string;
+	token: string;
+	allowUnauthorizedCerts: boolean;
+}
+
 export class CrowdDevApi implements ICredentialType {
 	name = 'crowdDevApi';
 

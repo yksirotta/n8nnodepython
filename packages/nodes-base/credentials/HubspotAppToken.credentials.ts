@@ -5,6 +5,10 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface HubspotAppTokenCredential {
+	appToken: string;
+}
+
 export class HubspotAppToken implements ICredentialType {
 	name = 'hubspotAppToken';
 

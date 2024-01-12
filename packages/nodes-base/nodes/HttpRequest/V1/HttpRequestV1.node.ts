@@ -14,6 +14,13 @@ import { NodeApiError, NodeOperationError, sleep, removeCircularRefs } from 'n8n
 import type { OptionsWithUri } from 'request';
 import type { IAuthDataSanitizeKeys } from '../GenericFunctions';
 import { replaceNullValues, sanitizeUiMessage } from '../GenericFunctions';
+import type { HttpBasicAuthCredential } from '@credentials/HttpBasicAuth.credentials';
+import type { HttpDigestAuthCredential } from '@credentials/HttpDigestAuth.credentials';
+import type { HttpHeaderAuthCredential } from '@credentials/HttpHeaderAuth.credentials';
+import type { HttpQueryAuthCredential } from '@credentials/HttpQueryAuth.credentials';
+import type { OAuth1ApiCredential } from '@credentials/OAuth1Api.credentials';
+import type { OAuth2ApiCredential } from '@credentials/OAuth2Api.credentials';
+
 interface OptionData {
 	name: string;
 	displayName: string;
@@ -609,31 +616,31 @@ export class HttpRequestV1 implements INodeType {
 
 		const responseFormat = this.getNodeParameter('responseFormat', 0) as string;
 
-		let httpBasicAuth;
-		let httpDigestAuth;
-		let httpHeaderAuth;
-		let httpQueryAuth;
-		let oAuth1Api;
-		let oAuth2Api;
+		let httpBasicAuth: HttpBasicAuthCredential | undefined;
+		let httpDigestAuth: HttpDigestAuthCredential | undefined;
+		let httpHeaderAuth: HttpHeaderAuthCredential | undefined;
+		let httpQueryAuth: HttpQueryAuthCredential | undefined;
+		let oAuth1Api: OAuth1ApiCredential | undefined;
+		let oAuth2Api: OAuth2ApiCredential | undefined;
 
 		try {
-			httpBasicAuth = await this.getCredentials('httpBasicAuth');
-		} catch {}
+			httpBasicAuth = await this.getCredentials<HttpBasicAuthCredential>('httpBasicAuth');
+		} catch (error) {}
 		try {
-			httpDigestAuth = await this.getCredentials('httpDigestAuth');
-		} catch {}
+			httpDigestAuth = await this.getCredentials<HttpDigestAuthCredential>('httpDigestAuth');
+		} catch (error) {}
 		try {
-			httpHeaderAuth = await this.getCredentials('httpHeaderAuth');
-		} catch {}
+			httpHeaderAuth = await this.getCredentials<HttpHeaderAuthCredential>('httpHeaderAuth');
+		} catch (error) {}
 		try {
-			httpQueryAuth = await this.getCredentials('httpQueryAuth');
-		} catch {}
+			httpQueryAuth = await this.getCredentials<HttpQueryAuthCredential>('httpQueryAuth');
+		} catch (error) {}
 		try {
-			oAuth1Api = await this.getCredentials('oAuth1Api');
-		} catch {}
+			oAuth1Api = await this.getCredentials<OAuth1ApiCredential>('oAuth1Api');
+		} catch (error) {}
 		try {
-			oAuth2Api = await this.getCredentials('oAuth2Api');
-		} catch {}
+			oAuth2Api = await this.getCredentials<OAuth2ApiCredential>('oAuth2Api');
+		} catch (error) {}
 
 		let requestOptions: OptionsWithUri & { useStream?: boolean };
 		let setUiParameter: IDataObject;
@@ -907,26 +914,26 @@ export class HttpRequestV1 implements INodeType {
 			// Add credentials if any are set
 			if (httpBasicAuth !== undefined) {
 				requestOptions.auth = {
-					user: httpBasicAuth.user as string,
-					pass: httpBasicAuth.password as string,
+					user: httpBasicAuth.user,
+					pass: httpBasicAuth.password,
 				};
 				authDataKeys.auth = ['pass'];
 			}
 			if (httpHeaderAuth !== undefined) {
-				requestOptions.headers![httpHeaderAuth.name as string] = httpHeaderAuth.value;
-				authDataKeys.headers = [httpHeaderAuth.name as string];
+				requestOptions.headers![httpHeaderAuth.name] = httpHeaderAuth.value;
+				authDataKeys.headers = [httpHeaderAuth.name];
 			}
 			if (httpQueryAuth !== undefined) {
 				if (!requestOptions.qs) {
 					requestOptions.qs = {};
 				}
-				requestOptions.qs[httpQueryAuth.name as string] = httpQueryAuth.value;
-				authDataKeys.qs = [httpQueryAuth.name as string];
+				requestOptions.qs[httpQueryAuth.name] = httpQueryAuth.value;
+				authDataKeys.qs = [httpQueryAuth.name];
 			}
 			if (httpDigestAuth !== undefined) {
 				requestOptions.auth = {
-					user: httpDigestAuth.user as string,
-					pass: httpDigestAuth.password as string,
+					user: httpDigestAuth.user,
+					pass: httpDigestAuth.password,
 					sendImmediately: false,
 				};
 				authDataKeys.auth = ['pass'];

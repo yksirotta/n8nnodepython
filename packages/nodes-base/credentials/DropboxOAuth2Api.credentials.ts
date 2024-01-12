@@ -1,6 +1,11 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { OAuth2ApiCredential } from './OAuth2Api.credentials';
 
 const scopes = ['files.content.write', 'files.content.read', 'sharing.read', 'account_info.read'];
+
+export interface DropboxOAuth2ApiCredential extends OAuth2ApiCredential {
+	accessType: 'folder' | 'full';
+}
 
 export class DropboxOAuth2Api implements ICredentialType {
 	name = 'dropboxOAuth2Api';

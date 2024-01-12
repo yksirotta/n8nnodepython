@@ -1,10 +1,15 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface NextCloudApiCredential {
+	webDavUrl: string;
+	user: string;
+	password: string;
+}
 
 export class NextCloudApi implements ICredentialType {
 	name = 'nextCloudApi';
@@ -37,12 +42,12 @@ export class NextCloudApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ user, password }: NextCloudApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		requestOptions.auth = {
-			username: credentials.user as string,
-			password: credentials.password as string,
+			username: user,
+			password,
 		};
 		return requestOptions;
 	}

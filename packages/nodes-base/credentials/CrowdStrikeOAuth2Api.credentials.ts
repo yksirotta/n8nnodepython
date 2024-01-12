@@ -1,11 +1,16 @@
 import type {
 	IAuthenticateGeneric,
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestHelper,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface CrowdStrikeOAuth2ApiCredential {
+	url: string;
+	clientId: string;
+	clientSecret: string;
+}
 
 export class CrowdStrikeOAuth2Api implements ICredentialType {
 	name = 'crowdStrikeOAuth2Api';
@@ -27,7 +32,6 @@ export class CrowdStrikeOAuth2Api implements ICredentialType {
 			displayName: 'Session Token',
 			name: 'sessionToken',
 			type: 'hidden',
-
 			typeOptions: {
 				expirable: true,
 			},
@@ -59,13 +63,13 @@ export class CrowdStrikeOAuth2Api implements ICredentialType {
 		},
 	];
 
-	async preAuthentication(this: IHttpRequestHelper, credentials: ICredentialDataDecryptedObject) {
-		const url = credentials.url as string;
+	async preAuthentication(this: IHttpRequestHelper, credentials: CrowdStrikeOAuth2ApiCredential) {
+		const { url, clientId, clientSecret } = credentials;
 		const { access_token } = (await this.helpers.httpRequest({
 			method: 'POST',
-			url: `${url.endsWith('/') ? url.slice(0, -1) : url}/oauth2/token?client_id=${
-				credentials.clientId
-			}&client_secret=${credentials.clientSecret}`,
+			url: `${
+				url.endsWith('/') ? url.slice(0, -1) : url
+			}/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}`,
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
 			},

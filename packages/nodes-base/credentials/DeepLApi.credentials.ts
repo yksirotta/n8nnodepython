@@ -5,6 +5,11 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface DeepLApiCredential {
+	apiKey: string;
+	apiPlan: 'pro' | 'free';
+}
+
 export class DeepLApi implements ICredentialType {
 	name = 'deepLApi';
 

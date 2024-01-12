@@ -1,5 +1,10 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface FlowApiCredential {
+	organizationId: number;
+	accessToken: string;
+}
+
 export class FlowApi implements ICredentialType {
 	name = 'flowApi';
 

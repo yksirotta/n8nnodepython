@@ -8,6 +8,7 @@ import type {
 import { NodeApiError } from 'n8n-workflow';
 
 import type { OptionsWithUri } from 'request';
+import type { BubbleApiCredential } from '@credentials/BubbleApi.credentials';
 
 /**
  * Make an authenticated API request to Bubble.
@@ -19,15 +20,8 @@ export async function bubbleApiRequest(
 	body: IDataObject,
 	qs: IDataObject,
 ) {
-	const { apiToken, appName, domain, environment, hosting } = (await this.getCredentials(
-		'bubbleApi',
-	)) as {
-		apiToken: string;
-		appName: string;
-		domain: string;
-		environment: 'development' | 'live';
-		hosting: 'bubbleHosted' | 'selfHosted';
-	};
+	const { apiToken, appName, domain, environment, hosting } =
+		await this.getCredentials<BubbleApiCredential>('bubbleApi');
 
 	const rootUrl = hosting === 'bubbleHosted' ? `https://${appName}.bubbleapps.io` : domain;
 	const urlSegment = environment === 'development' ? '/version-test/api/1.1' : '/api/1.1';

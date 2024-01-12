@@ -9,6 +9,7 @@ import type {
 } from 'n8n-workflow';
 
 import { getAutomaticSecret, woocommerceApiRequest } from './GenericFunctions';
+import type { WooCommerceCredential } from '@credentials/WooCommerceApi.credentials';
 
 export class WooCommerceTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -128,7 +129,7 @@ export class WooCommerceTrigger implements INodeType {
 				return false;
 			},
 			async create(this: IHookFunctions): Promise<boolean> {
-				const credentials = await this.getCredentials('wooCommerceApi');
+				const credentials = await this.getCredentials<WooCommerceCredential>('wooCommerceApi');
 				const webhookUrl = this.getNodeWebhookUrl('default');
 				const webhookData = this.getWorkflowStaticData('node');
 				const event = this.getNodeParameter('event') as string;

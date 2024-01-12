@@ -5,10 +5,11 @@ import type {
 } from 'n8n-workflow';
 
 import { getGoogleAccessToken } from '../../../GenericFunctions';
+import type { GoogleApiCredential } from '@credentials/GoogleApi.credentials';
 
 export async function googleApiCredentialTest(
 	this: ICredentialTestFunctions,
-	credential: ICredentialsDecrypted,
+	credential: ICredentialsDecrypted<GoogleApiCredential>,
 ): Promise<INodeCredentialTestResult> {
 	try {
 		const tokenRequest = await getGoogleAccessToken.call(this, credential.data!, 'sheetV2');

@@ -5,6 +5,13 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface ElasticsearchApiCredential {
+	username: string;
+	password: string;
+	baseUrl: string;
+	ignoreSSLIssues: boolean;
+}
+
 export class ElasticsearchApi implements ICredentialType {
 	name = 'elasticsearchApi';
 

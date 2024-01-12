@@ -14,6 +14,8 @@ import { parseString } from 'xml2js';
 
 import { wrapData } from '../../utils/utilities';
 import { nextCloudApiRequest } from './GenericFunctions';
+import type { NextCloudApiCredential } from '@credentials/NextCloudApi.credentials';
+import type { NextCloudOAuth2ApiCredential } from '@credentials/NextCloudOAuth2Api.credentials';
 
 export class NextCloud implements INodeType {
 	description: INodeTypeDescription = {
@@ -862,13 +864,10 @@ export class NextCloud implements INodeType {
 		const returnData: INodeExecutionData[] = [];
 
 		const authenticationMethod = this.getNodeParameter('authentication', 0);
-		let credentials;
-
-		if (authenticationMethod === 'accessToken') {
-			credentials = await this.getCredentials('nextCloudApi');
-		} else {
-			credentials = await this.getCredentials('nextCloudOAuth2Api');
-		}
+		const credentials =
+			authenticationMethod === 'accessToken'
+				? await this.getCredentials<NextCloudApiCredential>('nextCloudApi')
+				: await this.getCredentials<NextCloudOAuth2ApiCredential>('nextCloudOAuth2Api');
 
 		const resource = this.getNodeParameter('resource', 0);
 		const operation = this.getNodeParameter('operation', 0);
@@ -1076,7 +1075,7 @@ export class NextCloud implements INodeType {
 
 				// Make sure that the webdav URL does never have a trailing slash because
 				// one gets added always automatically
-				let webDavUrl = credentials.webDavUrl as string;
+				let webDavUrl = credentials.webDavUrl;
 				if (webDavUrl.slice(-1) === '/') {
 					webDavUrl = webDavUrl.slice(0, -1);
 				}

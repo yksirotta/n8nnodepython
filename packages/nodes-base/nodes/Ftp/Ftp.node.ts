@@ -5,7 +5,6 @@ import { pipeline } from 'stream';
 import { promisify } from 'util';
 import { BINARY_ENCODING, NodeApiError } from 'n8n-workflow';
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialsDecrypted,
 	ICredentialTestFunctions,
 	IDataObject,
@@ -21,6 +20,8 @@ import { file as tmpFile } from 'tmp-promise';
 import ftpClient from 'promise-ftp';
 import sftpClient from 'ssh2-sftp-client';
 import { formatPrivateKey } from '@utils/utilities';
+import type { FtpCredential } from '@credentials/Ftp.credentials';
+import type { SftpCredential } from '@credentials/Sftp.credentials';
 
 interface ReturnFtpItem {
 	type: string;
@@ -442,14 +443,14 @@ export class Ftp implements INodeType {
 				this: ICredentialTestFunctions,
 				credential: ICredentialsDecrypted,
 			): Promise<INodeCredentialTestResult> {
-				const credentials = credential.data as ICredentialDataDecryptedObject;
+				const credentials = credential.data as unknown as FtpCredential;
 				try {
 					const ftp = new ftpClient();
 					await ftp.connect({
-						host: credentials.host as string,
-						port: credentials.port as number,
-						user: credentials.username as string,
-						password: credentials.password as string,
+						host: credentials.host,
+						port: credentials.port,
+						user: credentials.username,
+						password: credentials.password,
 					});
 				} catch (error) {
 					return {
@@ -466,22 +467,22 @@ export class Ftp implements INodeType {
 				this: ICredentialTestFunctions,
 				credential: ICredentialsDecrypted,
 			): Promise<INodeCredentialTestResult> {
-				const credentials = credential.data as ICredentialDataDecryptedObject;
+				const credentials = credential.data as unknown as SftpCredential;
 				try {
 					const sftp = new sftpClient();
 					if (credentials.privateKey) {
 						await sftp.connect({
-							host: credentials.host as string,
-							port: credentials.port as number,
-							username: credentials.username as string,
-							password: (credentials.password as string) || undefined,
-							privateKey: formatPrivateKey(credentials.privateKey as string),
-							passphrase: credentials.passphrase as string | undefined,
+							host: credentials.host,
+							port: credentials.port,
+							username: credentials.username,
+							password: credentials.password || undefined,
+							privateKey: formatPrivateKey(credentials.privateKey),
+							passphrase: credentials.passphrase,
 						});
 					} else {
 						await sftp.connect({
-							host: credentials.host as string,
-							port: credentials.port as number,
+							host: credentials.host,
+							port: credentials.port,
 							username: credentials.username as string,
 							password: credentials.password as string,
 						});
@@ -502,49 +503,43 @@ export class Ftp implements INodeType {
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
-		// const returnData: IDataObject[] = [];
 		const returnItems: INodeExecutionData[] = [];
 		let responseData;
 		const operation = this.getNodeParameter('operation', 0);
+		const protocol = this.getNodeParameter('protocol', 0) as 'ftp' | 'sftp';
 
-		let credentials: ICredentialDataDecryptedObject | undefined = undefined;
-		const protocol = this.getNodeParameter('protocol', 0) as string;
-
-		if (protocol === 'sftp') {
-			credentials = await this.getCredentials('sftp');
-		} else {
-			credentials = await this.getCredentials('ftp');
-		}
 		try {
 			let ftp: ftpClient;
 			let sftp: sftpClient;
 
 			if (protocol === 'sftp') {
+				const credentials = await this.getCredentials<SftpCredential>(protocol);
 				sftp = new sftpClient();
 				if (credentials.privateKey) {
 					await sftp.connect({
-						host: credentials.host as string,
-						port: credentials.port as number,
-						username: credentials.username as string,
-						password: (credentials.password as string) || undefined,
-						privateKey: formatPrivateKey(credentials.privateKey as string),
-						passphrase: credentials.passphrase as string | undefined,
+						host: credentials.host,
+						port: credentials.port,
+						username: credentials.username,
+						password: credentials.password || undefined,
+						privateKey: formatPrivateKey(credentials.privateKey),
+						passphrase: credentials.passphrase,
 					});
 				} else {
 					await sftp.connect({
-						host: credentials.host as string,
-						port: credentials.port as number,
-						username: credentials.username as string,
-						password: credentials.password as string,
+						host: credentials.host,
+						port: credentials.port,
+						username: credentials.username,
+						password: credentials.password,
 					});
 				}
 			} else {
+				const credentials = await this.getCredentials<FtpCredential>(protocol);
 				ftp = new ftpClient();
 				await ftp.connect({
-					host: credentials.host as string,
-					port: credentials.port as number,
-					user: credentials.username as string,
-					password: credentials.password as string,
+					host: credentials.host,
+					port: credentials.port,
+					user: credentials.username,
+					password: credentials.password,
 				});
 			}
 

@@ -3,7 +3,6 @@ import type {
 	ITriggerFunctions,
 	IBinaryData,
 	IBinaryKeyData,
-	ICredentialDataDecryptedObject,
 	ICredentialsDecrypted,
 	ICredentialTestFunctions,
 	IDataObject,
@@ -23,6 +22,7 @@ import { simpleParser } from 'mailparser';
 
 import isEmpty from 'lodash/isEmpty';
 import find from 'lodash/find';
+import type { ImapCredential } from '@credentials/Imap.credentials';
 
 export async function parseRawEmail(
 	this: ITriggerFunctions,
@@ -233,24 +233,24 @@ export class EmailReadImapV1 implements INodeType {
 		credentialTest: {
 			async imapConnectionTest(
 				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
+				credential: ICredentialsDecrypted<ImapCredential>,
 			): Promise<INodeCredentialTestResult> {
-				const credentials = credential.data as ICredentialDataDecryptedObject;
+				const credentials = credential.data;
 				try {
 					const config: ImapSimpleOptions = {
 						imap: {
-							user: credentials.user as string,
-							password: credentials.password as string,
-							host: (credentials.host as string).trim(),
-							port: credentials.port as number,
-							tls: credentials.secure as boolean,
+							user: credentials.user,
+							password: credentials.password,
+							host: credentials.host.trim(),
+							port: credentials.port,
+							tls: credentials.secure,
 							authTimeout: 20000,
 						},
 					};
 					const tlsOptions: IDataObject = {};
 
 					if (credentials.secure) {
-						tlsOptions.servername = (credentials.host as string).trim();
+						tlsOptions.servername = credentials.host.trim();
 					}
 					if (!isEmpty(tlsOptions)) {
 						config.imap.tlsOptions = tlsOptions;
@@ -275,7 +275,7 @@ export class EmailReadImapV1 implements INodeType {
 	};
 
 	async trigger(this: ITriggerFunctions): Promise<ITriggerResponse> {
-		const credentials = await this.getCredentials('imap');
+		const credentials = await this.getCredentials<ImapCredential>('imap');
 
 		const mailbox = this.getNodeParameter('mailbox') as string;
 		const postProcessAction = this.getNodeParameter('postProcessAction') as string;
@@ -525,11 +525,11 @@ export class EmailReadImapV1 implements INodeType {
 
 			const config: ImapSimpleOptions = {
 				imap: {
-					user: credentials.user as string,
-					password: credentials.password as string,
-					host: (credentials.host as string).trim(),
-					port: credentials.port as number,
-					tls: credentials.secure as boolean,
+					user: credentials.user,
+					password: credentials.password,
+					host: credentials.host.trim(),
+					port: credentials.port,
+					tls: credentials.secure,
 					authTimeout: 20000,
 				},
 				onmail: async () => {
@@ -579,7 +579,7 @@ export class EmailReadImapV1 implements INodeType {
 			}
 
 			if (credentials.secure) {
-				tlsOptions.servername = (credentials.host as string).trim();
+				tlsOptions.servername = credentials.host.trim();
 			}
 
 			if (!isEmpty(tlsOptions)) {

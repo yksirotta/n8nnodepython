@@ -1,5 +1,11 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface BaserowApiCredential {
+	host: string;
+	username: string;
+	password: string;
+}
+
 // https://api.baserow.io/api/redoc/#section/Authentication
 
 export class BaserowApi implements ICredentialType {

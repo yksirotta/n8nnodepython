@@ -13,6 +13,7 @@ import type { OptionsWithUri } from 'request';
 import moment from 'moment-timezone';
 
 import * as losslessJSON from 'lossless-json';
+import type { GoToWebinarOAuth2ApiCredential } from '@credentials/GoToWebinarOAuth2Api.credentials';
 
 function convertLosslessNumber(key: any, value: any) {
 	if (value?.isLosslessNumber) {
@@ -143,9 +144,8 @@ export async function handleGetAll(
 }
 
 export async function loadWebinars(this: ILoadOptionsFunctions) {
-	const { oauthTokenData } = (await this.getCredentials('goToWebinarOAuth2Api')) as {
-		oauthTokenData: { account_key: string };
-	};
+	const { oauthTokenData } =
+		await this.getCredentials<GoToWebinarOAuth2ApiCredential>('goToWebinarOAuth2Api');
 
 	const endpoint = `accounts/${oauthTokenData.account_key}/webinars`;
 
@@ -176,9 +176,8 @@ export async function loadWebinars(this: ILoadOptionsFunctions) {
 }
 
 export async function loadWebinarSessions(this: ILoadOptionsFunctions) {
-	const { oauthTokenData } = (await this.getCredentials('goToWebinarOAuth2Api')) as {
-		oauthTokenData: { organizer_key: string };
-	};
+	const { oauthTokenData } =
+		await this.getCredentials<GoToWebinarOAuth2ApiCredential>('goToWebinarOAuth2Api');
 
 	const webinarKey = this.getCurrentNodeParameter('webinarKey') as string;
 
@@ -208,9 +207,8 @@ export async function loadWebinarSessions(this: ILoadOptionsFunctions) {
 }
 
 export async function loadRegistranSimpleQuestions(this: ILoadOptionsFunctions) {
-	const { oauthTokenData } = (await this.getCredentials('goToWebinarOAuth2Api')) as {
-		oauthTokenData: { organizer_key: string };
-	};
+	const { oauthTokenData } =
+		await this.getCredentials<GoToWebinarOAuth2ApiCredential>('goToWebinarOAuth2Api');
 
 	const webinarkey = this.getNodeParameter('webinarKey') as string;
 
@@ -233,9 +231,8 @@ export async function loadRegistranSimpleQuestions(this: ILoadOptionsFunctions) 
 }
 
 export async function loadAnswers(this: ILoadOptionsFunctions) {
-	const { oauthTokenData } = (await this.getCredentials('goToWebinarOAuth2Api')) as {
-		oauthTokenData: { organizer_key: string };
-	};
+	const { oauthTokenData } =
+		await this.getCredentials<GoToWebinarOAuth2ApiCredential>('goToWebinarOAuth2Api');
 
 	const webinarKey = this.getCurrentNodeParameter('webinarKey') as string;
 
@@ -262,9 +259,8 @@ export async function loadAnswers(this: ILoadOptionsFunctions) {
 }
 
 export async function loadRegistranMultiChoiceQuestions(this: ILoadOptionsFunctions) {
-	const { oauthTokenData } = (await this.getCredentials('goToWebinarOAuth2Api')) as {
-		oauthTokenData: { organizer_key: string };
-	};
+	const { oauthTokenData } =
+		await this.getCredentials<GoToWebinarOAuth2ApiCredential>('goToWebinarOAuth2Api');
 
 	const webinarkey = this.getNodeParameter('webinarKey') as string;
 

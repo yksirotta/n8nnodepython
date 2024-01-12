@@ -10,6 +10,7 @@ import type {
 import { NodeApiError } from 'n8n-workflow';
 
 import { getGoogleAccessToken } from '../GenericFunctions';
+import type { GoogleApiCredential } from '@credentials/GoogleApi.credentials';
 
 export async function googleApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
@@ -46,7 +47,7 @@ export async function googleApiRequest(
 		if (noCredentials) {
 			responseData = await this.helpers.request(options);
 		} else {
-			const credentials = await this.getCredentials('googleApi');
+			const credentials = await this.getCredentials<GoogleApiCredential>('googleApi');
 
 			const { access_token } = await getGoogleAccessToken.call(this, credentials, 'chat');
 			options.headers!.Authorization = `Bearer ${access_token}`;

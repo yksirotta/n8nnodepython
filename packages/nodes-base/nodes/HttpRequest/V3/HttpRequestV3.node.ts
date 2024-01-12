@@ -34,6 +34,13 @@ import {
 	sanitizeUiMessage,
 } from '../GenericFunctions';
 import { keysToLowercase } from '@utils/utilities';
+import type { HttpBasicAuthCredential } from '@credentials/HttpBasicAuth.credentials';
+import type { HttpCustomAuthCredential } from '@credentials/HttpCustomAuth.credentials';
+import type { HttpDigestAuthCredential } from '@credentials/HttpDigestAuth.credentials';
+import type { HttpHeaderAuthCredential } from '@credentials/HttpHeaderAuth.credentials';
+import type { HttpQueryAuthCredential } from '@credentials/HttpQueryAuth.credentials';
+import type { OAuth1ApiCredential } from '@credentials/OAuth1Api.credentials';
+import type { OAuth2ApiCredential } from '@credentials/OAuth2Api.credentials';
 
 function toText<T>(data: T) {
 	if (typeof data === 'object' && data !== null) {
@@ -41,6 +48,7 @@ function toText<T>(data: T) {
 	}
 	return data;
 }
+
 export class HttpRequestV3 implements INodeType {
 	description: INodeTypeDescription;
 
@@ -1211,13 +1219,13 @@ export class HttpRequestV3 implements INodeType {
 				| 'none';
 		} catch {}
 
-		let httpBasicAuth;
-		let httpDigestAuth;
-		let httpHeaderAuth;
-		let httpQueryAuth;
-		let httpCustomAuth;
-		let oAuth1Api;
-		let oAuth2Api;
+		let httpBasicAuth: HttpBasicAuthCredential | undefined;
+		let httpDigestAuth: HttpDigestAuthCredential | undefined;
+		let httpHeaderAuth: HttpHeaderAuthCredential | undefined;
+		let httpQueryAuth: HttpQueryAuthCredential | undefined;
+		let httpCustomAuth: HttpCustomAuthCredential | undefined;
+		let oAuth1Api: OAuth1ApiCredential | undefined;
+		let oAuth2Api: OAuth2ApiCredential | undefined;
 		let nodeCredentialType: string | undefined;
 		let genericCredentialType: string | undefined;
 
@@ -1259,19 +1267,34 @@ export class HttpRequestV3 implements INodeType {
 				genericCredentialType = this.getNodeParameter('genericAuthType', 0) as string;
 
 				if (genericCredentialType === 'httpBasicAuth') {
-					httpBasicAuth = await this.getCredentials('httpBasicAuth', itemIndex);
+					httpBasicAuth = await this.getCredentials<HttpBasicAuthCredential>(
+						'httpBasicAuth',
+						itemIndex,
+					);
 				} else if (genericCredentialType === 'httpDigestAuth') {
-					httpDigestAuth = await this.getCredentials('httpDigestAuth', itemIndex);
+					httpDigestAuth = await this.getCredentials<HttpDigestAuthCredential>(
+						'httpDigestAuth',
+						itemIndex,
+					);
 				} else if (genericCredentialType === 'httpHeaderAuth') {
-					httpHeaderAuth = await this.getCredentials('httpHeaderAuth', itemIndex);
+					httpHeaderAuth = await this.getCredentials<HttpHeaderAuthCredential>(
+						'httpHeaderAuth',
+						itemIndex,
+					);
 				} else if (genericCredentialType === 'httpQueryAuth') {
-					httpQueryAuth = await this.getCredentials('httpQueryAuth', itemIndex);
+					httpQueryAuth = await this.getCredentials<HttpQueryAuthCredential>(
+						'httpQueryAuth',
+						itemIndex,
+					);
 				} else if (genericCredentialType === 'httpCustomAuth') {
-					httpCustomAuth = await this.getCredentials('httpCustomAuth', itemIndex);
+					httpCustomAuth = await this.getCredentials<HttpCustomAuthCredential>(
+						'httpCustomAuth',
+						itemIndex,
+					);
 				} else if (genericCredentialType === 'oAuth1Api') {
-					oAuth1Api = await this.getCredentials('oAuth1Api', itemIndex);
+					oAuth1Api = await this.getCredentials<OAuth1ApiCredential>('oAuth1Api', itemIndex);
 				} else if (genericCredentialType === 'oAuth2Api') {
-					oAuth2Api = await this.getCredentials('oAuth2Api', itemIndex);
+					oAuth2Api = await this.getCredentials<OAuth2ApiCredential>('oAuth2Api', itemIndex);
 				}
 			} else if (authentication === 'predefinedCredentialType') {
 				nodeCredentialType = this.getNodeParameter('nodeCredentialType', 0) as string;
@@ -1572,35 +1595,34 @@ export class HttpRequestV3 implements INodeType {
 			// Add credentials if any are set
 			if (httpBasicAuth !== undefined) {
 				requestOptions.auth = {
-					user: httpBasicAuth.user as string,
-					pass: httpBasicAuth.password as string,
+					user: httpBasicAuth.user,
+					pass: httpBasicAuth.password,
 				};
 				authDataKeys.auth = ['pass'];
 			}
 			if (httpHeaderAuth !== undefined) {
-				requestOptions.headers![httpHeaderAuth.name as string] = httpHeaderAuth.value;
-				authDataKeys.headers = [httpHeaderAuth.name as string];
+				requestOptions.headers![httpHeaderAuth.name] = httpHeaderAuth.value;
+				authDataKeys.headers = [httpHeaderAuth.name];
 			}
 			if (httpQueryAuth !== undefined) {
 				if (!requestOptions.qs) {
 					requestOptions.qs = {};
 				}
-				requestOptions.qs[httpQueryAuth.name as string] = httpQueryAuth.value;
-				authDataKeys.qs = [httpQueryAuth.name as string];
+				requestOptions.qs[httpQueryAuth.name] = httpQueryAuth.value;
+				authDataKeys.qs = [httpQueryAuth.name];
 			}
 			if (httpDigestAuth !== undefined) {
 				requestOptions.auth = {
-					user: httpDigestAuth.user as string,
-					pass: httpDigestAuth.password as string,
+					user: httpDigestAuth.user,
+					pass: httpDigestAuth.password,
 					sendImmediately: false,
 				};
 				authDataKeys.auth = ['pass'];
 			}
 			if (httpCustomAuth !== undefined) {
-				const customAuth = jsonParse<IRequestOptionsSimplified>(
-					(httpCustomAuth.json as string) || '{}',
-					{ errorMessage: 'Invalid Custom Auth JSON' },
-				);
+				const customAuth = jsonParse<IRequestOptionsSimplified>(httpCustomAuth.json || '{}', {
+					errorMessage: 'Invalid Custom Auth JSON',
+				});
 				if (customAuth.headers) {
 					requestOptions.headers = { ...requestOptions.headers, ...customAuth.headers };
 					authDataKeys.headers = Object.keys(customAuth.headers);

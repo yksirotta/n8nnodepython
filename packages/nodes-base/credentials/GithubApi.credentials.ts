@@ -5,6 +5,12 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface GithubApiCredential {
+	server: string;
+	user: string;
+	accessToken: string;
+}
+
 export class GithubApi implements ICredentialType {
 	name = 'githubApi';
 

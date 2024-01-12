@@ -1,5 +1,10 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface DemioApiCredential {
+	apiKey: string;
+	apiSecret: string;
+}
+
 export class DemioApi implements ICredentialType {
 	name = 'demioApi';
 

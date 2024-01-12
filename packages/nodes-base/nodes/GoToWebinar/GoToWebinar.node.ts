@@ -37,6 +37,7 @@ import {
 	webinarFields,
 	webinarOperations,
 } from './descriptions';
+import type { GoToWebinarOAuth2ApiCredential } from '@credentials/GoToWebinarOAuth2Api.credentials';
 
 export class GoToWebinar implements INodeType {
 	description: INodeTypeDescription = {
@@ -154,9 +155,8 @@ export class GoToWebinar implements INodeType {
 		let responseData;
 		const returnData: INodeExecutionData[] = [];
 
-		const { oauthTokenData } = (await this.getCredentials('goToWebinarOAuth2Api')) as {
-			oauthTokenData: { account_key: string; organizer_key: string };
-		};
+		const { oauthTokenData } =
+			await this.getCredentials<GoToWebinarOAuth2ApiCredential>('goToWebinarOAuth2Api');
 
 		const accountKey = oauthTokenData.account_key;
 		const organizerKey = oauthTokenData.organizer_key;

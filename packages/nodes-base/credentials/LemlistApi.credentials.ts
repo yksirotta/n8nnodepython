@@ -1,10 +1,13 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface LemlistApiCredential {
+	apiKey: string;
+}
 
 export class LemlistApi implements ICredentialType {
 	name = 'lemlistApi';
@@ -24,10 +27,10 @@ export class LemlistApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ apiKey }: LemlistApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
-		const encodedApiKey = Buffer.from(':' + (credentials.apiKey as string)).toString('base64');
+		const encodedApiKey = Buffer.from(':' + apiKey).toString('base64');
 		requestOptions.headers!.Authorization = `Basic ${encodedApiKey}`;
 		requestOptions.headers!['user-agent'] = 'n8n';
 		return requestOptions;

@@ -6,7 +6,6 @@ import { sign } from 'aws4';
 import type { OptionsWithUri } from 'request';
 
 import type {
-	ICredentialDataDecryptedObject,
 	IDataObject,
 	IExecuteFunctions,
 	IHookFunctions,
@@ -18,10 +17,9 @@ import { NodeApiError } from 'n8n-workflow';
 
 import get from 'lodash/get';
 
-function getEndpointForService(
-	service: string,
-	credentials: ICredentialDataDecryptedObject,
-): string {
+import type { AwsCredential } from '@credentials/Aws.credentials';
+
+function getEndpointForService(service: string, credentials: AwsCredential): string {
 	let endpoint;
 	if (service === 'lambda' && credentials.lambdaEndpoint) {
 		endpoint = credentials.lambdaEndpoint;
@@ -30,7 +28,7 @@ function getEndpointForService(
 	} else {
 		endpoint = `https://${service}.${credentials.region}.amazonaws.com`;
 	}
-	return (endpoint as string).replace('{region}', credentials.region as string);
+	return endpoint.replace('{region}', credentials.region as string);
 }
 
 export async function awsApiRequest(
@@ -41,7 +39,7 @@ export async function awsApiRequest(
 	body?: string,
 	headers?: object,
 ): Promise<any> {
-	const credentials = await this.getCredentials('aws');
+	const credentials = await this.getCredentials<AwsCredential>('aws');
 
 	// Concatenate path and instantiate URL object so it parses correctly query strings
 	const endpoint = new URL(getEndpointForService(service, credentials) + path);

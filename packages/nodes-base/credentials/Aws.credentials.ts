@@ -2,7 +2,6 @@ import type { Request } from 'aws4';
 import { sign } from 'aws4';
 
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IDataObject,
@@ -126,6 +125,21 @@ export const regions = [
 ] as const;
 
 export type AWSRegion = (typeof regions)[number]['name'];
+
+export interface AwsCredential {
+	region: AWSRegion;
+	accessKeyId?: string;
+	secretAccessKey?: string;
+	temporaryCredentials?: boolean;
+	sessionToken?: string;
+	customEndpoints?: boolean;
+	rekognitionEndpoint?: string;
+	lambdaEndpoint?: string;
+	snsEndpoint?: string;
+	sesEndpoint?: string;
+	sqsEndpoint?: string;
+	s3Endpoint?: string;
+}
 
 export class Aws implements ICredentialType {
 	name = 'aws';
@@ -276,7 +290,7 @@ export class Aws implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		credentials: AwsCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		let endpoint: URL;
@@ -305,24 +319,24 @@ export class Aws implements ICredentialType {
 				}
 			}
 			service = endpoint.hostname.split('.')[0];
-			region = endpoint.hostname.split('.')[1];
+			region = endpoint.hostname.split('.')[1] as AWSRegion;
 		} else {
 			if (!requestOptions.baseURL && !requestOptions.url) {
 				let endpointString: string;
 				if (service === 'lambda' && credentials.lambdaEndpoint) {
-					endpointString = credentials.lambdaEndpoint as string;
+					endpointString = credentials.lambdaEndpoint;
 				} else if (service === 'sns' && credentials.snsEndpoint) {
-					endpointString = credentials.snsEndpoint as string;
+					endpointString = credentials.snsEndpoint;
 				} else if (service === 'sqs' && credentials.sqsEndpoint) {
-					endpointString = credentials.sqsEndpoint as string;
+					endpointString = credentials.sqsEndpoint;
 				} else if (service === 's3' && credentials.s3Endpoint) {
-					endpointString = credentials.s3Endpoint as string;
+					endpointString = credentials.s3Endpoint;
 				} else if (service === 'ses' && credentials.sesEndpoint) {
-					endpointString = credentials.sesEndpoint as string;
+					endpointString = credentials.sesEndpoint;
 				} else if (service === 'rekognition' && credentials.rekognitionEndpoint) {
-					endpointString = credentials.rekognitionEndpoint as string;
+					endpointString = credentials.rekognitionEndpoint;
 				} else if (service === 'sqs' && credentials.sqsEndpoint) {
-					endpointString = credentials.sqsEndpoint as string;
+					endpointString = credentials.sqsEndpoint;
 				} else if (service) {
 					endpointString = `https://${service}.${credentials.region}.amazonaws.com`;
 				}
@@ -333,7 +347,7 @@ export class Aws implements ICredentialType {
 				// If no endpoint is set, we try to decompose the path and use the default endpoint
 				const customUrl = new URL(`${requestOptions.baseURL!}${requestOptions.url}${path ?? ''}`);
 				service = customUrl.hostname.split('.')[0];
-				region = customUrl.hostname.split('.')[1];
+				region = customUrl.hostname.split('.')[1] as AWSRegion;
 				if (service === 'sts') {
 					try {
 						customUrl.searchParams.set('Action', 'GetCallerIdentity');

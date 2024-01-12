@@ -1,7 +1,6 @@
 import type {
 	IHookFunctions,
 	IWebhookFunctions,
-	ICredentialDataDecryptedObject,
 	IDataObject,
 	INodeType,
 	INodeTypeDescription,
@@ -12,6 +11,7 @@ import basicAuth from 'basic-auth';
 
 import type { Response } from 'express';
 import { pipedriveApiRequest } from './GenericFunctions';
+import type { HttpBasicAuthCredential } from '@credentials/HttpBasicAuth.credentials';
 
 function authorizationError(resp: Response, realm: string, responseCode: number, message?: string) {
 	if (message === undefined) {
@@ -260,10 +260,10 @@ export class PipedriveTrigger implements INodeType {
 				};
 
 				if (incomingAuthentication === 'basicAuth') {
-					let httpBasicAuth;
+					let httpBasicAuth: HttpBasicAuthCredential | undefined;
 
 					try {
-						httpBasicAuth = await this.getCredentials('httpBasicAuth');
+						httpBasicAuth = await this.getCredentials<HttpBasicAuthCredential>('httpBasicAuth');
 					} catch (error) {
 						// Do nothing
 					}
@@ -273,8 +273,8 @@ export class PipedriveTrigger implements INodeType {
 						return false;
 					}
 
-					body.http_auth_user = httpBasicAuth.user as string;
-					body.http_auth_password = httpBasicAuth.password as string;
+					body.http_auth_user = httpBasicAuth.user;
+					body.http_auth_password = httpBasicAuth.password;
 				}
 
 				const responseData = await pipedriveApiRequest.call(this, 'POST', endpoint, body);
@@ -322,10 +322,10 @@ export class PipedriveTrigger implements INodeType {
 
 		if (incomingAuthentication === 'basicAuth') {
 			// Basic authorization is needed to call webhook
-			let httpBasicAuth: ICredentialDataDecryptedObject | undefined;
+			let httpBasicAuth: HttpBasicAuthCredential | undefined;
 
 			try {
-				httpBasicAuth = await this.getCredentials('httpBasicAuth');
+				httpBasicAuth = await this.getCredentials<HttpBasicAuthCredential>('httpBasicAuth');
 			} catch (error) {
 				// Do nothing
 			}

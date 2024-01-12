@@ -5,6 +5,11 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface FreshworksCrmApiCredential {
+	apiKey: string;
+	domain: string;
+}
+
 export class FreshworksCrmApi implements ICredentialType {
 	name = 'freshworksCrmApi';
 

@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface HumanticAiApiCredential {
+	apiKey: string;
+}
+
 export class HumanticAiApi implements ICredentialType {
 	name = 'humanticAiApi';
 

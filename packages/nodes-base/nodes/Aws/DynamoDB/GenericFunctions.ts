@@ -9,6 +9,7 @@ import type {
 } from 'n8n-workflow';
 import { ApplicationError, deepCopy } from 'n8n-workflow';
 
+import type { AwsCredential } from '@credentials/Aws.credentials';
 import type { IRequestBody } from './types';
 
 export async function awsApiRequest(
@@ -19,7 +20,7 @@ export async function awsApiRequest(
 	body?: object | IRequestBody,
 	headers?: object,
 ): Promise<any> {
-	const credentials = await this.getCredentials('aws');
+	const credentials = await this.getCredentials<AwsCredential>('aws');
 	const requestOptions = {
 		qs: {
 			service,

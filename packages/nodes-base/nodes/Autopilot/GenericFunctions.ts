@@ -9,18 +9,18 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { AutopilotApiCredential } from '@credentials/AutopilotApi.credentials';
 
 export async function autopilotApiRequest(
 	this: IExecuteFunctions | IWebhookFunctions | IHookFunctions | ILoadOptionsFunctions,
 	method: string,
 	resource: string,
-
 	body: any = {},
 	query: IDataObject = {},
 	uri?: string,
 	_option: IDataObject = {},
 ): Promise<any> {
-	const credentials = (await this.getCredentials('autopilotApi')) as IDataObject;
+	const credentials = await this.getCredentials<AutopilotApiCredential>('autopilotApi');
 
 	const apiKey = `${credentials.apiKey}`;
 

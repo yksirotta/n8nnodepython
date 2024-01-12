@@ -1,5 +1,13 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface AmqpCredential {
+	hostname: string;
+	port: number;
+	username?: string;
+	password?: string;
+	transportType?: 'tcp' | 'tls';
+}
+
 export class Amqp implements ICredentialType {
 	name = 'amqp';
 

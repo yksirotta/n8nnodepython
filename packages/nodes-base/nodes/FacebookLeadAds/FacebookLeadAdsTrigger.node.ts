@@ -17,6 +17,7 @@ import {
 } from './GenericFunctions';
 import { listSearch } from './methods';
 import type { FacebookForm, FacebookFormLeadData, FacebookPageEvent } from './types';
+import type { FacebookLeadAdsOAuth2ApiCredential } from '@credentials/FacebookLeadAdsOAuth2Api.credentials';
 
 export class FacebookLeadAdsTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -149,8 +150,10 @@ export class FacebookLeadAdsTrigger implements INodeType {
 		default: {
 			async checkExists(this: IHookFunctions): Promise<boolean> {
 				const webhookUrl = this.getNodeWebhookUrl('default') as string;
-				const credentials = await this.getCredentials('facebookLeadAdsOAuth2Api');
-				const appId = credentials.clientId as string;
+				const credentials = await this.getCredentials<FacebookLeadAdsOAuth2ApiCredential>(
+					'facebookLeadAdsOAuth2Api',
+				);
+				const appId = credentials.clientId;
 
 				const webhooks = await appWebhookSubscriptionList.call(this, appId);
 
@@ -177,8 +180,10 @@ export class FacebookLeadAdsTrigger implements INodeType {
 			},
 			async create(this: IHookFunctions): Promise<boolean> {
 				const webhookUrl = this.getNodeWebhookUrl('default') as string;
-				const credentials = await this.getCredentials('facebookLeadAdsOAuth2Api');
-				const appId = credentials.clientId as string;
+				const credentials = await this.getCredentials<FacebookLeadAdsOAuth2ApiCredential>(
+					'facebookLeadAdsOAuth2Api',
+				);
+				const appId = credentials.clientId;
 				const pageId = this.getNodeParameter('page', '', { extractValue: true }) as string;
 				const verifyToken = this.getNode().id;
 
@@ -195,8 +200,10 @@ export class FacebookLeadAdsTrigger implements INodeType {
 				return true;
 			},
 			async delete(this: IHookFunctions): Promise<boolean> {
-				const credentials = await this.getCredentials('facebookLeadAdsOAuth2Api');
-				const appId = credentials.clientId as string;
+				const credentials = await this.getCredentials<FacebookLeadAdsOAuth2ApiCredential>(
+					'facebookLeadAdsOAuth2Api',
+				);
+				const appId = credentials.clientId;
 
 				await appWebhookSubscriptionDelete.call(this, appId, 'page');
 
@@ -211,7 +218,9 @@ export class FacebookLeadAdsTrigger implements INodeType {
 		const res = this.getResponseObject();
 		const req = this.getRequestObject();
 		const headerData = this.getHeaderData() as IDataObject;
-		const credentials = await this.getCredentials('facebookLeadAdsOAuth2Api');
+		const credentials = await this.getCredentials<FacebookLeadAdsOAuth2ApiCredential>(
+			'facebookLeadAdsOAuth2Api',
+		);
 		const pageId = this.getNodeParameter('page', '', { extractValue: true }) as string;
 		const formId = this.getNodeParameter('form', '', { extractValue: true }) as string;
 
@@ -228,7 +237,7 @@ export class FacebookLeadAdsTrigger implements INodeType {
 			}
 		}
 
-		const computedSignature = createHmac('sha256', credentials.clientSecret as string)
+		const computedSignature = createHmac('sha256', credentials.clientSecret)
 			.update(req.rawBody)
 			.digest('hex');
 		if (headerData['x-hub-signature-256'] !== `sha256=${computedSignature}`) {

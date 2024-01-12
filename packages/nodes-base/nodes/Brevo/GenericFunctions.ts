@@ -8,6 +8,7 @@ import type {
 import { jsonParse, NodeOperationError } from 'n8n-workflow';
 import type { OptionsWithUri } from 'request';
 import MailComposer from 'nodemailer/lib/mail-composer';
+import { BrevoApiCredential } from '@credentials/BrevoApi.credentials';
 export namespace BrevoNode {
 	type ValidEmailFields = { to: string } | { sender: string } | { cc: string } | { bcc: string };
 	type Address = { address: string; name?: string };
@@ -302,8 +303,8 @@ export namespace BrevoWebhookApi {
 		[
 			'apiKey',
 			async (ref: IWebhookFunctions): Promise<string> => {
-				const credentials = await ref.getCredentials(credentialsName);
-				return credentials.sharedSecret as string;
+				const credentials = await ref.getCredentials<BrevoApiCredential>(credentialsName);
+				return credentials.sharedSecret as string; // TODO: what's this?
 			},
 		],
 	]);

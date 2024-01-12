@@ -1,10 +1,15 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface InvoiceNinjaApiCredential {
+	url: string;
+	apiToken: string;
+	secret: string;
+}
 
 export class InvoiceNinjaApi implements ICredentialType {
 	name = 'invoiceNinjaApi';
@@ -47,12 +52,11 @@ export class InvoiceNinjaApi implements ICredentialType {
 	};
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ apiToken, secret }: InvoiceNinjaApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		const VERSION_5_TOKEN_LENGTH = 64;
-		const { apiToken, secret } = credentials;
-		const tokenLength = (apiToken as string).length;
+		const tokenLength = apiToken.length;
 
 		if (tokenLength < VERSION_5_TOKEN_LENGTH) {
 			requestOptions.headers = {

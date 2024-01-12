@@ -12,6 +12,7 @@ import { sleep, NodeApiError, jsonParse } from 'n8n-workflow';
 
 import type FormData from 'form-data';
 import { getCredentialsType, requestApi } from './helpers';
+import type { DiscordWebhookApiCredential } from '@credentials/DiscordWebhookApi.credentials';
 
 export async function discordApiRequest(
 	this: IHookFunctions | IExecuteFunctions | IExecuteSingleFunctions | ILoadOptionsFunctions,
@@ -35,8 +36,8 @@ export async function discordApiRequest(
 	};
 
 	if (credentialType === 'discordWebhookApi') {
-		const credentials = await this.getCredentials('discordWebhookApi');
-		options.url = credentials.webhookUri as string;
+		const credentials = await this.getCredentials<DiscordWebhookApiCredential>('discordWebhookApi');
+		options.url = credentials.webhookUri;
 	}
 
 	try {
@@ -78,8 +79,8 @@ export async function discordApiMultiPartRequest(
 	};
 
 	if (credentialType === 'discordWebhookApi') {
-		const credentials = await this.getCredentials('discordWebhookApi');
-		options.url = credentials.webhookUri as string;
+		const credentials = await this.getCredentials<DiscordWebhookApiCredential>('discordWebhookApi');
+		options.url = credentials.webhookUri;
 	}
 
 	try {

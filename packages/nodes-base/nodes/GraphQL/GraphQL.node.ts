@@ -13,6 +13,14 @@ import { NodeApiError, NodeOperationError, jsonParse } from 'n8n-workflow';
 import type { OptionsWithUri } from 'request';
 import type { RequestPromiseOptions } from 'request-promise-native';
 
+import type { HttpBasicAuthCredential } from '@credentials/HttpBasicAuth.credentials';
+import type { HttpCustomAuthCredential } from '@credentials/HttpCustomAuth.credentials';
+import type { HttpDigestAuthCredential } from '@credentials/HttpDigestAuth.credentials';
+import type { HttpHeaderAuthCredential } from '@credentials/HttpHeaderAuth.credentials';
+import type { HttpQueryAuthCredential } from '@credentials/HttpQueryAuth.credentials';
+import type { OAuth1ApiCredential } from '@credentials/OAuth1Api.credentials';
+import type { OAuth2ApiCredential } from '@credentials/OAuth2Api.credentials';
+
 export class GraphQL implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'GraphQL',
@@ -296,49 +304,35 @@ export class GraphQL implements INodeType {
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
-		let httpBasicAuth;
-		let httpDigestAuth;
-		let httpCustomAuth;
-		let httpHeaderAuth;
-		let httpQueryAuth;
-		let oAuth1Api;
-		let oAuth2Api;
+		let httpBasicAuth: HttpBasicAuthCredential | undefined;
+		let httpDigestAuth: HttpDigestAuthCredential | undefined;
+		let httpCustomAuth: HttpCustomAuthCredential | undefined;
+		let httpHeaderAuth: HttpHeaderAuthCredential | undefined;
+		let httpQueryAuth: HttpQueryAuthCredential | undefined;
+		let oAuth1Api: OAuth1ApiCredential | undefined;
+		let oAuth2Api: OAuth2ApiCredential | undefined;
 
 		try {
-			httpBasicAuth = await this.getCredentials('httpBasicAuth');
-		} catch (error) {
-			// Do nothing
-		}
+			httpBasicAuth = await this.getCredentials<HttpBasicAuthCredential>('httpBasicAuth');
+		} catch (error) {}
 		try {
-			httpCustomAuth = await this.getCredentials('httpCustomAuth');
-		} catch (error) {
-			// Do nothing
-		}
+			httpCustomAuth = await this.getCredentials<HttpCustomAuthCredential>('httpCustomAuth');
+		} catch (error) {}
 		try {
-			httpDigestAuth = await this.getCredentials('httpDigestAuth');
-		} catch (error) {
-			// Do nothing
-		}
+			httpDigestAuth = await this.getCredentials<HttpDigestAuthCredential>('httpDigestAuth');
+		} catch (error) {}
 		try {
-			httpHeaderAuth = await this.getCredentials('httpHeaderAuth');
-		} catch (error) {
-			// Do nothing
-		}
+			httpHeaderAuth = await this.getCredentials<HttpHeaderAuthCredential>('httpHeaderAuth');
+		} catch (error) {}
 		try {
-			httpQueryAuth = await this.getCredentials('httpQueryAuth');
-		} catch (error) {
-			// Do nothing
-		}
+			httpQueryAuth = await this.getCredentials<HttpQueryAuthCredential>('httpQueryAuth');
+		} catch (error) {}
 		try {
-			oAuth1Api = await this.getCredentials('oAuth1Api');
-		} catch (error) {
-			// Do nothing
-		}
+			oAuth1Api = await this.getCredentials<OAuth1ApiCredential>('oAuth1Api');
+		} catch (error) {}
 		try {
-			oAuth2Api = await this.getCredentials('oAuth2Api');
-		} catch (error) {
-			// Do nothing
-		}
+			oAuth2Api = await this.getCredentials<OAuth2ApiCredential>('oAuth2Api');
+		} catch (error) {}
 
 		let requestOptions: OptionsWithUri & RequestPromiseOptions;
 
@@ -377,15 +371,14 @@ export class GraphQL implements INodeType {
 				// Add credentials if any are set
 				if (httpBasicAuth !== undefined) {
 					requestOptions.auth = {
-						user: httpBasicAuth.user as string,
-						pass: httpBasicAuth.password as string,
+						user: httpBasicAuth.user,
+						pass: httpBasicAuth.password,
 					};
 				}
 				if (httpCustomAuth !== undefined) {
-					const customAuth = jsonParse<IRequestOptionsSimplified>(
-						(httpCustomAuth.json as string) || '{}',
-						{ errorMessage: 'Invalid Custom Auth JSON' },
-					);
+					const customAuth = jsonParse<IRequestOptionsSimplified>(httpCustomAuth.json || '{}', {
+						errorMessage: 'Invalid Custom Auth JSON',
+					});
 					if (customAuth.headers) {
 						requestOptions.headers = { ...requestOptions.headers, ...customAuth.headers };
 					}
@@ -397,18 +390,18 @@ export class GraphQL implements INodeType {
 					}
 				}
 				if (httpHeaderAuth !== undefined) {
-					requestOptions.headers![httpHeaderAuth.name as string] = httpHeaderAuth.value;
+					requestOptions.headers![httpHeaderAuth.name] = httpHeaderAuth.value;
 				}
 				if (httpQueryAuth !== undefined) {
 					if (!requestOptions.qs) {
 						requestOptions.qs = {};
 					}
-					requestOptions.qs[httpQueryAuth.name as string] = httpQueryAuth.value;
+					requestOptions.qs[httpQueryAuth.name] = httpQueryAuth.value;
 				}
 				if (httpDigestAuth !== undefined) {
 					requestOptions.auth = {
-						user: httpDigestAuth.user as string,
-						pass: httpDigestAuth.password as string,
+						user: httpDigestAuth.user,
+						pass: httpDigestAuth.password,
 						sendImmediately: false,
 					};
 				}

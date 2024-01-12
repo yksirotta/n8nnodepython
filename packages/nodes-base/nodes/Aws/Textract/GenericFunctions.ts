@@ -8,7 +8,6 @@ import type { OptionsWithUri } from 'request';
 import { parseString } from 'xml2js';
 
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestFunctions,
 	IExecuteFunctions,
 	IHookFunctions,
@@ -19,10 +18,9 @@ import type {
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
 
-function getEndpointForService(
-	service: string,
-	credentials: ICredentialDataDecryptedObject,
-): string {
+import type { AwsCredential } from '@credentials/Aws.credentials';
+
+function getEndpointForService(service: string, credentials: AwsCredential): string {
 	let endpoint;
 	if (service === 'lambda' && credentials.lambdaEndpoint) {
 		endpoint = credentials.lambdaEndpoint;
@@ -31,7 +29,7 @@ function getEndpointForService(
 	} else {
 		endpoint = `https://${service}.${credentials.region}.amazonaws.com`;
 	}
-	return (endpoint as string).replace('{region}', credentials.region as string);
+	return endpoint.replace('{region}', credentials.region as string);
 }
 
 export async function awsApiRequest(
@@ -42,7 +40,7 @@ export async function awsApiRequest(
 	body?: string,
 	headers?: object,
 ): Promise<any> {
-	const credentials = await this.getCredentials('aws');
+	const credentials = await this.getCredentials<AwsCredential>('aws');
 
 	const requestOptions = {
 		qs: {
@@ -139,7 +137,7 @@ export interface IExpenseDocument {
 
 export async function validateCredentials(
 	this: ICredentialTestFunctions,
-	decryptedCredentials: ICredentialDataDecryptedObject,
+	decryptedCredentials: AwsCredential,
 	service: string,
 ): Promise<any> {
 	const credentials = decryptedCredentials;

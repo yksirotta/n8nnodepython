@@ -9,6 +9,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { EventbriteApiCredential } from '@credentials/EventbriteApi.credentials';
 
 export async function eventbriteApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions,
@@ -37,7 +38,7 @@ export async function eventbriteApiRequest(
 
 	try {
 		if (authenticationMethod === 'privateKey') {
-			const credentials = await this.getCredentials('eventbriteApi');
+			const credentials = await this.getCredentials<EventbriteApiCredential>('eventbriteApi');
 
 			options.headers!.Authorization = `Bearer ${credentials.apiKey}`;
 			return await this.helpers.request(options);

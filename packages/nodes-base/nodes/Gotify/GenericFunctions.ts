@@ -7,6 +7,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { GotifyApiCredential } from '@credentials/GotifyApi.credentials';
 
 export async function gotifyApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
@@ -18,7 +19,7 @@ export async function gotifyApiRequest(
 	uri?: string | undefined,
 	_option = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('gotifyApi');
+	const credentials = await this.getCredentials<GotifyApiCredential>('gotifyApi');
 
 	const options: OptionsWithUri = {
 		method,

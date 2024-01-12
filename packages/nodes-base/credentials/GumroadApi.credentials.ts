@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface GumroadApiCredential {
+	accessToken: string;
+}
+
 export class GumroadApi implements ICredentialType {
 	name = 'gumroadApi';
 

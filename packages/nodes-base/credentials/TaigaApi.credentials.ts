@@ -1,5 +1,12 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface TaigaApiCredential {
+	username: string;
+	password: string;
+	environment: 'cloud' | 'self-hosted';
+	url: string;
+}
+
 export class TaigaApi implements ICredentialType {
 	name = 'taigaApi';
 

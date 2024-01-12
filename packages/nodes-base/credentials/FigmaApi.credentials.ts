@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface FigmaApiCredential {
+	accessToken: string;
+}
+
 export class FigmaApi implements ICredentialType {
 	name = 'figmaApi';
 

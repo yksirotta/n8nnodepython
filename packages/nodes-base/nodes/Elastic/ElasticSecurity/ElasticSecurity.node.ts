@@ -33,12 +33,8 @@ import {
 	connectorOperations,
 } from './descriptions';
 
-import type {
-	Connector,
-	ConnectorCreatePayload,
-	ConnectorType,
-	ElasticSecurityApiCredentials,
-} from './types';
+import type { Connector, ConnectorCreatePayload, ConnectorType } from './types';
+import type { ElasticSecurityApiCredential } from '@credentials/ElasticSecurityApi.credentials';
 
 export class ElasticSecurity implements INodeType {
 	description: INodeTypeDescription = {
@@ -118,13 +114,9 @@ export class ElasticSecurity implements INodeType {
 		credentialTest: {
 			async elasticSecurityApiTest(
 				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
+				credential: ICredentialsDecrypted<ElasticSecurityApiCredential>,
 			): Promise<INodeCredentialTestResult> {
-				const {
-					username,
-					password,
-					baseUrl: rawBaseUrl,
-				} = credential.data as ElasticSecurityApiCredentials;
+				const { username, password, baseUrl: rawBaseUrl } = credential.data;
 
 				const baseUrl = tolerateTrailingSlash(rawBaseUrl);
 

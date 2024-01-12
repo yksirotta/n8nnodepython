@@ -1,12 +1,18 @@
 import { ApplicationError } from 'n8n-workflow';
 import type {
 	IAuthenticateGeneric,
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestHelper,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface ZscalerZiaApiCredential {
+	baseUrl: string;
+	username: string;
+	password: string;
+	apiKey: string;
+}
 
 export class ZscalerZiaApi implements ICredentialType {
 	name = 'zscalerZiaApi';
@@ -68,12 +74,10 @@ export class ZscalerZiaApi implements ICredentialType {
 		},
 	];
 
-	async preAuthentication(this: IHttpRequestHelper, credentials: ICredentialDataDecryptedObject) {
+	async preAuthentication(this: IHttpRequestHelper, credentials: ZscalerZiaApiCredential) {
 		const { baseUrl, username, password, apiKey } = credentials;
 
-		const url = (baseUrl as string).endsWith('/')
-			? (baseUrl as string).slice(0, -1)
-			: (baseUrl as string);
+		const url = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
 
 		const now = Date.now().toString();
 
@@ -105,7 +109,7 @@ export class ZscalerZiaApi implements ICredentialType {
 				'Cache-Control': 'no-cache',
 			},
 			body: {
-				apiKey: obfuscate(apiKey as string, now),
+				apiKey: obfuscate(apiKey, now),
 				username,
 				password,
 				timestamp: now,

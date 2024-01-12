@@ -1,4 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { OAuth2ApiCredential } from './OAuth2Api.credentials';
+
+export interface GithubOAuth2ApiCredential extends OAuth2ApiCredential {
+	server: string;
+}
 
 export class GithubOAuth2Api implements ICredentialType {
 	name = 'githubOAuth2Api';

@@ -1,10 +1,5 @@
 import type { IDataObject } from 'n8n-workflow';
 
-export type FreshserviceCredentials = {
-	apiKey: string;
-	domain: string;
-};
-
 export type LoadedResource = {
 	id: string;
 	name: string;

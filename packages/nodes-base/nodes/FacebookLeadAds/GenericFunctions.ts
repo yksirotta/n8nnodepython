@@ -17,6 +17,7 @@ import type {
 	FacebookPage,
 	FacebookPageListResponse,
 } from './types';
+import type { FacebookLeadAdsOAuth2ApiCredential } from '@credentials/FacebookLeadAdsOAuth2Api.credentials';
 
 export async function facebookApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions,
@@ -49,7 +50,9 @@ export async function facebookApiRequest(
 export async function appAccessTokenRead(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions,
 ): Promise<{ access_token: string }> {
-	const credentials = await this.getCredentials('facebookLeadAdsOAuth2Api');
+	const credentials = await this.getCredentials<FacebookLeadAdsOAuth2ApiCredential>(
+		'facebookLeadAdsOAuth2Api',
+	);
 
 	const options: OptionsWithUri = {
 		headers: {
@@ -61,7 +64,7 @@ export async function appAccessTokenRead(
 			client_secret: credentials.clientSecret,
 			grant_type: 'client_credentials',
 		},
-		uri: credentials.accessTokenUrl as string,
+		uri: credentials.accessTokenUrl,
 		json: true,
 	};
 	try {

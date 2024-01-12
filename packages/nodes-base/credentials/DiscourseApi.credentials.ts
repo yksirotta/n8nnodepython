@@ -1,10 +1,15 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface DiscourseApiCredential {
+	url: string;
+	apiKey: string;
+	username: string;
+}
 
 export class DiscourseApi implements ICredentialType {
 	name = 'discourseApi';
@@ -39,7 +44,7 @@ export class DiscourseApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		credentials: DiscourseApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		requestOptions.headers = {

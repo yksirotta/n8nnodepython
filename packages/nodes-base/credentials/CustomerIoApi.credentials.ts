@@ -1,10 +1,12 @@
 import { ApplicationError } from 'n8n-workflow';
-import type {
-	ICredentialDataDecryptedObject,
-	ICredentialType,
-	IHttpRequestOptions,
-	INodeProperties,
-} from 'n8n-workflow';
+import type { ICredentialType, IHttpRequestOptions, INodeProperties } from 'n8n-workflow';
+
+export interface CustomerIoApiCredential {
+	trackingApiKey: string;
+	region: 'track-eu.customer.io' | 'track.customer.io';
+	trackingSiteId: string;
+	appApiKey: string;
+}
 
 export class CustomerIoApi implements ICredentialType {
 	name = 'customerIoApi';
@@ -60,21 +62,19 @@ export class CustomerIoApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ appApiKey, trackingSiteId, trackingApiKey }: CustomerIoApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		// @ts-ignore
-		const url = requestOptions.url ? requestOptions.url : requestOptions.uri;
+		const url: string = requestOptions.url ? requestOptions.url : requestOptions.uri;
 		if (url.includes('track') || url.includes('api.customer.io')) {
-			const basicAuthKey = Buffer.from(
-				`${credentials.trackingSiteId}:${credentials.trackingApiKey}`,
-			).toString('base64');
+			const basicAuthKey = Buffer.from(`${trackingSiteId}:${trackingApiKey}`).toString('base64');
 			// @ts-ignore
 			Object.assign(requestOptions.headers, { Authorization: `Basic ${basicAuthKey}` });
 		} else if (url.includes('beta-api.customer.io')) {
 			// @ts-ignore
 			Object.assign(requestOptions.headers, {
-				Authorization: `Bearer ${credentials.appApiKey as string}`,
+				Authorization: `Bearer ${appApiKey}`,
 			});
 		} else {
 			throw new ApplicationError('Unknown way of authenticating', { level: 'warning' });

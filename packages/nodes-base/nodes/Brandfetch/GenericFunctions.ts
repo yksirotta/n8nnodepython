@@ -8,6 +8,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { BrandfetchApiCredential } from '@credentials/BrandfetchApi.credentials';
 
 export async function brandfetchApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -20,7 +21,7 @@ export async function brandfetchApiRequest(
 	option: IDataObject = {},
 ): Promise<any> {
 	try {
-		const credentials = await this.getCredentials('brandfetchApi');
+		const credentials = await this.getCredentials<BrandfetchApiCredential>('brandfetchApi');
 		let options: OptionsWithUri = {
 			headers: {
 				'x-api-key': credentials.apiKey,

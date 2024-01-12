@@ -8,6 +8,7 @@ import type {
 } from 'n8n-workflow';
 
 import { calendlyApiRequest, getAuthenticationType } from './GenericFunctions';
+import type { CalendlyApiCredential } from '@credentials/CalendlyApi.credentials';
 
 export class CalendlyTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -86,7 +87,7 @@ export class CalendlyTrigger implements INodeType {
 				const webhookUrl = this.getNodeWebhookUrl('default');
 				const webhookData = this.getWorkflowStaticData('node');
 				const events = this.getNodeParameter('events') as string;
-				const { apiKey } = (await this.getCredentials('calendlyApi')) as { apiKey: string };
+				const { apiKey } = await this.getCredentials<CalendlyApiCredential>('calendlyApi');
 
 				const authenticationType = getAuthenticationType(apiKey);
 
@@ -149,7 +150,7 @@ export class CalendlyTrigger implements INodeType {
 				const webhookData = this.getWorkflowStaticData('node');
 				const webhookUrl = this.getNodeWebhookUrl('default');
 				const events = this.getNodeParameter('events') as string;
-				const { apiKey } = (await this.getCredentials('calendlyApi')) as { apiKey: string };
+				const { apiKey } = await this.getCredentials<CalendlyApiCredential>('calendlyApi');
 
 				const authenticationType = getAuthenticationType(apiKey);
 
@@ -201,7 +202,7 @@ export class CalendlyTrigger implements INodeType {
 			},
 			async delete(this: IHookFunctions): Promise<boolean> {
 				const webhookData = this.getWorkflowStaticData('node');
-				const { apiKey } = (await this.getCredentials('calendlyApi')) as { apiKey: string };
+				const { apiKey } = await this.getCredentials<CalendlyApiCredential>('calendlyApi');
 				const authenticationType = getAuthenticationType(apiKey);
 
 				// remove condition once API Keys are deprecated

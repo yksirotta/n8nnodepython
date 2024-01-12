@@ -8,12 +8,13 @@ import type {
 import { NodeApiError } from 'n8n-workflow';
 
 import type { OptionsWithUri } from 'request';
+import type { BitwardenApiCredential } from '@credentials/BitwardenApi.credentials';
 
 /**
  * Return the access token URL based on the user's environment.
  */
 async function getTokenUrl(this: IExecuteFunctions | ILoadOptionsFunctions) {
-	const { environment, domain } = await this.getCredentials('bitwardenApi');
+	const { environment, domain } = await this.getCredentials<BitwardenApiCredential>('bitwardenApi');
 
 	return environment === 'cloudHosted'
 		? 'https://identity.bitwarden.com/connect/token'
@@ -24,7 +25,7 @@ async function getTokenUrl(this: IExecuteFunctions | ILoadOptionsFunctions) {
  * Return the base API URL based on the user's environment.
  */
 async function getBaseUrl(this: IExecuteFunctions | ILoadOptionsFunctions) {
-	const { environment, domain } = await this.getCredentials('bitwardenApi');
+	const { environment, domain } = await this.getCredentials<BitwardenApiCredential>('bitwardenApi');
 
 	return environment === 'cloudHosted' ? 'https://api.bitwarden.com' : `${domain}/api`;
 }
@@ -75,7 +76,7 @@ export async function bitwardenApiRequest(
 export async function getAccessToken(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
 ): Promise<any> {
-	const credentials = await this.getCredentials('bitwardenApi');
+	const credentials = await this.getCredentials<BitwardenApiCredential>('bitwardenApi');
 
 	const options: OptionsWithUri = {
 		headers: {

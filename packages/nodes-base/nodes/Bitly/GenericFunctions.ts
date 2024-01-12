@@ -8,6 +8,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { BitlyApiCredential } from '@credentials/BitlyApi.credentials';
 
 export async function bitlyApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -35,7 +36,7 @@ export async function bitlyApiRequest(
 
 	try {
 		if (authenticationMethod === 'accessToken') {
-			const credentials = await this.getCredentials('bitlyApi');
+			const credentials = await this.getCredentials<BitlyApiCredential>('bitlyApi');
 			options.headers = { Authorization: `Bearer ${credentials.accessToken}` };
 
 			return await this.helpers.request(options);

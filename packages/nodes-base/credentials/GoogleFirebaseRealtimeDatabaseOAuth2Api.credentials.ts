@@ -1,10 +1,16 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { GoogleOAuth2ApiCredential } from './GoogleOAuth2Api.credentials';
 
 const scopes = [
 	'https://www.googleapis.com/auth/userinfo.email',
 	'https://www.googleapis.com/auth/firebase.database',
 	'https://www.googleapis.com/auth/firebase',
 ];
+
+export interface GoogleFirebaseRealtimeDatabaseOAuth2ApiCredential
+	extends GoogleOAuth2ApiCredential {
+	region: string;
+}
 
 export class GoogleFirebaseRealtimeDatabaseOAuth2Api implements ICredentialType {
 	name = 'googleFirebaseRealtimeDatabaseOAuth2Api';

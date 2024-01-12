@@ -1,7 +1,6 @@
 import type { OptionsWithUri } from 'request';
 
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestFunctions,
 	IDataObject,
 	IExecuteFunctions,
@@ -12,6 +11,9 @@ import type {
 import { NodeApiError } from 'n8n-workflow';
 
 import moment from 'moment-timezone';
+import type { HubspotApiCredential } from '@credentials/HubspotApi.credentials';
+import type { HubspotAppTokenCredential } from '@credentials/HubspotAppToken.credentials';
+import type { HubspotDeveloperApiCredential } from '@credentials/HubspotDeveloperApi.credentials';
 
 export async function hubspotApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -41,19 +43,20 @@ export async function hubspotApiRequest(
 
 	try {
 		if (authenticationMethod === 'apiKey') {
-			const credentials = await this.getCredentials('hubspotApi');
+			const credentials = await this.getCredentials<HubspotApiCredential>('hubspotApi');
 
-			options.qs.hapikey = credentials.apiKey as string;
+			options.qs.hapikey = credentials.apiKey;
 			return await this.helpers.request(options);
 		} else if (authenticationMethod === 'appToken') {
-			const credentials = await this.getCredentials('hubspotAppToken');
+			const credentials = await this.getCredentials<HubspotAppTokenCredential>('hubspotAppToken');
 
 			options.headers!.Authorization = `Bearer ${credentials.appToken}`;
 			return await this.helpers.request(options);
 		} else if (authenticationMethod === 'developerApi') {
 			if (endpoint.includes('webhooks')) {
-				const credentials = await this.getCredentials('hubspotDeveloperApi');
-				options.qs.hapikey = credentials.apiKey as string;
+				const credentials =
+					await this.getCredentials<HubspotDeveloperApiCredential>('hubspotDeveloperApi');
+				options.qs.hapikey = credentials.apiKey;
 				return await this.helpers.request(options);
 			} else {
 				return await this.helpers.requestOAuth2.call(this, 'hubspotDeveloperApi', options, {
@@ -1992,8 +1995,7 @@ export const getAssociations = (associations: {
 
 export async function validateCredentials(
 	this: ICredentialTestFunctions,
-	decryptedCredentials: ICredentialDataDecryptedObject,
-	// tslint:disable-next-line:no-any
+	decryptedCredentials: HubspotAppTokenCredential | HubspotDeveloperApiCredential,
 ): Promise<any> {
 	const credentials = decryptedCredentials;
 

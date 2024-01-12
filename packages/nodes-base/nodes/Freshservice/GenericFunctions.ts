@@ -10,12 +10,8 @@ import { NodeApiError, NodeOperationError } from 'n8n-workflow';
 import type { OptionsWithUri } from 'request';
 
 import { omit } from 'lodash';
-import type {
-	AddressFixedCollection,
-	FreshserviceCredentials,
-	LoadedUser,
-	RolesParameter,
-} from './types';
+import type { AddressFixedCollection, LoadedUser, RolesParameter } from './types';
+import type { FreshserviceApiCredential } from '@credentials/FreshserviceApi.credentials';
 
 export async function freshserviceApiRequest(
 	this: IExecuteFunctions | IHookFunctions | ILoadOptionsFunctions,
@@ -24,9 +20,8 @@ export async function freshserviceApiRequest(
 	body: IDataObject = {},
 	qs: IDataObject = {},
 ) {
-	const { apiKey, domain } = (await this.getCredentials(
-		'freshserviceApi',
-	)) as FreshserviceCredentials;
+	const { apiKey, domain } =
+		await this.getCredentials<FreshserviceApiCredential>('freshserviceApi');
 	const encodedApiKey = Buffer.from(`${apiKey}:X`).toString('base64');
 
 	const options: OptionsWithUri = {

@@ -3,7 +3,6 @@ import { createHash } from 'crypto';
 import type { OptionsWithUri } from 'request';
 
 import type {
-	ICredentialDataDecryptedObject,
 	IDataObject,
 	IExecuteFunctions,
 	IHookFunctions,
@@ -22,6 +21,7 @@ import type {
 	EmailsFixedCollection,
 	PhoneNumbersFixedCollection,
 } from './utils/types';
+import type { CopperApiCredential } from '@credentials/CopperApi.credentials';
 
 /**
  * Make an authenticated API request to Copper.
@@ -35,7 +35,7 @@ export async function copperApiRequest(
 	uri = '',
 	option: IDataObject = {},
 ) {
-	const credentials = (await this.getCredentials('copperApi')) as { apiKey: string; email: string };
+	const credentials = await this.getCredentials<CopperApiCredential>('copperApi');
 
 	let options: OptionsWithUri = {
 		headers: {
@@ -70,9 +70,8 @@ export async function copperApiRequest(
 
 /**
  * Creates a secret from the credentials
- *
  */
-export function getAutomaticSecret(credentials: ICredentialDataDecryptedObject) {
+export function getAutomaticSecret(credentials: CopperApiCredential) {
 	const data = `${credentials.email},${credentials.apiKey}`;
 	return createHash('md5').update(data).digest('hex');
 }

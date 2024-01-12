@@ -24,8 +24,8 @@ import rfc2047 from 'rfc2047';
 import isEmpty from 'lodash/isEmpty';
 import find from 'lodash/find';
 
-import type { ICredentialsDataImap } from '../../../credentials/Imap.credentials';
-import { isCredentialsDataImap } from '../../../credentials/Imap.credentials';
+import type { ImapCredential } from '@credentials/Imap.credentials';
+import { isCredentialsDataImap } from '@credentials/Imap.credentials';
 
 export async function parseRawEmail(
 	this: ITriggerFunctions,
@@ -229,10 +229,10 @@ export class EmailReadImapV2 implements INodeType {
 		credentialTest: {
 			async imapConnectionTest(
 				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
+				credential: ICredentialsDecrypted<ImapCredential>,
 			): Promise<INodeCredentialTestResult> {
 				if (isCredentialsDataImap(credential.data)) {
-					const credentials = credential.data as ICredentialsDataImap;
+					const credentials = credential.data;
 					try {
 						const config: ImapSimpleOptions = {
 							imap: {
@@ -280,7 +280,7 @@ export class EmailReadImapV2 implements INodeType {
 	};
 
 	async trigger(this: ITriggerFunctions): Promise<ITriggerResponse> {
-		const credentialsObject = await this.getCredentials('imap');
+		const credentialsObject = await this.getCredentials<ImapCredential>('imap');
 		const credentials = isCredentialsDataImap(credentialsObject) ? credentialsObject : undefined;
 		if (!credentials) {
 			throw new NodeOperationError(this.getNode(), 'Credentials are not valid for imap node.');

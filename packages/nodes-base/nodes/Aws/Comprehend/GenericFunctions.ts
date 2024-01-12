@@ -7,6 +7,7 @@ import type {
 	IWebhookFunctions,
 	IHttpRequestOptions,
 } from 'n8n-workflow';
+import type { AwsCredential } from '@credentials/Aws.credentials';
 
 export async function awsApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions,
@@ -16,7 +17,7 @@ export async function awsApiRequest(
 	body?: string,
 	headers?: object,
 ): Promise<any> {
-	const credentials = await this.getCredentials('aws');
+	const credentials = await this.getCredentials<AwsCredential>('aws');
 
 	const requestOptions = {
 		qs: {

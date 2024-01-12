@@ -10,6 +10,7 @@ import type {
 import { ApplicationError, NodeApiError } from 'n8n-workflow';
 
 import type { OptionsWithUri } from 'request';
+import type { FormstackApiCredential } from '@credentials/FormstackApi.credentials';
 
 export interface IFormstackFieldDefinitionType {
 	id: string;
@@ -73,7 +74,7 @@ export async function apiRequest(
 
 	try {
 		if (authenticationMethod === 'accessToken') {
-			const credentials = (await this.getCredentials('formstackApi')) as IDataObject;
+			const credentials = await this.getCredentials<FormstackApiCredential>('formstackApi');
 
 			options.headers!.Authorization = `Bearer ${credentials.accessToken}`;
 			return await this.helpers.request(options);

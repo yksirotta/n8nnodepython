@@ -1,11 +1,15 @@
-import { BINARY_ENCODING } from 'n8n-workflow';
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface ShopifyApiCredential {
+	apiKey: string;
+	password: string;
+	shopSubdomain: string;
+}
 
 export class ShopifyApi implements ICredentialType {
 	name = 'shopifyApi';
@@ -49,14 +53,12 @@ export class ShopifyApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ apiKey, password }: ShopifyApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		requestOptions.headers = {
 			...requestOptions.headers,
-			Authorization: `Basic ${Buffer.from(`${credentials.apiKey}:${credentials.password}`).toString(
-				BINARY_ENCODING,
-			)}`,
+			Authorization: `Basic ${Buffer.from(`${apiKey}:${password}`).toString('base64')}`,
 		};
 		return requestOptions;
 	}

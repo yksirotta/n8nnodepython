@@ -6,6 +6,8 @@ import type {
 	IHookFunctions,
 	ILoadOptionsFunctions,
 } from 'n8n-workflow';
+import type { GhostContentApiCredential } from '@credentials/GhostContentApi.credentials';
+import type { GhostAdminApiCredential } from '@credentials/GhostAdminApi.credentials';
 
 export async function ghostApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -17,20 +19,14 @@ export async function ghostApiRequest(
 	uri?: string,
 ): Promise<any> {
 	const source = this.getNodeParameter('source', 0) as string;
+	const isContentApi = source === 'contentApi';
 
-	let version;
-	let credentialType;
-
-	if (source === 'contentApi') {
-		//https://ghost.org/faq/api-versioning/
-		version = 'v3';
-		credentialType = 'ghostContentApi';
-	} else {
-		version = 'v2';
-		credentialType = 'ghostAdminApi';
-	}
-
-	const credentials = await this.getCredentials(credentialType);
+	// https://ghost.org/faq/api-versioning/
+	const version = isContentApi ? 'v3' : 'v2';
+	const credentialType = isContentApi ? 'ghostContentApi' : 'ghostAdminApi';
+	const credentials = await this.getCredentials<
+		GhostContentApiCredential | GhostAdminApiCredential
+	>(credentialType);
 
 	const options: OptionsWithUri = {
 		method,

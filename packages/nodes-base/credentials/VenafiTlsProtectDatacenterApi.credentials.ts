@@ -1,11 +1,19 @@
 import type {
 	IAuthenticateGeneric,
-	ICredentialDataDecryptedObject,
 	ICredentialType,
 	IHttpRequestHelper,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface VenafiTlsProtectDatacenterApiCredential {
+	domain: string;
+	clientId: string;
+	username: string;
+	password: string;
+	allowUnauthorizedCerts: boolean;
+	scope: string;
+}
 
 export class VenafiTlsProtectDatacenterApi implements ICredentialType {
 	name = 'venafiTlsProtectDatacenterApi';
@@ -53,7 +61,6 @@ export class VenafiTlsProtectDatacenterApi implements ICredentialType {
 			displayName: 'Access Token',
 			name: 'token',
 			type: 'hidden',
-
 			typeOptions: {
 				expirable: true,
 			},
@@ -67,7 +74,10 @@ export class VenafiTlsProtectDatacenterApi implements ICredentialType {
 		},
 	];
 
-	async preAuthentication(this: IHttpRequestHelper, credentials: ICredentialDataDecryptedObject) {
+	async preAuthentication(
+		this: IHttpRequestHelper,
+		credentials: VenafiTlsProtectDatacenterApiCredential,
+	) {
 		const url = `${credentials.domain}/vedauth/authorize/oauth`;
 
 		const requestOptions: IHttpRequestOptions = {

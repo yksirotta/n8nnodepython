@@ -1,9 +1,9 @@
 import { Container } from 'typedi';
-import type { ICredentialDataDecryptedObject, ICredentialsEncrypted } from 'n8n-workflow';
+import type { ICredentialsEncrypted } from 'n8n-workflow';
 import { ApplicationError, ICredentials, jsonParse } from 'n8n-workflow';
 import { Cipher } from './Cipher';
 
-export class Credentials extends ICredentials {
+export class Credentials<T extends object> extends ICredentials<T> {
 	private readonly cipher = Container.get(Cipher);
 
 	/**
@@ -22,14 +22,14 @@ export class Credentials extends ICredentials {
 	/**
 	 * Sets new credential object
 	 */
-	setData(data: ICredentialDataDecryptedObject): void {
+	setData(data: T): void {
 		this.data = this.cipher.encrypt(data);
 	}
 
 	/**
 	 * Returns the decrypted credential object
 	 */
-	getData(nodeType?: string): ICredentialDataDecryptedObject {
+	getData(nodeType?: string) {
 		if (nodeType && !this.hasNodeAccess(nodeType)) {
 			throw new ApplicationError('Node does not have access to credential', {
 				tags: { nodeType, credentialType: this.type },
@@ -44,7 +44,7 @@ export class Credentials extends ICredentials {
 		try {
 			const decryptedData = this.cipher.decrypt(this.data);
 
-			return jsonParse(decryptedData);
+			return jsonParse<T>(decryptedData);
 		} catch (e) {
 			throw new ApplicationError(
 				'Credentials could not be decrypted. The likely reason is that a different "encryptionKey" was used to encrypt the data.',

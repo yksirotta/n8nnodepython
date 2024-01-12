@@ -3,13 +3,13 @@ import type {
 	IHookFunctions,
 	ILoadOptionsFunctions,
 	GenericValue,
-	ICredentialDataDecryptedObject,
 	ICredentialTestFunctions,
 	IDataObject,
 	IHttpRequestOptions,
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { SyncroMspApiCredential } from '@credentials/SyncroMspApi.credentials';
 
 /**
  * Make an API request to Mattermost
@@ -21,7 +21,7 @@ export async function apiRequest(
 	body: IDataObject | GenericValue | GenericValue[] = {},
 	query: IDataObject = {},
 ) {
-	const credentials = await this.getCredentials('syncroMspApi');
+	const credentials = await this.getCredentials<SyncroMspApiCredential>('syncroMspApi');
 
 	query.api_key = credentials.apiKey;
 
@@ -62,7 +62,7 @@ export async function apiRequestAllItems(
 
 export async function validateCredentials(
 	this: ICredentialTestFunctions,
-	decryptedCredentials: ICredentialDataDecryptedObject,
+	decryptedCredentials: SyncroMspApiCredential,
 ): Promise<any> {
 	const credentials = decryptedCredentials;
 

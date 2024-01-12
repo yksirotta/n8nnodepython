@@ -1,5 +1,10 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface ChargebeeApiCredential {
+	accountName: string;
+	apiKey: string;
+}
+
 export class ChargebeeApi implements ICredentialType {
 	name = 'chargebeeApi';
 

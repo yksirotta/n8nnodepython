@@ -8,11 +8,12 @@ import type {
 	IWebhookFunctions,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { ERPNextApiCredential } from '@credentials/ERPNextApi.credentials';
 
 /**
  * Return the base API URL based on the user's environment.
  */
-const getBaseUrl = ({ environment, domain, subdomain }: ERPNextApiCredentials) =>
+const getBaseUrl = ({ environment, domain, subdomain }: ERPNextApiCredential) =>
 	environment === 'cloudHosted' ? `https://${subdomain}.${domain}` : domain;
 
 export async function erpNextApiRequest(
@@ -24,7 +25,7 @@ export async function erpNextApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ) {
-	const credentials = (await this.getCredentials('erpNextApi')) as ERPNextApiCredentials;
+	const credentials = await this.getCredentials<ERPNextApiCredential>('erpNextApi');
 	const baseUrl = getBaseUrl(credentials);
 
 	let options: OptionsWithUri = {
@@ -87,12 +88,3 @@ export async function erpNextApiRequestAllItems(
 
 	return returnData;
 }
-
-type ERPNextApiCredentials = {
-	apiKey: string;
-	apiSecret: string;
-	environment: 'cloudHosted' | 'selfHosted';
-	subdomain?: string;
-	domain?: string;
-	allowUnauthorizedCerts?: boolean;
-};

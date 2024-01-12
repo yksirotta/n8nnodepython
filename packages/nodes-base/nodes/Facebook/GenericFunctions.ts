@@ -11,6 +11,8 @@ import type {
 import { NodeApiError } from 'n8n-workflow';
 
 import { capitalCase } from 'change-case';
+import type { FacebookGraphApiCredential } from '@credentials/FacebookGraphApi.credentials';
+import type { FacebookGraphAppApiCredential } from '@credentials/FacebookGraphAppApi.credentials';
 
 export async function facebookApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions,
@@ -25,9 +27,9 @@ export async function facebookApiRequest(
 	let credentials;
 
 	if (this.getNode().name.includes('Trigger')) {
-		credentials = await this.getCredentials('facebookGraphAppApi');
+		credentials = await this.getCredentials<FacebookGraphAppApiCredential>('facebookGraphAppApi');
 	} else {
-		credentials = await this.getCredentials('facebookGraphApi');
+		credentials = await this.getCredentials<FacebookGraphApiCredential>('facebookGraphApi');
 	}
 
 	qs.access_token = credentials.accessToken;

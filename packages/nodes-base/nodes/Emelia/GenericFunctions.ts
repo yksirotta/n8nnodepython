@@ -9,6 +9,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { EmeliaApiCredential } from '@credentials/EmeliaApi.credentials';
 
 /**
  * Make an authenticated REST API request to Emelia, used for trigger node.
@@ -20,7 +21,7 @@ export async function emeliaApiRequest(
 	body: object = {},
 	qs: object = {},
 ) {
-	const { apiKey } = (await this.getCredentials('emeliaApi')) as { apiKey: string };
+	const { apiKey } = await this.getCredentials<EmeliaApiCredential>('emeliaApi');
 
 	const options = {
 		headers: {

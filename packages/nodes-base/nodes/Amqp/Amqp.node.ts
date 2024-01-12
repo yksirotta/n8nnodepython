@@ -10,9 +10,9 @@ import type {
 	ICredentialTestFunctions,
 	INodeCredentialTestResult,
 	ICredentialsDecrypted,
-	ICredentialDataDecryptedObject,
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
+import type { AmqpCredential } from '@credentials/Amqp.credentials';
 
 export class Amqp implements INodeType {
 	description: INodeTypeDescription = {
@@ -104,16 +104,16 @@ export class Amqp implements INodeType {
 		credentialTest: {
 			async amqpConnectionTest(
 				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
+				credential: ICredentialsDecrypted<AmqpCredential>,
 			): Promise<INodeCredentialTestResult> {
-				const credentials = credential.data as ICredentialDataDecryptedObject;
+				const credentials = credential.data!;
 				const connectOptions: ContainerOptions = {
 					reconnect: false,
-					host: credentials.hostname as string,
-					hostname: credentials.hostname as string,
-					port: credentials.port as number,
-					username: credentials.username ? (credentials.username as string) : undefined,
-					password: credentials.password ? (credentials.password as string) : undefined,
+					host: credentials.hostname,
+					hostname: credentials.hostname,
+					port: credentials.port,
+					username: credentials.username ? credentials.username : undefined,
+					password: credentials.password ? credentials.password : undefined,
 					transport: credentials.transportType ? (credentials.transportType as string) : undefined,
 				};
 
@@ -148,7 +148,7 @@ export class Amqp implements INodeType {
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		try {
-			const credentials = await this.getCredentials('amqp');
+			const credentials = await this.getCredentials<AmqpCredential>('amqp');
 
 			const sink = this.getNodeParameter('sink', 0, '') as string;
 			const applicationProperties = this.getNodeParameter('headerParametersJson', 0, {}) as
@@ -173,7 +173,7 @@ export class Amqp implements INodeType {
 			const container = create_container();
 
 			/*
-				Values are documentet here: https://github.com/amqp/rhea#container
+				Values are documented here: https://github.com/amqp/rhea#container
 			*/
 			const connectOptions: ContainerOptions = {
 				host: credentials.hostname,

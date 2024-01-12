@@ -1,5 +1,12 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface FtpCredential {
+	host: string;
+	port: number;
+	username?: string;
+	password?: string;
+}
+
 export class Ftp implements ICredentialType {
 	name = 'ftp';
 

@@ -1,9 +1,8 @@
-import type {
-	ICredentialDataDecryptedObject,
-	ICredentialType,
-	IHttpRequestOptions,
-	INodeProperties,
-} from 'n8n-workflow';
+import type { ICredentialType, IHttpRequestOptions, INodeProperties } from 'n8n-workflow';
+
+export interface MindeeReceiptApiCredential {
+	apiKey: string;
+}
 
 export class MindeeReceiptApi implements ICredentialType {
 	name = 'mindeeReceiptApi';
@@ -23,15 +22,15 @@ export class MindeeReceiptApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ apiKey }: MindeeReceiptApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		// @ts-ignore
 		const url = requestOptions.url ? requestOptions.url : requestOptions.uri;
 		if (url.includes('https://api.mindee.net/v1/')) {
-			requestOptions.headers!.Authorization = `Token ${credentials.apiKey}`;
+			requestOptions.headers!.Authorization = `Token ${apiKey}`;
 		} else {
-			requestOptions.headers!['X-Inferuser-Token'] = `${credentials.apiKey}`;
+			requestOptions.headers!['X-Inferuser-Token'] = `${apiKey}`;
 		}
 		return requestOptions;
 	}

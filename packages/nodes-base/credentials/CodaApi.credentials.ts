@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface CodaApiCredential {
+	accessToken: string;
+}
+
 export class CodaApi implements ICredentialType {
 	name = 'codaApi';
 

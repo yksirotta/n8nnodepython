@@ -5,6 +5,15 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface ERPNextApiCredential {
+	apiKey: string;
+	apiSecret: string;
+	environment: 'cloudHosted' | 'selfHosted';
+	subdomain?: string;
+	domain?: string;
+	allowUnauthorizedCerts?: boolean;
+}
+
 export class ERPNextApi implements ICredentialType {
 	name = 'erpNextApi';
 

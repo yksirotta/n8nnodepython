@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface ClearbitApiCredential {
+	apiKey: string;
+}
+
 export class ClearbitApi implements ICredentialType {
 	name = 'clearbitApi';
 

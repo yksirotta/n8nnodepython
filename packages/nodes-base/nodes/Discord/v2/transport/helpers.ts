@@ -7,6 +7,7 @@ import type {
 	IHookFunctions,
 	ILoadOptionsFunctions,
 } from 'n8n-workflow';
+import type { DiscordOAuth2ApiCredential } from '@credentials/DiscordOAuth2Api.credentials';
 
 export const getCredentialsType = (authentication: string) => {
 	let credentialType = '';
@@ -34,7 +35,7 @@ export async function requestApi(
 ) {
 	let response;
 	if (credentialType === 'discordOAuth2Api' && endpoint !== '/users/@me/guilds') {
-		const credentials = await this.getCredentials('discordOAuth2Api');
+		const credentials = await this.getCredentials<DiscordOAuth2ApiCredential>('discordOAuth2Api');
 		(options.headers as IDataObject)!.Authorization = `Bot ${credentials.botToken}`;
 		response = await this.helpers.request({ ...options, resolveWithFullResponse: true });
 	} else {

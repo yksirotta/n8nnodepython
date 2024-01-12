@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface DriftApiCredential {
+	accessToken: string;
+}
+
 export class DriftApi implements ICredentialType {
 	name = 'driftApi';
 

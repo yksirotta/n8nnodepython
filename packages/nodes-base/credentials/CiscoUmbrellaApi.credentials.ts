@@ -1,11 +1,15 @@
 import type {
 	IAuthenticateGeneric,
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestHelper,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface CiscoUmbrellaApiCredential {
+	apiKey: string;
+	secret: string;
+}
 
 export class CiscoUmbrellaApi implements ICredentialType {
 	name = 'ciscoUmbrellaApi';
@@ -27,7 +31,6 @@ export class CiscoUmbrellaApi implements ICredentialType {
 			displayName: 'Session Token',
 			name: 'sessionToken',
 			type: 'hidden',
-
 			typeOptions: {
 				expirable: true,
 			},
@@ -53,7 +56,7 @@ export class CiscoUmbrellaApi implements ICredentialType {
 		},
 	];
 
-	async preAuthentication(this: IHttpRequestHelper, credentials: ICredentialDataDecryptedObject) {
+	async preAuthentication(this: IHttpRequestHelper, credentials: CiscoUmbrellaApiCredential) {
 		const url = 'https://api.umbrella.com';
 		const { access_token } = (await this.helpers.httpRequest({
 			method: 'POST',
@@ -61,8 +64,8 @@ export class CiscoUmbrellaApi implements ICredentialType {
 				url.endsWith('/') ? url.slice(0, -1) : url
 			}/auth/v2/token?grant_type=client_credentials`,
 			auth: {
-				username: credentials.apiKey as string,
-				password: credentials.secret as string,
+				username: credentials.apiKey,
+				password: credentials.secret,
 			},
 			headers: {
 				'Content-Type': 'x-www-form-urlencoded',

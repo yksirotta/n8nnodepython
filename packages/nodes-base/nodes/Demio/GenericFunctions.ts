@@ -8,6 +8,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { DemioApiCredential } from '@credentials/DemioApi.credentials';
 
 export async function demioApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -20,7 +21,7 @@ export async function demioApiRequest(
 	option: IDataObject = {},
 ): Promise<any> {
 	try {
-		const credentials = await this.getCredentials('demioApi');
+		const credentials = await this.getCredentials<DemioApiCredential>('demioApi');
 		let options: OptionsWithUri = {
 			headers: {
 				'Api-Key': credentials.apiKey,

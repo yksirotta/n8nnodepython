@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface EgoiApiCredential {
+	apiKey: string;
+}
+
 export class EgoiApi implements ICredentialType {
 	name = 'egoiApi';
 

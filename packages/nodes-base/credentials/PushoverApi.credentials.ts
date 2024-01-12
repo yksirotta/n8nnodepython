@@ -1,10 +1,13 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface PushoverApiCredential {
+	apiKey: string;
+}
 
 export class PushoverApi implements ICredentialType {
 	name = 'pushoverApi';
@@ -24,13 +27,13 @@ export class PushoverApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ apiKey }: PushoverApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		if (requestOptions.method === 'GET' && requestOptions.qs) {
-			Object.assign(requestOptions.qs, { token: credentials.apiKey });
+			Object.assign(requestOptions.qs, { token: apiKey });
 		} else if (requestOptions.body) {
-			Object.assign(requestOptions.body, { token: credentials.apiKey });
+			Object.assign(requestOptions.body, { token: apiKey });
 		}
 		return requestOptions;
 	}

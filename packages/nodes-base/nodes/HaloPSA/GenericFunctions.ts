@@ -1,5 +1,4 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestFunctions,
 	IDataObject,
 	IExecuteFunctions,
@@ -11,6 +10,7 @@ import type {
 import { NodeApiError } from 'n8n-workflow';
 
 import type { OptionsWithUri } from 'request';
+import type { HaloPSAApiCredential } from '@credentials/HaloPSAApi.credentials';
 
 // Interfaces and Types -------------------------------------------------------------
 interface IHaloPSATokens {
@@ -22,7 +22,7 @@ interface IHaloPSATokens {
 	id_token: string;
 }
 
-function getAuthUrl(credentials: IDataObject) {
+function getAuthUrl(credentials: HaloPSAApiCredential) {
 	return credentials.hostingType === 'on-premise'
 		? `${credentials.appUrl}/auth/token`
 		: `${credentials.authUrl}/token?tenant=${credentials.tenant}`;
@@ -33,7 +33,7 @@ function getAuthUrl(credentials: IDataObject) {
 export async function getAccessTokens(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
 ): Promise<IHaloPSATokens> {
-	const credentials = await this.getCredentials('haloPSAApi');
+	const credentials = await this.getCredentials<HaloPSAApiCredential>('haloPSAApi');
 
 	const options: OptionsWithUri = {
 		headers: {
@@ -67,8 +67,7 @@ export async function haloPSAApiRequest(
 	qs: IDataObject = {},
 	option: IDataObject = {},
 ): Promise<any> {
-	const resourceApiUrl = (await this.getCredentials('haloPSAApi')).resourceApiUrl as string;
-
+	const { resourceApiUrl } = await this.getCredentials<HaloPSAApiCredential>('haloPSAApi');
 	try {
 		let options: OptionsWithUri = {
 			headers: {
@@ -220,7 +219,7 @@ export function qsSetStatus(status: string) {
 
 export async function validateCredentials(
 	this: ICredentialTestFunctions,
-	decryptedCredentials: ICredentialDataDecryptedObject,
+	decryptedCredentials: HaloPSAApiCredential,
 ): Promise<IHaloPSATokens> {
 	const credentials = decryptedCredentials;
 

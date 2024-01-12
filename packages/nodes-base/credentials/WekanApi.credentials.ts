@@ -1,11 +1,16 @@
 import type {
 	IAuthenticateGeneric,
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestHelper,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface WekanApiCredential {
+	url: string;
+	username: string;
+	password: string;
+}
 
 export class WekanApi implements ICredentialType {
 	name = 'wekanApi';
@@ -49,15 +54,14 @@ export class WekanApi implements ICredentialType {
 		},
 	];
 
-	async preAuthentication(this: IHttpRequestHelper, credentials: ICredentialDataDecryptedObject) {
-		const url = credentials.url as string;
+	async preAuthentication(
+		this: IHttpRequestHelper,
+		{ url, username, password }: WekanApiCredential,
+	) {
 		const { token } = (await this.helpers.httpRequest({
 			method: 'POST',
 			url: `${url.endsWith('/') ? url.slice(0, -1) : url}/users/login`,
-			body: {
-				username: credentials.username,
-				password: credentials.password,
-			},
+			body: { username, password },
 		})) as { token: string };
 		return { token };
 	}

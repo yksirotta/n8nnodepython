@@ -11,6 +11,7 @@ import type {
 	IRun,
 } from 'n8n-workflow';
 import { deepCopy, jsonParse, NodeOperationError } from 'n8n-workflow';
+import type { AmqpCredential } from '@credentials/Amqp.credentials';
 
 export class AmqpTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -138,7 +139,7 @@ export class AmqpTrigger implements INodeType {
 	};
 
 	async trigger(this: ITriggerFunctions): Promise<ITriggerResponse> {
-		const credentials = await this.getCredentials('amqp');
+		const credentials = await this.getCredentials<AmqpCredential>('amqp');
 
 		const sink = this.getNodeParameter('sink', '') as string;
 		const clientname = this.getNodeParameter('clientname', '') as string;
@@ -229,7 +230,7 @@ export class AmqpTrigger implements INodeType {
 		});
 
 		/*
-			Values are documentet here: https://github.com/amqp/rhea#container
+			Values are documented here: https://github.com/amqp/rhea#container
 		 */
 		const connectOptions: ContainerOptions = {
 			host: credentials.hostname,

@@ -1,10 +1,13 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface NotionApiCredential {
+	apiKey: string;
+}
 
 export class NotionApi implements ICredentialType {
 	name = 'notionApi';
@@ -31,12 +34,12 @@ export class NotionApi implements ICredentialType {
 	};
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ apiKey }: NotionApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		requestOptions.headers = {
 			...requestOptions.headers,
-			Authorization: `Bearer ${credentials.apiKey} `,
+			Authorization: `Bearer ${apiKey} `,
 		};
 
 		// if version it's not set, set it to last one

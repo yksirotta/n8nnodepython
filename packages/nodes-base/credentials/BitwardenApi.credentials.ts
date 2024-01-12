@@ -1,5 +1,12 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface BitwardenApiCredential {
+	clientId: string;
+	clientSecret: string;
+	environment: 'cloudHosted' | 'selfHosted';
+	domain?: string;
+}
+
 // https://bitwarden.com/help/article/public-api/#authentication
 
 export class BitwardenApi implements ICredentialType {

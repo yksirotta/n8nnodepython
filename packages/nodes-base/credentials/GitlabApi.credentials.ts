@@ -5,6 +5,11 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface GitlabApiCredential {
+	server: string;
+	accessToken: string;
+}
+
 export class GitlabApi implements ICredentialType {
 	name = 'gitlabApi';
 

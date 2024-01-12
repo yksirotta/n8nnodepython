@@ -1,5 +1,10 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface BitbucketApiCredential {
+	username: string;
+	appPassword: string;
+}
+
 export class BitbucketApi implements ICredentialType {
 	name = 'bitbucketApi';
 

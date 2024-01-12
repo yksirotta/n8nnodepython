@@ -7,6 +7,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { DisqusApiCredential } from '@credentials/DisqusApi.credentials';
 
 export async function disqusApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -16,7 +17,7 @@ export async function disqusApiRequest(
 	body: IDataObject = {},
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = (await this.getCredentials('disqusApi')) as IDataObject;
+	const credentials = await this.getCredentials<DisqusApiCredential>('disqusApi');
 	qs.api_key = credentials.accessToken;
 
 	// Convert to query string into a format the API can read

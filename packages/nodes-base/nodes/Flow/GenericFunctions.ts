@@ -7,6 +7,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { FlowApiCredential } from '@credentials/FlowApi.credentials';
 
 export async function flowApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -18,7 +19,7 @@ export async function flowApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('flowApi');
+	const credentials = await this.getCredentials<FlowApiCredential>('flowApi');
 
 	let options: OptionsWithUri = {
 		headers: { Authorization: `Bearer ${credentials.accessToken}` },

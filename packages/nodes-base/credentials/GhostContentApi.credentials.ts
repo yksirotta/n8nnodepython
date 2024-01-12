@@ -1,10 +1,14 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface GhostContentApiCredential {
+	url: string;
+	apiKey: string;
+}
 
 export class GhostContentApi implements ICredentialType {
 	name = 'ghostContentApi';
@@ -31,12 +35,12 @@ export class GhostContentApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ apiKey }: GhostContentApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		requestOptions.qs = {
 			...requestOptions.qs,
-			key: credentials.apiKey,
+			key: apiKey,
 		};
 		return requestOptions;
 	}

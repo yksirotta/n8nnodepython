@@ -8,6 +8,7 @@ import type {
 } from 'n8n-workflow';
 
 import { copperApiRequest, getAutomaticSecret } from './GenericFunctions';
+import type { CopperApiCredential } from '@credentials/CopperApi.credentials';
 
 export class CopperTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -127,7 +128,7 @@ export class CopperTrigger implements INodeType {
 					event,
 				};
 
-				const credentials = await this.getCredentials('copperApi');
+				const credentials = await this.getCredentials<CopperApiCredential>('copperApi');
 				body.secret = {
 					secret: getAutomaticSecret(credentials),
 				};
@@ -151,7 +152,7 @@ export class CopperTrigger implements INodeType {
 	};
 
 	async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
-		const credentials = await this.getCredentials('copperApi');
+		const credentials = await this.getCredentials<CopperApiCredential>('copperApi');
 		const req = this.getRequestObject();
 
 		// Check if the supplied secret matches. If not ignore request.

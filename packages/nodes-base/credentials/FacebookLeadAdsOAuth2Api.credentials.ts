@@ -1,4 +1,7 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { OAuth2ApiCredential } from './OAuth2Api.credentials';
+
+export interface FacebookLeadAdsOAuth2ApiCredential extends OAuth2ApiCredential {}
 
 export class FacebookLeadAdsOAuth2Api implements ICredentialType {
 	name = 'facebookLeadAdsOAuth2Api';

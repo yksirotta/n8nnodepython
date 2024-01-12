@@ -40,6 +40,7 @@ export interface IAttachments {
 
 import MailComposer from 'nodemailer/lib/mail-composer';
 import { getGoogleAccessToken } from '../GenericFunctions';
+import type { GoogleApiCredential } from '@credentials/GoogleApi.credentials';
 
 export async function googleApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions | IPollFunctions,
@@ -76,7 +77,7 @@ export async function googleApiRequest(
 		const authentication = this.getNodeParameter('authentication', 0) as string;
 
 		if (authentication === 'serviceAccount') {
-			const credentials = await this.getCredentials('googleApi');
+			const credentials = await this.getCredentials<GoogleApiCredential>('googleApi');
 			credentialType = 'googleApi';
 
 			const { access_token } = await getGoogleAccessToken.call(this, credentials, 'gmail');

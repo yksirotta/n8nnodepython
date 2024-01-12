@@ -1,5 +1,12 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface FileMakerCredential {
+	host: string;
+	db: string;
+	login: string;
+	password: string;
+}
+
 export class FileMaker implements ICredentialType {
 	name = 'fileMaker';
 

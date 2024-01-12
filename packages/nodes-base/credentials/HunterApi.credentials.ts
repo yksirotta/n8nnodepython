@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface HunterApiCredential {
+	apiKey: string;
+}
+
 export class HunterApi implements ICredentialType {
 	name = 'hunterApi';
 

@@ -8,6 +8,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { HumanticAiApiCredential } from '@credentials/HumanticAiApi.credentials';
 
 export async function humanticAiApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -19,7 +20,7 @@ export async function humanticAiApiRequest(
 	option: IDataObject = {},
 ): Promise<any> {
 	try {
-		const credentials = await this.getCredentials('humanticAiApi');
+		const credentials = await this.getCredentials<HumanticAiApiCredential>('humanticAiApi');
 		let options: OptionsWithUri = {
 			headers: {
 				'Content-Type': 'application/json',

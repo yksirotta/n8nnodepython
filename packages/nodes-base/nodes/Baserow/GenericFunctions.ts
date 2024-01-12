@@ -8,7 +8,8 @@ import type {
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
 
-import type { Accumulator, BaserowCredentials, LoadedResource } from './types';
+import type { Accumulator, LoadedResource } from './types';
+import type { BaserowApiCredential } from '@credentials/BaserowApi.credentials';
 
 /**
  * Make a request to Baserow API.
@@ -21,7 +22,7 @@ export async function baserowApiRequest(
 	body: IDataObject = {},
 	qs: IDataObject = {},
 ) {
-	const credentials = (await this.getCredentials('baserowApi')) as BaserowCredentials;
+	const credentials = await this.getCredentials<BaserowApiCredential>('baserowApi');
 
 	const options: OptionsWithUri = {
 		headers: {
@@ -88,7 +89,7 @@ export async function baserowApiRequestAllItems(
  */
 export async function getJwtToken(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
-	{ username, password, host }: BaserowCredentials,
+	{ username, password, host }: BaserowApiCredential,
 ) {
 	const options: OptionsWithUri = {
 		method: 'POST',

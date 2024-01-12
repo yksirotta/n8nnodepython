@@ -1,5 +1,4 @@
 import type {
-	ICredentialDataDecryptedObject,
 	IDataObject,
 	IHookFunctions,
 	IWebhookFunctions,
@@ -10,6 +9,7 @@ import type {
 import { NodeOperationError } from 'n8n-workflow';
 
 import { allEvents, eventExists, getId, jiraSoftwareCloudApiRequest } from './GenericFunctions';
+import type { HttpQueryAuthCredential } from '@credentials/HttpQueryAuth.credentials';
 
 export class JiraTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -419,9 +419,9 @@ export class JiraTrigger implements INodeType {
 				const parameters: any = {};
 
 				if (incomingAuthentication === 'queryAuth') {
-					let httpQueryAuth;
+					let httpQueryAuth: HttpQueryAuthCredential | undefined;
 					try {
-						httpQueryAuth = await this.getCredentials('httpQueryAuth');
+						httpQueryAuth = await this.getCredentials<HttpQueryAuthCredential>('httpQueryAuth');
 					} catch (e) {
 						throw new NodeOperationError(
 							this.getNode(),
@@ -431,8 +431,8 @@ export class JiraTrigger implements INodeType {
 					if (!httpQueryAuth.name && !httpQueryAuth.value) {
 						throw new NodeOperationError(this.getNode(), 'HTTP Query Auth credentials are empty');
 					}
-					parameters[encodeURIComponent(httpQueryAuth.name as string)] = Buffer.from(
-						httpQueryAuth.value as string,
+					parameters[encodeURIComponent(httpQueryAuth.name)] = Buffer.from(
+						httpQueryAuth.value,
 					).toString('base64');
 				}
 
@@ -484,10 +484,10 @@ export class JiraTrigger implements INodeType {
 		const incomingAuthentication = this.getNodeParameter('incomingAuthentication') as string;
 
 		if (incomingAuthentication === 'queryAuth') {
-			let httpQueryAuth: ICredentialDataDecryptedObject | undefined;
+			let httpQueryAuth: HttpQueryAuthCredential | undefined;
 
 			try {
-				httpQueryAuth = await this.getCredentials('httpQueryAuth');
+				httpQueryAuth = await this.getCredentials<HttpQueryAuthCredential>('httpQueryAuth');
 			} catch (error) {}
 
 			if (httpQueryAuth === undefined || !httpQueryAuth.name || !httpQueryAuth.value) {
@@ -500,8 +500,8 @@ export class JiraTrigger implements INodeType {
 				};
 			}
 
-			const paramName = httpQueryAuth.name as string;
-			const paramValue = Buffer.from(httpQueryAuth.value as string).toString('base64');
+			const paramName = httpQueryAuth.name;
+			const paramValue = Buffer.from(httpQueryAuth.value).toString('base64');
 
 			if (!queryData.hasOwnProperty(paramName) || queryData[paramName] !== paramValue) {
 				response.status(403).json({ message: 'Provided authentication data is not valid' });

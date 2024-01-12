@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface HarvestApiCredential {
+	accessToken: string;
+}
+
 export class HarvestApi implements ICredentialType {
 	name = 'harvestApi';
 

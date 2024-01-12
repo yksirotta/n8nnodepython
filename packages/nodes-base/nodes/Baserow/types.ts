@@ -1,9 +1,3 @@
-export type BaserowCredentials = {
-	username: string;
-	password: string;
-	host: string;
-};
-
 export type GetAllAdditionalOptions = {
 	order?: {
 		fields: Array<{

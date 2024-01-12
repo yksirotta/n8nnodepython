@@ -1,11 +1,17 @@
 import type {
 	IAuthenticateGeneric,
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestHelper,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface Auth0ManagementApiCredential {
+	sessionToken: string;
+	domain: string;
+	clientId: string;
+	clientSecret?: string;
+}
 
 export class Auth0ManagementApi implements ICredentialType {
 	name = 'auth0ManagementApi';
@@ -59,7 +65,7 @@ export class Auth0ManagementApi implements ICredentialType {
 		},
 	];
 
-	async preAuthentication(this: IHttpRequestHelper, credentials: ICredentialDataDecryptedObject) {
+	async preAuthentication(this: IHttpRequestHelper, credentials: Auth0ManagementApiCredential) {
 		const { access_token } = (await this.helpers.httpRequest({
 			method: 'POST',
 			url: `https://${credentials.domain}/oauth/token`,

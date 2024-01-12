@@ -27,11 +27,11 @@ import type {
 	FieldsToSend,
 	GristColumns,
 	GristCreateRowPayload,
-	GristCredentials,
 	GristGetAllOptions,
 	GristUpdateRowPayload,
 	SendingOptions,
 } from './types';
+import type { GristApiCredential } from '@credentials/GristApi.credentials';
 
 export class Grist implements INodeType {
 	description: INodeTypeDescription = {
@@ -72,10 +72,9 @@ export class Grist implements INodeType {
 		credentialTest: {
 			async gristApiTest(
 				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
+				credential: ICredentialsDecrypted<GristApiCredential>,
 			): Promise<INodeCredentialTestResult> {
-				const { apiKey, planType, customSubdomain, selfHostedUrl } =
-					credential.data as GristCredentials;
+				const { apiKey, planType, customSubdomain, selfHostedUrl } = credential.data;
 
 				const endpoint = '/orgs';
 

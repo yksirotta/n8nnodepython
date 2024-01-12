@@ -6,6 +6,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { CodaApiCredential } from '@credentials/CodaApi.credentials';
 
 export async function codaApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
@@ -17,7 +18,7 @@ export async function codaApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('codaApi');
+	const credentials = await this.getCredentials<CodaApiCredential>('codaApi');
 
 	let options: OptionsWithUri = {
 		headers: {

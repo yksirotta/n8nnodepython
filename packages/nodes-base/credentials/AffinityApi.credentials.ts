@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface AffinityApiCredential {
+	apiKey: string;
+}
+
 export class AffinityApi implements ICredentialType {
 	name = 'affinityApi';
 

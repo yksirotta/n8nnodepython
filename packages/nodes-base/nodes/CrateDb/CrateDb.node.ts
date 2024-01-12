@@ -15,6 +15,7 @@ import {
 	pgQueryV2,
 	pgUpdate,
 } from '../Postgres/v1/genericFunctions';
+import type { CrateDbCredential } from '@credentials/CrateDb.credentials';
 
 export class CrateDb implements INodeType {
 	description: INodeTypeDescription = {
@@ -258,18 +259,18 @@ export class CrateDb implements INodeType {
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-		const credentials = await this.getCredentials('crateDb');
+		const credentials = await this.getCredentials<CrateDbCredential>('crateDb');
 
 		const pgp = pgPromise();
 
 		const config = {
-			host: credentials.host as string,
-			port: credentials.port as number,
-			database: credentials.database as string,
-			user: credentials.user as string,
-			password: credentials.password as string,
-			ssl: !['disable', undefined].includes(credentials.ssl as string | undefined),
-			sslmode: (credentials.ssl as string) || 'disable',
+			host: credentials.host,
+			port: credentials.port,
+			database: credentials.database,
+			user: credentials.user,
+			password: credentials.password,
+			ssl: !['disable', undefined].includes(credentials.ssl),
+			sslmode: credentials.ssl || 'disable',
 		};
 
 		const db = pgp(config);

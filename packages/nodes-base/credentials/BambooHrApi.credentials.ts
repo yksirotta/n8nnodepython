@@ -1,5 +1,10 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface BambooHrApiCredential {
+	subdomain: string;
+	apiKey: string;
+}
+
 export class BambooHrApi implements ICredentialType {
 	name = 'bambooHrApi';
 

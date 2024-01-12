@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface FormstackApiCredential {
+	accessToken: string;
+}
+
 export class FormstackApi implements ICredentialType {
 	name = 'formstackApi';
 

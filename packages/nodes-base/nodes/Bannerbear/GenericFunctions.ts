@@ -11,6 +11,7 @@ import type {
 import { NodeApiError } from 'n8n-workflow';
 
 import { snakeCase } from 'change-case';
+import type { BannerbearApiCredential } from '@credentials/BannerbearApi.credentials';
 
 export async function bannerbearApiRequest(
 	this: IExecuteFunctions | IWebhookFunctions | IHookFunctions | ILoadOptionsFunctions,
@@ -22,7 +23,7 @@ export async function bannerbearApiRequest(
 	uri?: string,
 	headers: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('bannerbearApi');
+	const credentials = await this.getCredentials<BannerbearApiCredential>('bannerbearApi');
 
 	const options: OptionsWithUri = {
 		headers: {

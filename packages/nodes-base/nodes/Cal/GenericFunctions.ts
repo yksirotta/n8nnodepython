@@ -10,6 +10,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { CalApiCredential } from '@credentials/CalApi.credentials';
 
 export async function calApiRequest(
 	this: IExecuteFunctions | IWebhookFunctions | IHookFunctions | ILoadOptionsFunctions,
@@ -20,10 +21,10 @@ export async function calApiRequest(
 	query: IDataObject = {},
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('calApi');
+	const credentials = await this.getCredentials<CalApiCredential>('calApi');
 
 	let options: IHttpRequestOptions = {
-		baseURL: credentials.host as string,
+		baseURL: credentials.host,
 		method,
 		body,
 		qs: query,

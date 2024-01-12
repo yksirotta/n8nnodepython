@@ -8,6 +8,7 @@ import type {
 } from 'n8n-workflow';
 
 import { flowApiRequest } from './GenericFunctions';
+import type { FlowApiCredential } from '@credentials/FlowApi.credentials';
 
 export class FlowTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -94,7 +95,7 @@ export class FlowTrigger implements INodeType {
 	webhookMethods = {
 		default: {
 			async checkExists(this: IHookFunctions): Promise<boolean> {
-				const credentials = await this.getCredentials('flowApi');
+				const credentials = await this.getCredentials<FlowApiCredential>('flowApi');
 
 				let webhooks;
 				const qs: IDataObject = {};
@@ -105,7 +106,7 @@ export class FlowTrigger implements INodeType {
 				if (!(webhookData.webhookIds as [number]).length) {
 					return false;
 				}
-				qs.organization_id = credentials.organizationId as number;
+				qs.organization_id = credentials.organizationId;
 				const endpoint = '/integration_webhooks';
 				try {
 					webhooks = await flowApiRequest.call(this, 'GET', endpoint, {}, qs);
@@ -124,7 +125,7 @@ export class FlowTrigger implements INodeType {
 				return true;
 			},
 			async create(this: IHookFunctions): Promise<boolean> {
-				const credentials = await this.getCredentials('flowApi');
+				const credentials = await this.getCredentials<FlowApiCredential>('flowApi');
 
 				let resourceIds, body, responseData;
 				const webhookUrl = this.getNodeWebhookUrl('default');
@@ -140,7 +141,7 @@ export class FlowTrigger implements INodeType {
 				// @ts-ignore
 				for (const resourceId of resourceIds) {
 					body = {
-						organization_id: credentials.organizationId as number,
+						organization_id: credentials.organizationId,
 						integration_webhook: {
 							name: 'n8n-trigger',
 							url: webhookUrl,
@@ -166,11 +167,11 @@ export class FlowTrigger implements INodeType {
 				return true;
 			},
 			async delete(this: IHookFunctions): Promise<boolean> {
-				const credentials = await this.getCredentials('flowApi');
+				const credentials = await this.getCredentials<FlowApiCredential>('flowApi');
 
 				const qs: IDataObject = {};
 				const webhookData = this.getWorkflowStaticData('node');
-				qs.organization_id = credentials.organizationId as number;
+				qs.organization_id = credentials.organizationId;
 				// @ts-ignore
 				if (webhookData.webhookIds.length > 0) {
 					// @ts-ignore

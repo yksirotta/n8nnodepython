@@ -8,6 +8,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { ClearbitApiCredential } from '@credentials/ClearbitApi.credentials';
 
 export async function clearbitApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -20,7 +21,7 @@ export async function clearbitApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('clearbitApi');
+	const credentials = await this.getCredentials<ClearbitApiCredential>('clearbitApi');
 	let options: OptionsWithUri = {
 		headers: { Authorization: `Bearer ${credentials.apiKey}` },
 		method,

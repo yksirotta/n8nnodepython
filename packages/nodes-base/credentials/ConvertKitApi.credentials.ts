@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface ConvertKitApiCredential {
+	apiSecret: string;
+}
+
 export class ConvertKitApi implements ICredentialType {
 	name = 'convertKitApi';
 

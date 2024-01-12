@@ -8,6 +8,7 @@ import type {
 	NodeParameterValue,
 } from 'n8n-workflow';
 import { NodeApiError, NodeOperationError } from 'n8n-workflow';
+import type { ChargebeeApiCredential } from '@credentials/ChargebeeApi.credentials';
 
 interface CustomProperty {
 	name: string;
@@ -449,7 +450,7 @@ export class Chargebee implements INodeType {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
 
-		const credentials = await this.getCredentials('chargebeeApi');
+		const credentials = await this.getCredentials<ChargebeeApiCredential>('chargebeeApi');
 
 		const baseUrl = `https://${credentials.accountName}.chargebee.com/api/v2`;
 
@@ -585,7 +586,7 @@ export class Chargebee implements INodeType {
 					qs,
 					uri: `${baseUrl}/${endpoint}`,
 					auth: {
-						user: credentials.apiKey as string,
+						user: credentials.apiKey,
 						pass: '',
 					},
 					json: true,

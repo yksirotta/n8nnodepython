@@ -7,6 +7,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError, NodeOperationError } from 'n8n-workflow';
+import type { FacebookGraphApiCredential } from '@credentials/FacebookGraphApi.credentials';
 
 import type { OptionsWithUri } from 'request';
 
@@ -305,7 +306,8 @@ export class FacebookGraphApi implements INodeType {
 		const returnItems: INodeExecutionData[] = [];
 
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
-			const graphApiCredentials = await this.getCredentials('facebookGraphApi');
+			const graphApiCredentials =
+				await this.getCredentials<FacebookGraphApiCredential>('facebookGraphApi');
 
 			const hostUrl = this.getNodeParameter('hostUrl', itemIndex) as string;
 			const httpRequestMethod = this.getNodeParameter('httpRequestMethod', itemIndex) as string;

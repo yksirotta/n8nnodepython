@@ -1,5 +1,4 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialsDecrypted,
 	ICredentialTestFunctions,
 	IDataObject,
@@ -12,6 +11,7 @@ import type {
 
 import type { IExpenseDocument } from './GenericFunctions';
 import { awsApiRequestREST, simplify, validateCredentials } from './GenericFunctions';
+import type { AwsCredential } from '@credentials/Aws.credentials';
 
 export class AwsTextract implements INodeType {
 	description: INodeTypeDescription = {
@@ -81,14 +81,10 @@ export class AwsTextract implements INodeType {
 		credentialTest: {
 			async awsTextractApiCredentialTest(
 				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
+				credential: ICredentialsDecrypted<AwsCredential>,
 			): Promise<INodeCredentialTestResult> {
 				try {
-					await validateCredentials.call(
-						this,
-						credential.data as ICredentialDataDecryptedObject,
-						'sts',
-					);
+					await validateCredentials.call(this, credential.data, 'sts');
 				} catch (error) {
 					return {
 						status: 'Error',

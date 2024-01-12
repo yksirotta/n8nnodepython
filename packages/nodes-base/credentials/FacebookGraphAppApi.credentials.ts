@@ -1,4 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { FacebookGraphApiCredential } from './FacebookGraphApi.credentials';
+
+export interface FacebookGraphAppApiCredential extends FacebookGraphApiCredential {
+	appSecret: string;
+}
 
 export class FacebookGraphAppApi implements ICredentialType {
 	name = 'facebookGraphAppApi';

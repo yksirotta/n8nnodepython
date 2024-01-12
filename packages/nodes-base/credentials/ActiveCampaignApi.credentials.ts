@@ -5,6 +5,11 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface ActiveCampaignApiCredential {
+	apiUrl: string;
+	apiKey: string;
+}
+
 export class ActiveCampaignApi implements ICredentialType {
 	name = 'activeCampaignApi';
 

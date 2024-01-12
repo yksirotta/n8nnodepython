@@ -2,7 +2,6 @@ import { createHash } from 'crypto';
 import type { OptionsWithUri } from 'request';
 
 import type {
-	ICredentialDataDecryptedObject,
 	IDataObject,
 	IExecuteFunctions,
 	IHookFunctions,
@@ -13,6 +12,7 @@ import type {
 import { snakeCase } from 'change-case';
 
 import omit from 'lodash/omit';
+import type { WooCommerceCredential } from '@credentials/WooCommerceApi.credentials';
 import type { ICouponLine, IFeeLine, ILineItem, IShoppingLine } from './OrderInterface';
 
 export async function woocommerceApiRequest(
@@ -72,9 +72,8 @@ export async function woocommerceApiRequestAllItems(
 
 /**
  * Creates a secret from the credentials
- *
  */
-export function getAutomaticSecret(credentials: ICredentialDataDecryptedObject) {
+export function getAutomaticSecret(credentials: WooCommerceCredential) {
 	const data = `${credentials.consumerKey},${credentials.consumerSecret}`;
 	return createHash('md5').update(data).digest('hex');
 }

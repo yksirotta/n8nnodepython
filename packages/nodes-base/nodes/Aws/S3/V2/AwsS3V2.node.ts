@@ -15,6 +15,8 @@ import type {
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
+import type { AwsCredential } from '@credentials/Aws.credentials';
+
 import { bucketFields, bucketOperations } from './BucketDescription';
 
 import { folderFields, folderOperations } from './FolderDescription';
@@ -98,7 +100,7 @@ export class AwsS3V2 implements INodeType {
 				if (resource === 'bucket') {
 					//https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html
 					if (operation === 'create') {
-						const credentials = await this.getCredentials('aws');
+						const credentials = await this.getCredentials<AwsCredential>('aws');
 						const name = this.getNodeParameter('name', i) as string;
 						const additionalFields = this.getNodeParameter('additionalFields', i);
 						if (additionalFields.acl) {

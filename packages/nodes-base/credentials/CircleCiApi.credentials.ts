@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface CircleCiApiCredential {
+	apiKey: string;
+}
+
 export class CircleCiApi implements ICredentialType {
 	name = 'circleCiApi';
 

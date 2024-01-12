@@ -1,5 +1,10 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface AcuitySchedulingApiCredential {
+	userId: string;
+	apiKey: string;
+}
+
 export class AcuitySchedulingApi implements ICredentialType {
 	name = 'acuitySchedulingApi';
 

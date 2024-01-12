@@ -8,6 +8,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { ConvertKitApiCredential } from '@credentials/ConvertKitApi.credentials';
 
 export async function convertKitApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions | IHookFunctions,
@@ -19,7 +20,7 @@ export async function convertKitApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('convertKitApi');
+	const credentials = await this.getCredentials<ConvertKitApiCredential>('convertKitApi');
 
 	let options: OptionsWithUri = {
 		headers: {

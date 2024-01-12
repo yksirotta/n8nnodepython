@@ -1,10 +1,13 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface ActionNetworkApiCredential {
+	apiKey: string;
+}
 
 export class ActionNetworkApi implements ICredentialType {
 	name = 'actionNetworkApi';
@@ -31,7 +34,7 @@ export class ActionNetworkApi implements ICredentialType {
 	};
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		credentials: ActionNetworkApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		requestOptions.headers = { 'OSDI-API-Token': credentials.apiKey };

@@ -5,6 +5,10 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface BrevoApiCredential {
+	apiKey: string;
+}
+
 export class BrevoApi implements ICredentialType {
 	// keep sendinblue name for backward compatibility
 	name = 'sendInBlueApi';

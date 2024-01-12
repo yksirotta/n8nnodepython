@@ -8,6 +8,7 @@ import type {
 } from 'n8n-workflow';
 
 import moment from 'moment-timezone';
+import type { CortexApiCredential } from '@credentials/CortexApi.credentials';
 
 export async function cortexApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -19,7 +20,7 @@ export async function cortexApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('cortexApi');
+	const credentials = await this.getCredentials<CortexApiCredential>('cortexApi');
 
 	let options: OptionsWithUri = {
 		headers: {},

@@ -8,6 +8,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { EgoiApiCredential } from '@credentials/EgoiApi.credentials';
 
 interface IContact {
 	tags: [];
@@ -28,7 +29,7 @@ export async function egoiApiRequest(
 	qs: IDataObject = {},
 	_headers?: object,
 ): Promise<any> {
-	const credentials = await this.getCredentials('egoiApi');
+	const credentials = await this.getCredentials<EgoiApiCredential>('egoiApi');
 
 	const options: OptionsWithUrl = {
 		headers: {

@@ -3,6 +3,8 @@
 	"compilerOptions": {
 		"lib": ["dom", "es2020", "es2022.error"],
 		"paths": {
+			"@nodes/*": ["./nodes/*"],
+			"@credentials/*": ["./credentials/*"],
 			"@test/*": ["./test/*"],
 			"@utils/*": ["./utils/*"]
 		},

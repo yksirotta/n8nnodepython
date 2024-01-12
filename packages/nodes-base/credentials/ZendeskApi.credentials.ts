@@ -1,10 +1,15 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface ZendeskApiCredential {
+	subdomain: string;
+	email: string;
+	apiToken: string;
+}
 
 export class ZendeskApi implements ICredentialType {
 	name = 'zendeskApi';
@@ -41,12 +46,12 @@ export class ZendeskApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		credentials: ZendeskApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		requestOptions.auth = {
 			username: `${credentials.email}/token`,
-			password: credentials.apiToken as string,
+			password: credentials.apiToken,
 		};
 		return requestOptions;
 	}

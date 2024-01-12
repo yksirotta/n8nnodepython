@@ -1411,6 +1411,9 @@ importers:
         specifier: ^0.5.0
         version: 0.5.0
     devDependencies:
+      '@n8n/client-oauth2':
+        specifier: workspace:*
+        version: link:../@n8n/client-oauth2
       '@types/amqplib':
         specifier: ^0.10.1
         version: 0.10.1

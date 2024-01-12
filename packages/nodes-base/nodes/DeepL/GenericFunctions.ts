@@ -7,6 +7,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { DeepLApiCredential } from '@credentials/DeepLApi.credentials';
 
 export async function deepLApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
@@ -20,7 +21,7 @@ export async function deepLApiRequest(
 	const proApiEndpoint = 'https://api.deepl.com/v2';
 	const freeApiEndpoint = 'https://api-free.deepl.com/v2';
 
-	const credentials = await this.getCredentials('deepLApi');
+	const credentials = await this.getCredentials<DeepLApiCredential>('deepLApi');
 
 	const options: OptionsWithUri = {
 		headers: {

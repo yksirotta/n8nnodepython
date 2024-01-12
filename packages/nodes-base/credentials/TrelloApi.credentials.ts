@@ -1,10 +1,14 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export interface TrelloApiCredential {
+	apiKey: string;
+	apiToken: string;
+}
 
 export class TrelloApi implements ICredentialType {
 	name = 'trelloApi';
@@ -40,13 +44,13 @@ export class TrelloApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ apiKey, apiToken }: TrelloApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		requestOptions.qs = {
 			...requestOptions.qs,
-			key: credentials.apiKey,
-			token: credentials.apiToken,
+			key: apiKey,
+			token: apiToken,
 		};
 		return requestOptions;
 	}

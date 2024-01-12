@@ -4,7 +4,6 @@ import { createWriteStream } from 'fs';
 import { stat } from 'fs/promises';
 import type {
 	IWebhookFunctions,
-	ICredentialDataDecryptedObject,
 	IDataObject,
 	INodeExecutionData,
 	INodeTypeDescription,
@@ -30,6 +29,8 @@ import {
 	responseModeProperty,
 } from './description';
 import { WebhookAuthorizationError } from './error';
+import type { HttpBasicAuthCredential } from '@credentials/HttpBasicAuth.credentials';
+import type { HttpHeaderAuthCredential } from '@credentials/HttpHeaderAuth.credentials';
 
 export class Webhook extends Node {
 	authPropertyName = 'authentication';
@@ -169,12 +170,12 @@ export class Webhook extends Node {
 
 		if (authentication === 'basicAuth') {
 			// Basic authorization is needed to call webhook
-			let expectedAuth: ICredentialDataDecryptedObject | undefined;
+			let expectedAuth: HttpBasicAuthCredential | undefined;
 			try {
-				expectedAuth = await context.getCredentials('httpBasicAuth');
+				expectedAuth = await context.getCredentials<HttpBasicAuthCredential>('httpBasicAuth');
 			} catch {}
 
-			if (expectedAuth === undefined || !expectedAuth.user || !expectedAuth.password) {
+			if (!expectedAuth?.user || !expectedAuth.password) {
 				// Data is not defined on node so can not authenticate
 				throw new WebhookAuthorizationError(500, 'No authentication data defined on node!');
 			}
@@ -189,17 +190,17 @@ export class Webhook extends Node {
 			}
 		} else if (authentication === 'headerAuth') {
 			// Special header with value is needed to call webhook
-			let expectedAuth: ICredentialDataDecryptedObject | undefined;
+			let expectedAuth: HttpHeaderAuthCredential | undefined;
 			try {
-				expectedAuth = await context.getCredentials('httpHeaderAuth');
+				expectedAuth = await context.getCredentials<HttpHeaderAuthCredential>('httpHeaderAuth');
 			} catch {}
 
-			if (expectedAuth === undefined || !expectedAuth.name || !expectedAuth.value) {
+			if (!expectedAuth?.name || !expectedAuth.value) {
 				// Data is not defined on node so can not authenticate
 				throw new WebhookAuthorizationError(500, 'No authentication data defined on node!');
 			}
-			const headerName = (expectedAuth.name as string).toLowerCase();
-			const expectedValue = expectedAuth.value as string;
+			const headerName = expectedAuth.name.toLowerCase();
+			const expectedValue = expectedAuth.value;
 
 			if (
 				!headers.hasOwnProperty(headerName) ||

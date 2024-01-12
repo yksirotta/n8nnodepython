@@ -8,6 +8,7 @@ import type {
 import { NodeApiError } from 'n8n-workflow';
 
 import type { OptionsWithUrl } from 'request';
+import type { BambooHrApiCredential } from '@credentials/BambooHrApi.credentials';
 
 /**
  * Make an API request to Mattermost
@@ -20,7 +21,7 @@ export async function apiRequest(
 	query: IDataObject = {},
 	option: IDataObject = {},
 ) {
-	const credentials = await this.getCredentials('bambooHrApi');
+	const credentials = await this.getCredentials<BambooHrApiCredential>('bambooHrApi');
 
 	//set-up credentials
 	const apiKey = credentials.apiKey;
@@ -35,7 +36,7 @@ export async function apiRequest(
 		qs: query,
 		url: uri,
 		auth: {
-			username: apiKey as string,
+			username: apiKey,
 			password: 'x',
 		},
 		json: true,

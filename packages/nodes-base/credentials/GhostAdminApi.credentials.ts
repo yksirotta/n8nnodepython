@@ -1,5 +1,4 @@
 import type {
-	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
 	IHttpRequestOptions,
@@ -7,6 +6,12 @@ import type {
 } from 'n8n-workflow';
 
 import jwt from 'jsonwebtoken';
+
+export interface GhostAdminApiCredential {
+	url: string;
+	apiKey: string;
+}
+
 export class GhostAdminApi implements ICredentialType {
 	name = 'ghostAdminApi';
 
@@ -32,10 +37,10 @@ export class GhostAdminApi implements ICredentialType {
 	];
 
 	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+		{ apiKey }: GhostAdminApiCredential,
 		requestOptions: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
-		const [id, secret] = (credentials.apiKey as string).split(':');
+		const [id, secret] = apiKey.split(':');
 		const token = jwt.sign({}, Buffer.from(secret, 'hex'), {
 			keyid: id,
 			algorithm: 'HS256',

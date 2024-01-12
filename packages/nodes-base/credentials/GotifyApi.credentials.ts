@@ -1,5 +1,12 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface GotifyApiCredential {
+	appApiToken: string;
+	clientApiToken: string;
+	url: string;
+	ignoreSSLIssues: boolean;
+}
+
 export class GotifyApi implements ICredentialType {
 	name = 'gotifyApi';
 

@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface DisqusApiCredential {
+	accessToken: string;
+}
+
 export class DisqusApi implements ICredentialType {
 	name = 'disqusApi';
 

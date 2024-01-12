@@ -8,6 +8,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { HarvestApiCredential } from '@credentials/HarvestApi.credentials';
 
 export async function harvestApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -39,7 +40,7 @@ export async function harvestApiRequest(
 
 	try {
 		if (authenticationMethod === 'accessToken') {
-			const credentials = await this.getCredentials('harvestApi');
+			const credentials = await this.getCredentials<HarvestApiCredential>('harvestApi');
 
 			//@ts-ignore
 			options.headers.Authorization = `Bearer ${credentials.accessToken}`;

@@ -11,6 +11,7 @@ import { NodeOperationError } from 'n8n-workflow';
 
 import * as mqtt from 'mqtt';
 import { formatPrivateKey } from '@utils/utilities';
+import type { MqttCredential } from '@credentials/Mqtt.credentials';
 
 export class MqttTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -87,7 +88,7 @@ export class MqttTrigger implements INodeType {
 	};
 
 	async trigger(this: ITriggerFunctions): Promise<ITriggerResponse> {
-		const credentials = await this.getCredentials('mqtt');
+		const credentials = await this.getCredentials<MqttCredential>('mqtt');
 
 		const topics = (this.getNodeParameter('topics') as string).split(',');
 
@@ -106,17 +107,16 @@ export class MqttTrigger implements INodeType {
 		}
 
 		const protocol = (credentials.protocol as string) || 'mqtt';
-		const host = credentials.host as string;
+		const host = credentials.host;
 		const brokerUrl = `${protocol}://${host}`;
-		const port = (credentials.port as number) || 1883;
-		const clientId =
-			(credentials.clientId as string) || `mqttjs_${Math.random().toString(16).substr(2, 8)}`;
-		const clean = credentials.clean as boolean;
-		const ssl = credentials.ssl as boolean;
-		const ca = formatPrivateKey(credentials.ca as string);
-		const cert = formatPrivateKey(credentials.cert as string);
-		const key = formatPrivateKey(credentials.key as string);
-		const rejectUnauthorized = credentials.rejectUnauthorized as boolean;
+		const port = credentials.port || 1883;
+		const clientId = credentials.clientId || `mqttjs_${Math.random().toString(16).substr(2, 8)}`;
+		const clean = credentials.clean;
+		const ssl = credentials.ssl;
+		const ca = formatPrivateKey(credentials.ca);
+		const cert = formatPrivateKey(credentials.cert);
+		const key = formatPrivateKey(credentials.key);
+		const rejectUnauthorized = credentials.rejectUnauthorized;
 
 		let client: mqtt.MqttClient;
 
@@ -128,8 +128,8 @@ export class MqttTrigger implements INodeType {
 			};
 
 			if (credentials.username && credentials.password) {
-				clientOptions.username = credentials.username as string;
-				clientOptions.password = credentials.password as string;
+				clientOptions.username = credentials.username;
+				clientOptions.password = credentials.password;
 			}
 
 			client = mqtt.connect(brokerUrl, clientOptions);
@@ -144,8 +144,8 @@ export class MqttTrigger implements INodeType {
 				rejectUnauthorized,
 			};
 			if (credentials.username && credentials.password) {
-				clientOptions.username = credentials.username as string;
-				clientOptions.password = credentials.password as string;
+				clientOptions.username = credentials.username;
+				clientOptions.password = credentials.password;
 			}
 
 			client = mqtt.connect(brokerUrl, clientOptions);

@@ -8,6 +8,8 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError, NodeOperationError } from 'n8n-workflow';
+import type { GithubApiCredential } from '@credentials/GithubApi.credentials';
+import type { GithubOAuth2ApiCredential } from '@credentials/GithubOAuth2Api.credentials';
 
 /**
  * Make an API request to Github
@@ -45,13 +47,13 @@ export async function githubApiRequest(
 		let credentialType = '';
 
 		if (authenticationMethod === 'accessToken') {
-			const credentials = await this.getCredentials('githubApi');
+			const credentials = await this.getCredentials<GithubApiCredential>('githubApi');
 			credentialType = 'githubApi';
 
 			const baseUrl = credentials.server || 'https://api.github.com';
 			options.uri = `${baseUrl}${endpoint}`;
 		} else {
-			const credentials = await this.getCredentials('githubOAuth2Api');
+			const credentials = await this.getCredentials<GithubOAuth2ApiCredential>('githubOAuth2Api');
 			credentialType = 'githubOAuth2Api';
 
 			const baseUrl = credentials.server || 'https://api.github.com';

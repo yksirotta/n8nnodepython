@@ -8,7 +8,8 @@ import type {
 	IWebhookFunctions,
 	JsonObject,
 } from 'n8n-workflow';
-import { BINARY_ENCODING, NodeApiError } from 'n8n-workflow';
+import { NodeApiError } from 'n8n-workflow';
+import type { AffinityApiCredential } from '@credentials/AffinityApi.credentials';
 
 export async function affinityApiRequest(
 	this: IExecuteFunctions | IWebhookFunctions | IHookFunctions | ILoadOptionsFunctions,
@@ -19,7 +20,7 @@ export async function affinityApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('affinityApi');
+	const credentials = await this.getCredentials<AffinityApiCredential>('affinityApi');
 
 	const apiKey = `:${credentials.apiKey}`;
 
@@ -28,7 +29,7 @@ export async function affinityApiRequest(
 	let options: OptionsWithUri = {
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Basic ${Buffer.from(apiKey).toString(BINARY_ENCODING)}`,
+			Authorization: `Basic ${Buffer.from(apiKey).toString('base64')}`,
 		},
 		method,
 		body,

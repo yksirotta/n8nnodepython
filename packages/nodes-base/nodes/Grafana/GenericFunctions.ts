@@ -8,7 +8,7 @@ import { NodeApiError, NodeOperationError } from 'n8n-workflow';
 
 import type { OptionsWithUri } from 'request';
 
-import type { GrafanaCredentials } from './types';
+import type { GrafanaApiCredential } from '@credentials/GrafanaApi.credentials';
 
 export function tolerateTrailingSlash(baseUrl: string) {
 	return baseUrl.endsWith('/') ? baseUrl.substr(0, baseUrl.length - 1) : baseUrl;
@@ -21,7 +21,7 @@ export async function grafanaApiRequest(
 	body: IDataObject = {},
 	qs: IDataObject = {},
 ) {
-	const { baseUrl: rawBaseUrl } = (await this.getCredentials('grafanaApi')) as GrafanaCredentials;
+	const { baseUrl: rawBaseUrl } = await this.getCredentials<GrafanaApiCredential>('grafanaApi');
 
 	const baseUrl = tolerateTrailingSlash(rawBaseUrl);
 

@@ -2,8 +2,7 @@ import type { OptionsWithUri } from 'request';
 
 import type { IExecuteFunctions, IDataObject, JsonObject } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
-
-import type { ElasticsearchApiCredentials } from './types';
+import type { ElasticsearchApiCredential } from '@credentials/ElasticsearchApi.credentials';
 
 export async function elasticsearchApiRequest(
 	this: IExecuteFunctions,
@@ -12,9 +11,8 @@ export async function elasticsearchApiRequest(
 	body: IDataObject = {},
 	qs: IDataObject = {},
 ) {
-	const { baseUrl, ignoreSSLIssues } = (await this.getCredentials(
-		'elasticsearchApi',
-	)) as ElasticsearchApiCredentials;
+	const { baseUrl, ignoreSSLIssues } =
+		await this.getCredentials<ElasticsearchApiCredential>('elasticsearchApi');
 
 	const options: OptionsWithUri = {
 		method,

@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface DiscordWebhookApiCredential {
+	webhookUri: string;
+}
+
 export class DiscordWebhookApi implements ICredentialType {
 	name = 'discordWebhookApi';
 

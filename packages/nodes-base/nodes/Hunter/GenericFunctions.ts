@@ -7,6 +7,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { HunterApiCredential } from '@credentials/HunterApi.credentials';
 
 export async function hunterApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -18,7 +19,7 @@ export async function hunterApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('hunterApi');
+	const credentials = await this.getCredentials<HunterApiCredential>('hunterApi');
 	qs = Object.assign({ api_key: credentials.apiKey }, qs);
 	let options: OptionsWithUri = {
 		method,

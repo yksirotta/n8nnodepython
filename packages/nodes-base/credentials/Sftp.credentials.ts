@@ -1,4 +1,10 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { FtpCredential } from './Ftp.credentials';
+
+export interface SftpCredential extends FtpCredential {
+	privateKey?: string;
+	passphrase?: string;
+}
 
 export class Sftp implements ICredentialType {
 	name = 'sftp';

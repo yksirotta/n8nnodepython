@@ -1,5 +1,12 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface GristApiCredential {
+	apiKey: string;
+	planType: 'free' | 'paid' | 'selfHosted';
+	customSubdomain?: string;
+	selfHostedUrl?: string;
+}
+
 export class GristApi implements ICredentialType {
 	name = 'gristApi';
 

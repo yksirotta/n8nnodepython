@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface AutomizyApiCredential {
+	apiToken: string;
+}
+
 export class AutomizyApi implements ICredentialType {
 	name = 'automizyApi';
 

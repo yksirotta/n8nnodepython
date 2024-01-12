@@ -1,5 +1,15 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface HaloPSAApiCredential {
+	hostingType: 'onPremise' | 'hostedHalo';
+	authUrl: string;
+	resourceApiUrl: string;
+	client_id: string;
+	client_secret: string;
+	scope: string;
+	tenant?: string;
+}
+
 export class HaloPSAApi implements ICredentialType {
 	name = 'haloPSAApi';
 
@@ -25,7 +35,7 @@ export class HaloPSAApi implements ICredentialType {
 			default: 'onPremise',
 		},
 		{
-			displayName: 'HaloPSA Authorisation Server URL',
+			displayName: 'HaloPSA Authorization Server URL',
 			name: 'authUrl',
 			type: 'string',
 			default: '',

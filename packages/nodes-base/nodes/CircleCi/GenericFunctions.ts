@@ -8,6 +8,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { CircleCiApiCredential } from '@credentials/CircleCiApi.credentials';
 
 export async function circleciApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -19,7 +20,7 @@ export async function circleciApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ): Promise<any> {
-	const credentials = await this.getCredentials('circleCiApi');
+	const credentials = await this.getCredentials<CircleCiApiCredential>('circleCiApi');
 	let options: OptionsWithUri = {
 		headers: {
 			'Circle-Token': credentials.apiKey,

@@ -8,7 +8,8 @@ import { NodeApiError, NodeOperationError } from 'n8n-workflow';
 
 import type { OptionsWithUri } from 'request';
 
-import type { Connector, ElasticSecurityApiCredentials } from './types';
+import type { Connector } from './types';
+import type { ElasticSecurityApiCredential } from '@credentials/ElasticSecurityApi.credentials';
 
 export function tolerateTrailingSlash(baseUrl: string) {
 	return baseUrl.endsWith('/') ? baseUrl.substr(0, baseUrl.length - 1) : baseUrl;
@@ -25,7 +26,7 @@ export async function elasticSecurityApiRequest(
 		username,
 		password,
 		baseUrl: rawBaseUrl,
-	} = (await this.getCredentials('elasticSecurityApi')) as ElasticSecurityApiCredentials;
+	} = await this.getCredentials<ElasticSecurityApiCredential>('elasticSecurityApi');
 
 	const baseUrl = tolerateTrailingSlash(rawBaseUrl);
 

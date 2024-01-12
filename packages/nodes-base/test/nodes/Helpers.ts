@@ -8,7 +8,6 @@ import { BinaryDataService, Credentials, constructExecutionMetaData } from 'n8n-
 import { Container } from 'typedi';
 import type {
 	CredentialLoadingDetails,
-	ICredentialDataDecryptedObject,
 	ICredentialType,
 	ICredentialTypeData,
 	ICredentialTypes,
@@ -46,11 +45,11 @@ const getFakeDecryptedCredentials = (
 	fakeCredentialsMap: IDataObject,
 ) => {
 	if (nodeCredentials && fakeCredentialsMap[JSON.stringify(nodeCredentials)]) {
-		return fakeCredentialsMap[JSON.stringify(nodeCredentials)] as ICredentialDataDecryptedObject;
+		return fakeCredentialsMap[JSON.stringify(nodeCredentials)];
 	}
 
 	if (type && fakeCredentialsMap[type]) {
-		return fakeCredentialsMap[type] as ICredentialDataDecryptedObject;
+		return fakeCredentialsMap[type];
 	}
 
 	return {};
@@ -94,11 +93,11 @@ class CredentialType implements ICredentialTypes {
 
 export class CredentialsHelper extends ICredentialsHelper {
 	constructor(private credentialTypes: ICredentialTypes) {
-		super('');
+		super();
 	}
 
-	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+	async authenticate<T extends object>(
+		credentials: T,
 		typeName: string,
 		requestParams: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
@@ -109,13 +108,13 @@ export class CredentialsHelper extends ICredentialsHelper {
 		return requestParams;
 	}
 
-	async preAuthentication(
+	async preAuthentication<T extends object>(
 		helpers: IHttpRequestHelper,
-		credentials: ICredentialDataDecryptedObject,
+		credentials: T,
 		typeName: string,
 		node: INode,
 		credentialsExpired: boolean,
-	): Promise<ICredentialDataDecryptedObject | undefined> {
+	): Promise<T | undefined> {
 		return undefined;
 	}
 
@@ -123,25 +122,25 @@ export class CredentialsHelper extends ICredentialsHelper {
 		return [];
 	}
 
-	async getDecrypted(
+	async getDecrypted<T extends object>(
 		additionalData: IWorkflowExecuteAdditionalData,
 		nodeCredentials: INodeCredentialsDetails,
 		type: string,
-	): Promise<ICredentialDataDecryptedObject> {
-		return getFakeDecryptedCredentials(nodeCredentials, type, FAKE_CREDENTIALS_DATA);
+	): Promise<T> {
+		return getFakeDecryptedCredentials(nodeCredentials, type, FAKE_CREDENTIALS_DATA) as T;
 	}
 
-	async getCredentials(
+	async getCredentials<T extends object>(
 		nodeCredentials: INodeCredentialsDetails,
 		type: string,
-	): Promise<Credentials> {
+	): Promise<Credentials<T>> {
 		return new Credentials({ id: null, name: '' }, '', [], '');
 	}
 
-	async updateCredentials(
+	async updateCredentials<T extends object>(
 		nodeCredentials: INodeCredentialsDetails,
 		type: string,
-		data: ICredentialDataDecryptedObject,
+		data: T,
 	): Promise<void> {}
 }
 

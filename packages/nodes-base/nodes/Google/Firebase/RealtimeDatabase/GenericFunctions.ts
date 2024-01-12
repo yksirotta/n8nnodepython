@@ -7,6 +7,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
+import type { GoogleFirebaseRealtimeDatabaseOAuth2ApiCredential } from '@credentials/GoogleFirebaseRealtimeDatabaseOAuth2Api.credentials';
 
 export async function googleApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
@@ -19,9 +20,9 @@ export async function googleApiRequest(
 	headers: IDataObject = {},
 	uri: string | null = null,
 ): Promise<any> {
-	const { region } = (await this.getCredentials(
+	const { region } = await this.getCredentials<GoogleFirebaseRealtimeDatabaseOAuth2ApiCredential>(
 		'googleFirebaseRealtimeDatabaseOAuth2Api',
-	)) as IDataObject;
+	);
 
 	const options: OptionsWithUrl = {
 		headers: {

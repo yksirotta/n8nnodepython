@@ -1,5 +1,9 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface BitlyApiCredential {
+	accessToken: string;
+}
+
 export class BitlyApi implements ICredentialType {
 	name = 'bitlyApi';
 

@@ -1,5 +1,13 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface SmtpCredential {
+	host: string;
+	port: number;
+	user: string;
+	password: string;
+	secure: boolean;
+}
+
 export class Smtp implements ICredentialType {
 	name = 'smtp';
 

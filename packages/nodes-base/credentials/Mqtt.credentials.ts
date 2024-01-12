@@ -1,5 +1,20 @@
 import type { ICredentialType, IDisplayOptions, INodeProperties } from 'n8n-workflow';
 
+export interface MqttCredential {
+	protocol: 'mqtt' | 'mqtts' | 'ws';
+	host: string;
+	port: number;
+	username: string;
+	password: string;
+	clean: boolean;
+	clientId: string;
+	ssl: boolean;
+	rejectUnauthorized: boolean;
+	ca: string;
+	cert: string;
+	key: string;
+}
+
 export class Mqtt implements ICredentialType {
 	name = 'mqtt';
 

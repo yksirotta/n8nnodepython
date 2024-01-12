@@ -10,6 +10,7 @@ import type {
 
 import { createTransport } from 'nodemailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
+import type { SmtpCredential } from '@credentials/Smtp.credentials';
 
 const versionDescription: INodeTypeDescription = {
 	displayName: 'Send Email',
@@ -160,18 +161,18 @@ export class EmailSendV1 implements INodeType {
 				const attachmentPropertyString = this.getNodeParameter('attachments', itemIndex) as string;
 				const options = this.getNodeParameter('options', itemIndex, {});
 
-				const credentials = await this.getCredentials('smtp');
+				const credentials = await this.getCredentials<SmtpCredential>('smtp');
 
 				const connectionOptions: SMTPTransport.Options = {
-					host: credentials.host as string,
-					port: credentials.port as number,
+					host: credentials.host,
+					port: credentials.port,
 					secure: credentials.secure as boolean,
 				};
 
 				if (credentials.user || credentials.password) {
 					connectionOptions.auth = {
-						user: credentials.user as string,
-						pass: credentials.password as string,
+						user: credentials.user,
+						pass: credentials.password,
 					};
 				}
 

@@ -1,5 +1,12 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface OdooApiCredential {
+	url: string;
+	username: string;
+	password: string;
+	db: string;
+}
+
 export class OdooApi implements ICredentialType {
 	name = 'odooApi';
 

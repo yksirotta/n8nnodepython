@@ -49,7 +49,6 @@ import type {
 	IAllExecuteFunctions,
 	IBinaryData,
 	IContextObject,
-	ICredentialDataDecryptedObject,
 	ICredentialTestFunctions,
 	ICredentialsExpressionResolveValues,
 	IDataObject,
@@ -1215,9 +1214,7 @@ export async function requestOAuth2(
 	oAuth2Options?: IOAuth2Options,
 	isN8nRequest = false,
 ) {
-	const credentials = (await this.getCredentials(
-		credentialsType,
-	)) as unknown as OAuth2CredentialData;
+	const credentials = await this.getCredentials<OAuth2CredentialData>(credentialsType);
 
 	// Only the OAuth2 with authorization code grant needs connection
 	if (credentials.grantType === 'authorizationCode' && credentials.oauthTokenData === undefined) {
@@ -1255,7 +1252,7 @@ export async function requestOAuth2(
 		await additionalData.credentialsHelper.updateCredentials(
 			nodeCredentials,
 			credentialsType,
-			credentials as unknown as ICredentialDataDecryptedObject,
+			credentials,
 		);
 
 		oauthTokenData = data;
@@ -1336,7 +1333,7 @@ export async function requestOAuth2(
 				await additionalData.credentialsHelper.updateCredentials(
 					nodeCredentials,
 					credentialsType,
-					credentials as unknown as ICredentialDataDecryptedObject,
+					credentials,
 				);
 				const refreshedRequestOption = newToken.sign(requestOptions as ClientOAuth2RequestObject);
 
@@ -1416,7 +1413,7 @@ export async function requestOAuth2(
 				await additionalData.credentialsHelper.updateCredentials(
 					nodeCredentials,
 					credentialsType,
-					credentials as unknown as ICredentialDataDecryptedObject,
+					credentials,
 				);
 
 				Logger.debug(
@@ -1450,7 +1447,12 @@ export async function requestOAuth1(
 	requestOptions: OptionsWithUrl | OptionsWithUri | RequestPromiseOptions | IHttpRequestOptions,
 	isN8nRequest = false,
 ) {
-	const credentials = await this.getCredentials(credentialsType);
+	const credentials = await this.getCredentials<{
+		oauthTokenData: object;
+		consumerKey: string;
+		consumerSecret: string;
+		signatureMethod: 'HMAC-SHA256' | 'HMAC-SHA512' | 'HMAC-SHA1';
+	}>(credentialsType);
 
 	if (credentials === undefined) {
 		throw new ApplicationError('No credentials were returned!');
@@ -1462,8 +1464,8 @@ export async function requestOAuth1(
 
 	const oauth = new clientOAuth1({
 		consumer: {
-			key: credentials.consumerKey as string,
-			secret: credentials.consumerSecret as string,
+			key: credentials.consumerKey,
+			secret: credentials.consumerSecret,
 		},
 		signature_method: credentials.signatureMethod as string,
 		hash_function(base, key) {
@@ -1524,7 +1526,7 @@ export async function httpRequestWithAuthentication(
 	additionalData: IWorkflowExecuteAdditionalData,
 	additionalCredentialOptions?: IAdditionalCredentialOptions,
 ) {
-	let credentialsDecrypted: ICredentialDataDecryptedObject | undefined;
+	let credentialsDecrypted: object | undefined;
 	try {
 		const parentTypes = additionalData.credentialsHelper.getParentTypes(credentialsType);
 		if (parentTypes.includes('oAuth1Api')) {
@@ -1716,7 +1718,7 @@ export async function requestWithAuthentication(
 	additionalData: IWorkflowExecuteAdditionalData,
 	additionalCredentialOptions?: IAdditionalCredentialOptions,
 ) {
-	let credentialsDecrypted: ICredentialDataDecryptedObject | undefined;
+	let credentialsDecrypted: object | undefined;
 
 	try {
 		const parentTypes = additionalData.credentialsHelper.getParentTypes(credentialsType);
@@ -1879,7 +1881,7 @@ export function getAdditionalKeys(
  * @param {INode} node Node which request the data
  * @param {string} type The credential type to return
  */
-export async function getCredentials(
+export async function getCredentials<T extends object>(
 	workflow: Workflow,
 	node: INode,
 	type: string,
@@ -1890,7 +1892,7 @@ export async function getCredentials(
 	runIndex?: number,
 	connectionInputData?: INodeExecutionData[],
 	itemIndex?: number,
-): Promise<ICredentialDataDecryptedObject> {
+): Promise<T> {
 	// Get the NodeType as it has the information if the credentials are required
 	const nodeType = workflow.nodeTypes.getByNameAndVersion(node.type, node.typeVersion);
 	if (nodeType === undefined) {
@@ -2000,7 +2002,7 @@ export async function getCredentials(
 	// 	) as string;
 	// }
 
-	const decryptedDataObject = await additionalData.credentialsHelper.getDecrypted(
+	return additionalData.credentialsHelper.getDecrypted<T>(
 		additionalData,
 		nodeCredentials,
 		type,
@@ -2009,8 +2011,6 @@ export async function getCredentials(
 		false,
 		expressionResolveValues,
 	);
-
-	return decryptedDataObject;
 }
 
 /**

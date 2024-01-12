@@ -15,6 +15,7 @@ import {
 	webexApiRequest,
 	webexApiRequestAllItems,
 } from './GenericFunctions';
+import type { CiscoWebexOAuth2ApiCredential } from '@credentials/CiscoWebexOAuth2Api.credentials';
 
 export class CiscoWebexTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -519,7 +520,8 @@ export class CiscoWebexTrigger implements INodeType {
 				const event = this.getNodeParameter('event') as string;
 				const resource = this.getNodeParameter('resource') as string;
 				const filters = this.getNodeParameter('filters', {}) as IDataObject;
-				const credentials = await this.getCredentials('ciscoWebexOAuth2Api');
+				const credentials =
+					await this.getCredentials<CiscoWebexOAuth2ApiCredential>('ciscoWebexOAuth2Api');
 				const secret = getAutomaticSecret(credentials);
 				const filter = [];
 				for (const key of Object.keys(filters)) {

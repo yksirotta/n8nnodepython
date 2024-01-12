@@ -8,6 +8,7 @@ import type {
 } from 'n8n-workflow';
 import { NodeApiError, NodeOperationError } from 'n8n-workflow';
 import { getGoogleAccessToken } from '../../GenericFunctions';
+import type { GoogleApiCredential } from '@credentials/GoogleApi.credentials';
 
 export async function googleApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
@@ -43,7 +44,7 @@ export async function googleApiRequest(
 		}
 
 		if (authenticationMethod === 'serviceAccount') {
-			const credentials = await this.getCredentials('googleApi');
+			const credentials = await this.getCredentials<GoogleApiCredential>('googleApi');
 
 			if (credentials === undefined) {
 				throw new NodeOperationError(this.getNode(), 'No credentials got returned!');

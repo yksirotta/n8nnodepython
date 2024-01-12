@@ -2,7 +2,6 @@ import { createHash } from 'crypto';
 import type { OptionsWithUri } from 'request';
 
 import type {
-	ICredentialDataDecryptedObject,
 	IDataObject,
 	IExecuteFunctions,
 	IHookFunctions,
@@ -14,6 +13,7 @@ import type {
 import { NodeApiError } from 'n8n-workflow';
 
 import upperFirst from 'lodash/upperFirst';
+import type { CiscoWebexOAuth2ApiCredential } from '@credentials/CiscoWebexOAuth2Api.credentials';
 
 export async function webexApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions | IHookFunctions | IWebhookFunctions,
@@ -628,7 +628,7 @@ export function getInputTextProperties(): INodeProperties[] {
 	];
 }
 
-export function getAutomaticSecret(credentials: ICredentialDataDecryptedObject) {
+export function getAutomaticSecret(credentials: CiscoWebexOAuth2ApiCredential) {
 	const data = `${credentials.clientId},${credentials.clientSecret}`;
 	return createHash('md5').update(data).digest('hex');
 }

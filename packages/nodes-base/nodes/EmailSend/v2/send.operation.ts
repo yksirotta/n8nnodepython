@@ -11,6 +11,7 @@ import { createTransport } from 'nodemailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 import { updateDisplayOptions } from '@utils/utilities';
+import type { SmtpCredential } from '@credentials/Smtp.credentials';
 
 const properties: INodeProperties[] = [
 	// TODO: Add choice for text as text or html  (maybe also from name)
@@ -203,17 +204,17 @@ type EmailSendOptions = {
 	replyTo?: string;
 };
 
-function configureTransport(credentials: IDataObject, options: EmailSendOptions) {
+function configureTransport(credentials: SmtpCredential, options: EmailSendOptions) {
 	const connectionOptions: SMTPTransport.Options = {
-		host: credentials.host as string,
-		port: credentials.port as number,
+		host: credentials.host,
+		port: credentials.port,
 		secure: credentials.secure as boolean,
 	};
 
 	if (credentials.user || credentials.password) {
 		connectionOptions.auth = {
-			user: credentials.user as string,
-			pass: credentials.password as string,
+			user: credentials.user,
+			pass: credentials.password,
 		};
 	}
 
@@ -244,7 +245,7 @@ export async function execute(this: IExecuteFunctions): Promise<INodeExecutionDa
 			const emailFormat = this.getNodeParameter('emailFormat', itemIndex) as string;
 			const options = this.getNodeParameter('options', itemIndex, {}) as EmailSendOptions;
 
-			const credentials = await this.getCredentials('smtp');
+			const credentials = await this.getCredentials<SmtpCredential>('smtp');
 
 			const transporter = configureTransport(credentials, options);
 

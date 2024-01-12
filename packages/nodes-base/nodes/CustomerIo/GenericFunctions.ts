@@ -8,6 +8,7 @@ import type {
 } from 'n8n-workflow';
 
 import get from 'lodash/get';
+import type { CustomerIoApiCredential } from '@credentials/CustomerIoApi.credentials';
 
 export async function customerIoApiRequest(
 	this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions,
@@ -17,7 +18,7 @@ export async function customerIoApiRequest(
 	baseApi?: string,
 	_query?: IDataObject,
 ) {
-	const credentials = await this.getCredentials('customerIoApi');
+	const { region } = await this.getCredentials<CustomerIoApiCredential>('customerIoApi');
 	const options: IHttpRequestOptions = {
 		headers: {
 			'Content-Type': 'application/json',
@@ -29,10 +30,8 @@ export async function customerIoApiRequest(
 	};
 
 	if (baseApi === 'tracking') {
-		const region = credentials.region;
 		options.url = `https://${region}/api/v1${endpoint}`;
 	} else if (baseApi === 'api') {
-		const region = credentials.region;
 		// Special handling for EU region
 		if (region === 'track-eu.customer.io') {
 			options.url = `https://api-eu.customer.io/v1/api${endpoint}`;

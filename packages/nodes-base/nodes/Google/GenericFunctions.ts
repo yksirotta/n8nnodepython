@@ -11,6 +11,7 @@ import moment from 'moment-timezone';
 import * as jwt from 'jsonwebtoken';
 
 import { formatPrivateKey } from '@utils/utilities';
+import type { GoogleApiCredential } from '@credentials/GoogleApi.credentials';
 
 const googleServiceAccountScopes = {
 	bigquery: ['https://www.googleapis.com/auth/bigquery'],
@@ -58,15 +59,15 @@ type GoogleServiceAccount = keyof typeof googleServiceAccountScopes;
 
 export async function getGoogleAccessToken(
 	this: IExecuteFunctions | ILoadOptionsFunctions | ICredentialTestFunctions | IPollFunctions,
-	credentials: IDataObject,
+	credentials: GoogleApiCredential,
 	service: GoogleServiceAccount,
 ): Promise<IDataObject> {
 	//https://developers.google.com/identity/protocols/oauth2/service-account#httprest
 
 	const scopes = googleServiceAccountScopes[service];
 
-	const privateKey = formatPrivateKey(credentials.privateKey as string);
-	credentials.email = ((credentials.email as string) || '').trim();
+	const privateKey = formatPrivateKey(credentials.privateKey);
+	credentials.email = (credentials.email || '').trim();
 
 	const now = moment().unix();
 

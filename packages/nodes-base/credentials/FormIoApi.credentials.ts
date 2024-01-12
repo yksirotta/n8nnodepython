@@ -1,5 +1,12 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
+export interface FormIoApiCredential {
+	environment: 'cloudHosted' | ' selfHosted';
+	domain?: string;
+	email: string;
+	password: string;
+}
+
 export class FormIoApi implements ICredentialType {
 	name = 'formIoApi';
 

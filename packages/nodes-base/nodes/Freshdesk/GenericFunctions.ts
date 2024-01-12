@@ -7,6 +7,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { BINARY_ENCODING, NodeApiError } from 'n8n-workflow';
+import type { FreshdeskApiCredential } from '@credentials/FreshdeskApi.credentials';
 
 export async function freshdeskApiRequest(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
@@ -18,7 +19,7 @@ export async function freshdeskApiRequest(
 	uri?: string,
 	option: IDataObject = {},
 ) {
-	const credentials = await this.getCredentials('freshdeskApi');
+	const credentials = await this.getCredentials<FreshdeskApiCredential>('freshdeskApi');
 
 	const apiKey = `${credentials.apiKey}:X`;
 

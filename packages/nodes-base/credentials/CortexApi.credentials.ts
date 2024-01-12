@@ -5,6 +5,11 @@ import type {
 	INodeProperties,
 } from 'n8n-workflow';
 
+export interface CortexApiCredential {
+	cortexApiKey: string;
+	host: string;
+}
+
 export class CortexApi implements ICredentialType {
 	name = 'cortexApi';
 
