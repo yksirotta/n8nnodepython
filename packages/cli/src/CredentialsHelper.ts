@@ -29,12 +29,10 @@ import { ICredentialsHelper, NodeHelpers, Workflow, ApplicationError } from 'n8n
 import type { ICredentialsDb } from '@/Interfaces';
 
 import type { CredentialsEntity } from '@db/entities/CredentialsEntity';
-import { NodeTypes } from '@/NodeTypes';
 import { CredentialTypes } from '@/CredentialTypes';
 import { CredentialsOverwrites } from '@/CredentialsOverwrites';
 import { RESPONSE_ERROR_MESSAGES } from './constants';
 
-import { Logger } from '@/Logger';
 import { CredentialsRepository } from '@db/repositories/credentials.repository';
 import { SharedCredentialsRepository } from '@db/repositories/sharedCredentials.repository';
 import { CredentialNotFoundError } from './errors/credential-not-found.error';
@@ -73,9 +71,7 @@ const mockNodeTypes: INodeTypes = {
 @Service()
 export class CredentialsHelper extends ICredentialsHelper {
 	constructor(
-		private readonly logger: Logger,
 		private readonly credentialTypes: CredentialTypes,
-		private readonly nodeTypes: NodeTypes,
 		private readonly credentialsOverwrites: CredentialsOverwrites,
 		private readonly credentialsRepository: CredentialsRepository,
 		private readonly sharedCredentialsRepository: SharedCredentialsRepository,
@@ -86,15 +82,15 @@ export class CredentialsHelper extends ICredentialsHelper {
 	/**
 	 * Add the required authentication information to the request
 	 */
-	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+	async authenticate<T extends object = ICredentialDataDecryptedObject>(
+		credentials: T,
 		typeName: string,
 		incomingRequestOptions: IHttpRequestOptions | IRequestOptionsSimplified,
 		workflow: Workflow,
 		node: INode,
 	): Promise<IHttpRequestOptions> {
 		const requestOptions = incomingRequestOptions;
-		const credentialType = this.credentialTypes.getByName(typeName);
+		const credentialType = this.credentialTypes.getByName<T>(typeName);
 
 		if (credentialType.authenticate) {
 			if (typeof credentialType.authenticate === 'function') {
@@ -144,14 +140,14 @@ export class CredentialsHelper extends ICredentialsHelper {
 		return requestOptions as IHttpRequestOptions;
 	}
 
-	async preAuthentication(
+	async preAuthentication<T extends object = ICredentialDataDecryptedObject>(
 		helpers: IHttpRequestHelper,
-		credentials: ICredentialDataDecryptedObject,
+		credentials: T,
 		typeName: string,
 		node: INode,
 		credentialsExpired: boolean,
-	): Promise<ICredentialDataDecryptedObject | undefined> {
-		const credentialType = this.credentialTypes.getByName(typeName);
+	): Promise<T | undefined> {
+		const credentialType = this.credentialTypes.getByName<T>(typeName);
 
 		const expirableProperty = credentialType.properties.find(
 			(property) => property.type === 'hidden' && property?.typeOptions?.expirable === true,
@@ -238,11 +234,11 @@ export class CredentialsHelper extends ICredentialsHelper {
 	/**
 	 * Returns the credentials instance
 	 */
-	async getCredentials(
+	async getCredentials<T extends object>(
 		nodeCredential: INodeCredentialsDetails,
 		type: string,
 		userId?: string,
-	): Promise<Credentials> {
+	): Promise<Credentials<T>> {
 		if (!nodeCredential.id) {
 			throw new ApplicationError('Found credential with no ID.', {
 				extra: { credentialName: nodeCredential.name },
@@ -316,7 +312,7 @@ export class CredentialsHelper extends ICredentialsHelper {
 	/**
 	 * Returns the decrypted credential data with applied overwrites
 	 */
-	async getDecrypted(
+	async getDecrypted<T extends object>(
 		additionalData: IWorkflowExecuteAdditionalData,
 		nodeCredentials: INodeCredentialsDetails,
 		type: string,
@@ -324,8 +320,8 @@ export class CredentialsHelper extends ICredentialsHelper {
 		executeData?: IExecuteData,
 		raw?: boolean,
 		expressionResolveValues?: ICredentialsExpressionResolveValues,
-	): Promise<ICredentialDataDecryptedObject> {
-		const credentials = await this.getCredentials(nodeCredentials, type);
+	): Promise<T> {
+		const credentials = await this.getCredentials<T>(nodeCredentials, type);
 		const decryptedDataOriginal = credentials.getData();
 
 		if (raw === true) {
@@ -350,15 +346,15 @@ export class CredentialsHelper extends ICredentialsHelper {
 	/**
 	 * Applies credential default data and overwrites
 	 */
-	applyDefaultsAndOverwrites(
+	applyDefaultsAndOverwrites<T extends object>(
 		additionalData: IWorkflowExecuteAdditionalData,
-		decryptedDataOriginal: ICredentialDataDecryptedObject,
+		decryptedDataOriginal: T,
 		type: string,
 		mode: WorkflowExecuteMode,
 		executeData?: IExecuteData,
 		expressionResolveValues?: ICredentialsExpressionResolveValues,
 		canUseSecrets?: boolean,
-	): ICredentialDataDecryptedObject {
+	): T {
 		const credentialsProperties = this.getCredentialsProperties(type);
 
 		// Load and apply the credentials overwrites if any exist

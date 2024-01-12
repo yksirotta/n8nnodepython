@@ -18,8 +18,8 @@ export class CredentialTypes implements ICredentialTypes {
 		return type in knownCredentials || type in loadedCredentials;
 	}
 
-	getByName(credentialType: string): ICredentialType {
-		return this.getCredential(credentialType).type;
+	getByName<T = object>(credentialType: string): ICredentialType<T> {
+		return this.getCredential<T>(credentialType).type;
 	}
 
 	getSupportedNodes(type: string): string[] {
@@ -39,17 +39,17 @@ export class CredentialTypes implements ICredentialTypes {
 		return extendsArr;
 	}
 
-	private getCredential(type: string): LoadedClass<ICredentialType> {
+	private getCredential<T>(type: string): LoadedClass<ICredentialType<T>> {
 		const { loadedCredentials, knownCredentials } = this.loadNodesAndCredentials;
 		if (type in loadedCredentials) {
-			return loadedCredentials[type];
+			return loadedCredentials[type] as LoadedClass<ICredentialType<T>>;
 		}
 
 		if (type in knownCredentials) {
 			const { className, sourcePath } = knownCredentials[type];
 			const loaded: ICredentialType = loadClassInIsolation(sourcePath, className);
 			loadedCredentials[type] = { sourcePath, type: loaded };
-			return loadedCredentials[type];
+			return loadedCredentials[type] as LoadedClass<ICredentialType<T>>;
 		}
 		throw new ApplicationError(RESPONSE_ERROR_MESSAGES.NO_CREDENTIAL, {
 			tags: { credentialType: type },

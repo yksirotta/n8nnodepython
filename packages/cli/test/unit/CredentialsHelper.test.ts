@@ -1,7 +1,6 @@
 import Container from 'typedi';
 import type {
 	IAuthenticateGeneric,
-	ICredentialDataDecryptedObject,
 	ICredentialType,
 	IHttpRequestOptions,
 	INode,
@@ -62,7 +61,7 @@ describe('CredentialsHelper', () => {
 		const tests: Array<{
 			description: string;
 			input: {
-				credentials: ICredentialDataDecryptedObject;
+				credentials: object;
 				credentialType: ICredentialType;
 			};
 			output: IHttpRequestOptions;
@@ -230,7 +229,7 @@ describe('CredentialsHelper', () => {
 						];
 
 						async authenticate(
-							credentials: ICredentialDataDecryptedObject,
+							credentials: { accessToken: string; user: string },
 							requestOptions: IHttpRequestOptions,
 						): Promise<IHttpRequestOptions> {
 							requestOptions.headers!.Authorization = `Bearer ${credentials.accessToken}`;

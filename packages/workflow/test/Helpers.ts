@@ -45,12 +45,12 @@ export interface INodeTypesObject {
 	[key: string]: INodeType;
 }
 
-export class Credentials extends ICredentials {
-	setData(data: ICredentialDataDecryptedObject) {
+export class Credentials<T extends object> extends ICredentials<T> {
+	setData(data: T) {
 		this.data = JSON.stringify(data);
 	}
 
-	getData(): ICredentialDataDecryptedObject {
+	getData(): T {
 		if (this.data === undefined) {
 			throw new ApplicationError('No data is set so nothing can be returned');
 		}
@@ -72,47 +72,47 @@ export class Credentials extends ICredentials {
 }
 
 export class CredentialsHelper extends ICredentialsHelper {
-	async authenticate(
-		credentials: ICredentialDataDecryptedObject,
+	async authenticate<T extends object>(
+		credentials: T,
 		typeName: string,
 		requestParams: IHttpRequestOptions,
 	): Promise<IHttpRequestOptions> {
 		return requestParams;
 	}
 
-	async preAuthentication(
+	async preAuthentication<T extends object>(
 		helpers: IHttpRequestHelper,
-		credentials: ICredentialDataDecryptedObject,
+		credentials: T,
 		typeName: string,
 		node: INode,
 		credentialsExpired: boolean,
-	): Promise<{ updatedCredentials: boolean; data: ICredentialDataDecryptedObject }> {
-		return { updatedCredentials: false, data: {} };
+	): Promise<{ updatedCredentials: boolean; data: T }> {
+		return { updatedCredentials: false, data: {} as T };
 	}
 
 	getParentTypes(name: string): string[] {
 		return [];
 	}
 
-	async getDecrypted(
+	async getDecrypted<T extends object>(
 		additionalData: IWorkflowExecuteAdditionalData,
 		nodeCredentials: INodeCredentialsDetails,
 		type: string,
-	): Promise<ICredentialDataDecryptedObject> {
-		return {};
+	): Promise<T> {
+		return {} as T;
 	}
 
-	async getCredentials(
+	async getCredentials<T extends object>(
 		nodeCredentials: INodeCredentialsDetails,
 		type: string,
-	): Promise<ICredentials> {
-		return new Credentials({ id: null, name: '' }, '', [], '');
+	): Promise<ICredentials<T>> {
+		return new Credentials<T>({ id: null, name: '' }, '', '');
 	}
 
-	async updateCredentials(
+	async updateCredentials<T extends object>(
 		nodeCredentials: INodeCredentialsDetails,
 		type: string,
-		data: ICredentialDataDecryptedObject,
+		data: T,
 	): Promise<void> {}
 }
 
@@ -191,13 +191,8 @@ export function getExecuteFunctions(
 			getContext(type: string): IContextObject {
 				return NodeHelpers.getContext(runExecutionData, type, node);
 			},
-			async getCredentials(
-				type: string,
-				itemIndex?: number,
-			): Promise<ICredentialDataDecryptedObject> {
-				return {
-					apiKey: '12345',
-				};
+			async getCredentials<T extends object>(type: string, itemIndex?: number): Promise<T> {
+				return { apiKey: '12345' } as T;
 			},
 			getExecutionId: (): string => {
 				return additionalData.executionId!;
@@ -376,10 +371,8 @@ export function getExecuteSingleFunctions(
 			getContext(type: string): IContextObject {
 				return NodeHelpers.getContext(runExecutionData, type, node);
 			},
-			async getCredentials(type: string): Promise<ICredentialDataDecryptedObject> {
-				return {
-					apiKey: '12345',
-				};
+			async <T extends object>(type: string): Promise<T> {
+				return { apiKey: '12345' } as T;
 			},
 			getInputData: (inputIndex = 0, inputName = 'main') => {
 				if (!inputData.hasOwnProperty(inputName)) {
