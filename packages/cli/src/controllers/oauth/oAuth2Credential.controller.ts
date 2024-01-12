@@ -1,21 +1,15 @@
 import type { ClientOAuth2Options, OAuth2CredentialData } from '@n8n/client-oauth2';
 import { ClientOAuth2 } from '@n8n/client-oauth2';
-import Csrf from 'csrf';
 import { Response } from 'express';
 import pkceChallenge from 'pkce-challenge';
 import * as qs from 'querystring';
 import omit from 'lodash/omit';
 import set from 'lodash/set';
 import split from 'lodash/split';
-import { ApplicationError, jsonParse, jsonStringify } from 'n8n-workflow';
+import { jsonStringify } from 'n8n-workflow';
 import { Authorized, Get, RestController } from '@/decorators';
 import { OAuthRequest } from '@/requests';
-import { AbstractOAuthController } from './abstractOAuth.controller';
-
-interface CsrfStateParam {
-	cid: string;
-	token: string;
-}
+import { AbstractOAuthController, type CsrfStateParam } from './abstractOAuth.controller';
 
 @Authorized()
 @RestController('/oauth2-credential')
@@ -124,16 +118,9 @@ export class OAuth2CredentialController extends AbstractOAuthController {
 				additionalData,
 			);
 
-			const token = new Csrf();
-			if (
-				decryptedDataOriginal.csrfSecret === undefined ||
-				!token.verify(decryptedDataOriginal.csrfSecret as string, state.token)
-			) {
+			if (this.verifyCsrfState(decryptedDataOriginal, state)) {
 				const errorMessage = 'The OAuth2 callback state is invalid!';
-				this.logger.debug(errorMessage, {
-					userId: req.user?.id,
-					credentialId: credential.id,
-				});
+				this.logger.debug(errorMessage, { credentialId: credential.id });
 				return this.renderCallbackError(res, errorMessage);
 			}
 
@@ -219,30 +206,5 @@ export class OAuth2CredentialController extends AbstractOAuthController {
 			scopesSeparator: credential.scope?.includes(',') ? ',' : ' ',
 			ignoreSSLIssues: credential.ignoreSSLIssues ?? false,
 		};
-	}
-
-	private renderCallbackError(res: Response, message: string, reason?: string) {
-		res.render('oauth-error-callback', { error: { message, reason } });
-	}
-
-	private createCsrfState(credentialsId: string): [string, string] {
-		const token = new Csrf();
-		const csrfSecret = token.secretSync();
-		const state: CsrfStateParam = {
-			token: token.create(csrfSecret),
-			cid: credentialsId,
-		};
-		return [csrfSecret, Buffer.from(JSON.stringify(state)).toString('base64')];
-	}
-
-	private decodeCsrfState(encodedState: string): CsrfStateParam {
-		const errorMessage = 'Invalid state format';
-		const decoded = jsonParse<CsrfStateParam>(Buffer.from(encodedState, 'base64').toString(), {
-			errorMessage,
-		});
-		if (typeof decoded.cid !== 'string' || typeof decoded.token !== 'string') {
-			throw new ApplicationError(errorMessage);
-		}
-		return decoded;
 	}
 }

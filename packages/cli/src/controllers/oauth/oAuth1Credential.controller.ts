@@ -8,7 +8,7 @@ import { RESPONSE_ERROR_MESSAGES } from '@/constants';
 import { Authorized, Get, RestController } from '@/decorators';
 import { OAuthRequest } from '@/requests';
 import { sendErrorResponse } from '@/ResponseHelper';
-import { AbstractOAuthController } from './abstractOAuth.controller';
+import { AbstractOAuthController, CsrfStateParam } from './abstractOAuth.controller';
 import { NotFoundError } from '@/errors/response-errors/not-found.error';
 import { ServiceUnavailableError } from '@/errors/response-errors/service-unavailable.error';
 
@@ -45,6 +45,7 @@ export class OAuth1CredentialController extends AbstractOAuthController {
 			decryptedDataOriginal,
 			additionalData,
 		);
+		const [csrfSecret, state] = this.createCsrfState(credential.id);
 
 		const signatureMethod = oauthCredentials.signatureMethod;
 
@@ -62,7 +63,7 @@ export class OAuth1CredentialController extends AbstractOAuthController {
 		};
 
 		const oauthRequestData = {
-			oauth_callback: `${this.baseUrl}/callback?cid=${credential.id}`,
+			oauth_callback: `${this.baseUrl}/callback?state=${state}`,
 		};
 
 		await this.externalHooks.run('oauth1.authenticate', [oAuthOptions, oauthRequestData]);
@@ -91,6 +92,7 @@ export class OAuth1CredentialController extends AbstractOAuthController {
 
 		const returnUri = `${oauthCredentials.authUrl}?oauth_token=${responseJson.oauth_token}`;
 
+		decryptedDataOriginal.csrfSecret = csrfSecret;
 		await this.encryptAndSaveData(credential, decryptedDataOriginal);
 
 		this.logger.verbose('OAuth1 authorization successful for new credential', {
@@ -105,9 +107,9 @@ export class OAuth1CredentialController extends AbstractOAuthController {
 	@Get('/callback', { usesTemplates: true })
 	async handleCallback(req: OAuthRequest.OAuth1Credential.Callback, res: Response) {
 		try {
-			const { oauth_verifier, oauth_token, cid: credentialId } = req.query;
+			const { oauth_verifier, oauth_token, state: encodedState } = req.query;
 
-			if (!oauth_verifier || !oauth_token) {
+			if (!oauth_verifier || !oauth_token || !encodedState) {
 				const errorResponse = new ServiceUnavailableError(
 					`Insufficient parameters for OAuth1 callback. Received following query parameters: ${JSON.stringify(
 						req.query,
@@ -115,17 +117,22 @@ export class OAuth1CredentialController extends AbstractOAuthController {
 				);
 				this.logger.error('OAuth1 callback failed because of insufficient parameters received', {
 					userId: req.user?.id,
-					credentialId,
 				});
 				return sendErrorResponse(res, errorResponse);
 			}
 
-			const credential = await this.getCredentialWithoutUser(credentialId);
+			let state: CsrfStateParam;
+			try {
+				state = this.decodeCsrfState(encodedState);
+			} catch (error) {
+				return this.renderCallbackError(res, (error as Error).message);
+			}
 
+			const credential = await this.getCredentialWithoutUser(state.cid);
 			if (!credential) {
 				this.logger.error('OAuth1 callback failed because of insufficient user permissions', {
 					userId: req.user?.id,
-					credentialId,
+					credentialId: state.cid,
 				});
 				const errorResponse = new NotFoundError(RESPONSE_ERROR_MESSAGES.NO_CREDENTIAL);
 				return sendErrorResponse(res, errorResponse);
@@ -139,6 +146,12 @@ export class OAuth1CredentialController extends AbstractOAuthController {
 				additionalData,
 			);
 
+			if (this.verifyCsrfState(decryptedDataOriginal, state)) {
+				const errorMessage = 'The OAuth1 callback state is invalid!';
+				this.logger.debug(errorMessage, { credentialId: credential.id });
+				return this.renderCallbackError(res, errorMessage);
+			}
+
 			const options: AxiosRequestConfig = {
 				method: 'POST',
 				url: oauthCredentials.accessTokenUrl,
@@ -149,13 +162,12 @@ export class OAuth1CredentialController extends AbstractOAuthController {
 			};
 
 			let oauthToken;
-
 			try {
 				oauthToken = await axios.request(options);
 			} catch (error) {
 				this.logger.error('Unable to fetch tokens for OAuth1 callback', {
 					userId: req.user?.id,
-					credentialId,
+					credentialId: state.cid,
 				});
 				const errorResponse = new NotFoundError('Unable to get access tokens!');
 				return sendErrorResponse(res, errorResponse);
@@ -173,13 +185,12 @@ export class OAuth1CredentialController extends AbstractOAuthController {
 
 			this.logger.verbose('OAuth1 callback successful for new credential', {
 				userId: req.user?.id,
-				credentialId,
+				credentialId: state.cid,
 			});
 			return res.render('oauth-callback');
 		} catch (error) {
 			this.logger.error('OAuth1 callback failed because of insufficient user permissions', {
 				userId: req.user?.id,
-				credentialId: req.query.cid,
 			});
 			// Error response
 			return sendErrorResponse(res, error as Error);
