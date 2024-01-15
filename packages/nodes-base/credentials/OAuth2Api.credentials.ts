@@ -1,4 +1,16 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import { object, options } from '@utils/dsl';
+
+const properties = object({
+	grantType: options()
+		.displayName('Grant Type')
+		.values({
+			authorizationCode: 'Authorization Code',
+			clientCredentials: 'Client Credentials',
+			pkce: 'PKCE',
+		})
+		.default('authorizationCode'),
+});
 
 export class OAuth2Api implements ICredentialType {
 	name = 'oAuth2Api';
@@ -10,26 +22,7 @@ export class OAuth2Api implements ICredentialType {
 	genericAuth = true;
 
 	properties: INodeProperties[] = [
-		{
-			displayName: 'Grant Type',
-			name: 'grantType',
-			type: 'options',
-			options: [
-				{
-					name: 'Authorization Code',
-					value: 'authorizationCode',
-				},
-				{
-					name: 'Client Credentials',
-					value: 'clientCredentials',
-				},
-				{
-					name: 'PKCE',
-					value: 'pkce',
-				},
-			],
-			default: 'authorizationCode',
-		},
+		...properties.toNodeProperties(),
 		{
 			displayName: 'Authorization URL',
 			name: 'authUrl',

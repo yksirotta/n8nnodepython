@@ -1,4 +1,12 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { ICredentialType } from 'n8n-workflow';
+import { object, string, type InferProps } from '@utils/dsl';
+
+const properties = object({
+	user: string().displayName('User'),
+	password: string().displayName('Password').typeOptions({ password: true }),
+});
+
+export type HttpBasicAuthCredential = InferProps<typeof properties>;
 
 export class HttpBasicAuth implements ICredentialType {
 	name = 'httpBasicAuth';
@@ -11,21 +19,7 @@ export class HttpBasicAuth implements ICredentialType {
 
 	icon = 'node:n8n-nodes-base.httpRequest';
 
-	properties: INodeProperties[] = [
-		{
-			displayName: 'User',
-			name: 'user',
-			type: 'string',
-			default: '',
-		},
-		{
-			displayName: 'Password',
-			name: 'password',
-			type: 'string',
-			typeOptions: {
-				password: true,
-			},
-			default: '',
-		},
-	];
+	get properties() {
+		return properties.toNodeProperties();
+	}
 }
