@@ -307,8 +307,7 @@ export class ExecutionsService {
 			}
 		}
 
-		const workflowRunner = new WorkflowRunner();
-		const retriedExecutionId = await workflowRunner.run(data);
+		const retriedExecutionId = await Container.get(WorkflowRunner).run(data);
 
 		const executionData =
 			await Container.get(ActiveExecutions).getPostExecutePromise(retriedExecutionId);
