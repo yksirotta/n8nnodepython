@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Container, Service } from 'typedi';
 import { readFile } from 'fs/promises';
 import type { Server } from 'http';
@@ -13,7 +14,6 @@ import { ExternalHooks } from '@/ExternalHooks';
 import { send, sendErrorResponse } from '@/ResponseHelper';
 import { rawBodyReader, bodyParser, corsMiddleware } from '@/middlewares';
 import { WaitingForms } from '@/WaitingForms';
-import { webhookRequestHandler } from '@/WebhookHelpers';
 import { generateHostInstanceId } from './databases/utils/generators';
 import { Logger } from '@/Logger';
 import { ServiceUnavailableError } from './errors/response-errors/service-unavailable.error';
@@ -179,21 +179,29 @@ export abstract class AbstractServer {
 			const activeWebhooks = Container.get(ActiveWebhooks);
 
 			// Register a handler for active forms
-			this.app.all(`/${this.endpointForm}/:path(*)`, webhookRequestHandler(activeWebhooks));
+			this.app.all(
+				`/${this.endpointForm}/:path(*)`,
+				activeWebhooks.handleRequest.bind(activeWebhooks),
+			);
 
 			// Register a handler for active webhooks
-			this.app.all(`/${this.endpointWebhook}/:path(*)`, webhookRequestHandler(activeWebhooks));
+			this.app.all(
+				`/${this.endpointWebhook}/:path(*)`,
+				activeWebhooks.handleRequest.bind(activeWebhooks),
+			);
 
+			const waitingForms = Container.get(WaitingForms);
 			// Register a handler for waiting forms
 			this.app.all(
 				`/${this.endpointFormWaiting}/:path/:suffix?`,
-				webhookRequestHandler(Container.get(WaitingForms)),
+				waitingForms.handleRequest.bind(waitingForms),
 			);
 
+			const waitingWebhooks = Container.get(WaitingWebhooks);
 			// Register a handler for waiting webhooks
 			this.app.all(
 				`/${this.endpointWebhookWaiting}/:path/:suffix?`,
-				webhookRequestHandler(Container.get(WaitingWebhooks)),
+				waitingWebhooks.handleRequest.bind(waitingWebhooks),
 			);
 		}
 
@@ -201,8 +209,14 @@ export abstract class AbstractServer {
 			const testWebhooks = Container.get(TestWebhooks);
 
 			// Register a handler
-			this.app.all(`/${this.endpointFormTest}/:path(*)`, webhookRequestHandler(testWebhooks));
-			this.app.all(`/${this.endpointWebhookTest}/:path(*)`, webhookRequestHandler(testWebhooks));
+			this.app.all(
+				`/${this.endpointFormTest}/:path(*)`,
+				testWebhooks.handleRequest.bind(testWebhooks),
+			);
+			this.app.all(
+				`/${this.endpointWebhookTest}/:path(*)`,
+				testWebhooks.handleRequest.bind(testWebhooks),
+			);
 
 			// Removes a test webhook
 			// TODO UM: check if this needs validation with user management.

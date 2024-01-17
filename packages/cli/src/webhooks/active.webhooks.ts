@@ -6,7 +6,6 @@ import type { INode, IWebhookData, IHttpRequestMethods } from 'n8n-workflow';
 import { WorkflowRepository } from '@db/repositories/workflow.repository';
 import type {
 	IResponseCallbackData,
-	IWebhookManager,
 	WebhookAccessControlOptions,
 	WebhookRequest,
 } from '@/Interfaces';
@@ -16,18 +15,20 @@ import { WebhookService } from '@/services/webhook.service';
 import { WebhookNotFoundError } from '@/errors/response-errors/webhook-not-found.error';
 import { NotFoundError } from '@/errors/response-errors/not-found.error';
 import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData';
-import * as WebhookHelpers from '@/WebhookHelpers';
 import { WorkflowStaticDataService } from '@/workflows/workflowStaticData.service';
+import { AbstractWebhooks } from './abstract.webhooks';
 
 @Service()
-export class ActiveWebhooks implements IWebhookManager {
+export class ActiveWebhooks extends AbstractWebhooks {
 	constructor(
-		private readonly logger: Logger,
+		logger: Logger,
 		private readonly nodeTypes: NodeTypes,
 		private readonly webhookService: WebhookService,
 		private readonly workflowRepository: WorkflowRepository,
 		private readonly workflowStaticDataService: WorkflowStaticDataService,
-	) {}
+	) {
+		super(logger);
+	}
 
 	async getWebhookMethods(path: string) {
 		return await this.webhookService.getWebhookMethods(path);
@@ -54,7 +55,7 @@ export class ActiveWebhooks implements IWebhookManager {
 	/**
 	 * Checks if a webhook for the given method and path exists and executes the workflow.
 	 */
-	async executeWebhook(
+	async handleWebhookRequest(
 		request: WebhookRequest,
 		response: Response,
 	): Promise<IResponseCallbackData> {
@@ -122,7 +123,7 @@ export class ActiveWebhooks implements IWebhookManager {
 
 		return await new Promise((resolve, reject) => {
 			const executionMode = 'webhook';
-			void WebhookHelpers.executeWebhook(
+			void this.executeWebhook(
 				workflow,
 				webhookData,
 				workflowData,

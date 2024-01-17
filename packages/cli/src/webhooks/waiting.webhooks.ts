@@ -1,15 +1,16 @@
-import { NodeHelpers, Workflow } from 'n8n-workflow';
+import type { IHttpRequestMethods } from 'n8n-workflow';
+import { ApplicationError, NodeHelpers, Workflow } from 'n8n-workflow';
 import { Service } from 'typedi';
-import type express from 'express';
+import type { Response } from 'express';
 
 import * as WebhookHelpers from '@/WebhookHelpers';
 import { NodeTypes } from '@/NodeTypes';
 import type {
 	IExecutionResponse,
 	IResponseCallbackData,
-	IWebhookManager,
 	IWorkflowDb,
 	WaitingWebhookRequest,
+	WebhookAccessControlOptions,
 } from '@/Interfaces';
 import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData';
 import { ExecutionRepository } from '@db/repositories/execution.repository';
@@ -17,19 +18,28 @@ import { OwnershipService } from '@/services/ownership.service';
 import { Logger } from '@/Logger';
 import { ConflictError } from '@/errors/response-errors/conflict.error';
 import { NotFoundError } from '@/errors/response-errors/not-found.error';
+import { AbstractWebhooks } from './abstract.webhooks';
 
 @Service()
-export class WaitingWebhooks implements IWebhookManager {
+export class WaitingWebhooks extends AbstractWebhooks {
 	protected includeForms = false;
 
 	constructor(
-		protected readonly logger: Logger,
+		logger: Logger,
 		private readonly nodeTypes: NodeTypes,
 		private readonly executionRepository: ExecutionRepository,
 		private readonly ownershipService: OwnershipService,
-	) {}
+	) {
+		super(logger);
+	}
 
-	// TODO: implement `getWebhookMethods` for CORS support
+	async getWebhookMethods(): Promise<IHttpRequestMethods[]> {
+		throw new ApplicationError('Method not implemented.');
+	}
+
+	async findAccessControlOptions(): Promise<WebhookAccessControlOptions | undefined> {
+		throw new ApplicationError('Method not implemented.');
+	}
 
 	protected logReceivedWebhook(method: string, executionId: string) {
 		this.logger.debug(`Received waiting-webhook "${method}" for execution "${executionId}"`);
@@ -39,9 +49,9 @@ export class WaitingWebhooks implements IWebhookManager {
 		execution.data.executionData!.nodeExecutionStack[0].node.disabled = true;
 	}
 
-	async executeWebhook(
+	async handleWebhookRequest(
 		req: WaitingWebhookRequest,
-		res: express.Response,
+		res: Response,
 	): Promise<IResponseCallbackData> {
 		const { path: executionId, suffix } = req.params;
 
@@ -124,7 +134,7 @@ export class WaitingWebhooks implements IWebhookManager {
 
 		return await new Promise((resolve, reject) => {
 			const executionMode = 'webhook';
-			void WebhookHelpers.executeWebhook(
+			void this.executeWebhook(
 				workflow,
 				webhookData,
 				workflowData as IWorkflowDb,

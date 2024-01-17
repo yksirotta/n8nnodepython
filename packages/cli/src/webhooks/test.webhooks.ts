@@ -9,7 +9,6 @@ import type {
 } from 'n8n-workflow';
 import type {
 	IResponseCallbackData,
-	IWebhookManager,
 	IWorkflowDb,
 	WebhookAccessControlOptions,
 	WebhookRequest,
@@ -27,15 +26,19 @@ import type { TestWebhookRegistration } from '@/services/test-webhook-registrati
 import { TestWebhookRegistrationsService } from '@/services/test-webhook-registrations.service';
 import { MultiMainSetup } from '@/services/orchestration/main/MultiMainSetup.ee';
 import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData';
+import { AbstractWebhooks } from './abstract.webhooks';
 
 @Service()
-export class TestWebhooks implements IWebhookManager {
+export class TestWebhooks extends AbstractWebhooks {
 	constructor(
+		logger: Logger,
 		private readonly push: Push,
 		private readonly nodeTypes: NodeTypes,
 		private readonly registrations: TestWebhookRegistrationsService,
 		private readonly multiMainSetup: MultiMainSetup,
-	) {}
+	) {
+		super(logger);
+	}
 
 	private timeouts: { [webhookKey: string]: NodeJS.Timeout } = {};
 
@@ -43,7 +46,7 @@ export class TestWebhooks implements IWebhookManager {
 	 * Return a promise that resolves when the test webhook is called.
 	 * Also inform the FE of the result and remove the test webhook.
 	 */
-	async executeWebhook(
+	async handleWebhookRequest(
 		request: WebhookRequest,
 		response: express.Response,
 	): Promise<IResponseCallbackData> {
@@ -104,7 +107,7 @@ export class TestWebhooks implements IWebhookManager {
 		return await new Promise(async (resolve, reject) => {
 			try {
 				const executionMode = 'manual';
-				const executionId = await WebhookHelpers.executeWebhook(
+				const executionId = await this.executeWebhook(
 					workflow,
 					webhook!,
 					workflowEntity,

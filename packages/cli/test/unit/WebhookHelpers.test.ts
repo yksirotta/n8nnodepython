@@ -1,12 +1,12 @@
 import { type Response } from 'express';
 import { mock } from 'jest-mock-extended';
 import type { IHttpRequestMethods } from 'n8n-workflow';
-import type { IWebhookManager, WebhookCORSRequest, WebhookRequest } from '@/Interfaces';
-import { webhookRequestHandler } from '@/WebhookHelpers';
+import type { WebhookCORSRequest, WebhookRequest } from '@/Interfaces';
+import type { AbstractWebhooks } from '@/webhooks/abstract.webhooks';
 
 describe('WebhookHelpers', () => {
 	describe('webhookRequestHandler', () => {
-		const webhookManager = mock<Required<IWebhookManager>>();
+		const webhookManager = mock<AbstractWebhooks>();
 		const handler = webhookRequestHandler(webhookManager);
 
 		beforeEach(() => {
