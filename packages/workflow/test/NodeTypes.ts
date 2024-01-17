@@ -658,13 +658,7 @@ export class NodeTypes implements INodeTypes {
 		},
 	};
 
-	getByName(nodeType: string): INodeType | IVersionedNodeType {
-		return this.nodeTypes[nodeType]?.type;
-	}
-
 	getByNameAndVersion(nodeType: string, version?: number): INodeType {
-		if (this.nodeTypes[nodeType]?.type) {
-			return NodeHelpers.getVersionedNodeType(this.nodeTypes[nodeType]?.type, version);
-		}
+		return NodeHelpers.getVersionedNodeType(this.nodeTypes[nodeType]?.type, version);
 	}
 }

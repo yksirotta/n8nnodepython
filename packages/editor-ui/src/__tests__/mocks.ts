@@ -2,7 +2,6 @@ import type {
 	INodeType,
 	INodeTypeData,
 	INodeTypes,
-	IVersionedNodeType,
 	IConnections,
 	IDataObject,
 	INode,
@@ -36,16 +35,11 @@ export function createTestNodeTypes(data: INodeTypeData = {}): INodeTypes {
 		}, {}),
 	};
 
-	function getByName(nodeType: string): INodeType | IVersionedNodeType {
-		return nodeTypes[getResolvedKey(nodeType)].type;
-	}
-
 	function getByNameAndVersion(nodeType: string, version?: number): INodeType {
-		return NodeHelpers.getVersionedNodeType(getByName(nodeType), version);
+		return NodeHelpers.getVersionedNodeType(nodeTypes[getResolvedKey(nodeType)].type, version);
 	}
 
 	return {
-		getByName,
 		getByNameAndVersion,
 	};
 }

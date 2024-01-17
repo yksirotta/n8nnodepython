@@ -38,10 +38,6 @@ export class NodeTypes implements INodeTypes {
 		return { description: { ...description }, sourcePath: nodeType.sourcePath };
 	}
 
-	getByName(nodeType: string): INodeType | IVersionedNodeType {
-		return this.getNode(nodeType).type;
-	}
-
 	getByNameAndVersion(nodeType: string, version?: number): INodeType {
 		return NodeHelpers.getVersionedNodeType(this.getNode(nodeType).type, version);
 	}

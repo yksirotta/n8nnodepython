@@ -21,7 +21,6 @@ import type {
 	INodeParameters,
 	INodeProperties,
 	INodeType,
-	IVersionedNodeType,
 	IRequestOptionsSimplified,
 	IRunExecutionData,
 	IWorkflowDataProxyAdditionalKeys,
@@ -78,9 +77,6 @@ const mockNodesData: INodeTypeData = {
 };
 
 const mockNodeTypes: INodeTypes = {
-	getByName(nodeType: string): INodeType | IVersionedNodeType {
-		return mockNodesData[nodeType]?.type;
-	},
 	getByNameAndVersion(nodeType: string, version?: number): INodeType {
 		if (!mockNodesData[nodeType]) {
 			throw new ApplicationError(RESPONSE_ERROR_MESSAGES.NO_NODE, {
@@ -496,7 +492,7 @@ export class CredentialsHelper extends ICredentialsHelper {
 
 		const supportedNodes = this.credentialTypes.getSupportedNodes(credentialType);
 		for (const nodeName of supportedNodes) {
-			const node = this.nodeTypes.getByName(nodeName);
+			const node = this.nodeTypes.getByNameAndVersion(nodeName);
 
 			// Always set to an array even if node is not versioned to not having
 			// to duplicate the logic
@@ -506,7 +502,7 @@ export class CredentialsHelper extends ICredentialsHelper {
 				allNodeTypes.push(...Object.values(node.nodeVersions));
 			} else {
 				// Node is not versioned
-				allNodeTypes.push(node as INodeType);
+				allNodeTypes.push(node);
 			}
 
 			// Check each of the node versions for credential tests

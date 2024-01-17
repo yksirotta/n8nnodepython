@@ -94,7 +94,7 @@ class CredentialType implements ICredentialTypes {
 
 export class CredentialsHelper extends ICredentialsHelper {
 	constructor(private credentialTypes: ICredentialTypes) {
-		super('');
+		super();
 	}
 
 	async authenticate(
@@ -188,10 +188,6 @@ export function WorkflowExecuteAdditionalData(
 
 class NodeTypes implements INodeTypes {
 	nodeTypes: INodeTypeData = {};
-
-	getByName(nodeType: string): INodeType | IVersionedNodeType {
-		return this.nodeTypes[nodeType].type;
-	}
 
 	addNode(nodeTypeName: string, nodeType: INodeType | IVersionedNodeType) {
 		const loadedNode = {
