@@ -138,7 +138,7 @@
     "d3-dsv": "2.0.0",
     "epub2": "3.0.1",
     "html-to-text": "9.0.5",
-    "json-schema-to-zod": "1.2.0",
+    "json-schema-to-zod": "2.0.13",
     "langchain": "0.0.198",
     "lodash": "4.17.21",
     "mammoth": "1.6.0",
