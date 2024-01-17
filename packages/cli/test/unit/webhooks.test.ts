@@ -4,11 +4,11 @@ import { mock } from 'jest-mock-extended';
 
 import config from '@/config';
 import { AbstractServer } from '@/AbstractServer';
-import { ActiveWebhooks } from '@/ActiveWebhooks';
 import { ExternalHooks } from '@/ExternalHooks';
 import { InternalHooks } from '@/InternalHooks';
-import { TestWebhooks } from '@/TestWebhooks';
-import { WaitingWebhooks } from '@/WaitingWebhooks';
+import { ActiveWebhooks } from '@/webhooks/active.webhooks';
+import { TestWebhooks } from '@/webhooks/test.webhooks';
+import { WaitingWebhooks } from '@/webhooks/waiting.webhooks';
 import { WaitingForms } from '@/WaitingForms';
 import type { IResponseCallbackData } from '@/Interfaces';
 

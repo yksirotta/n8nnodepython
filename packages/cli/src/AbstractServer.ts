@@ -12,15 +12,15 @@ import { N8nInstanceType } from '@/Interfaces';
 import { ExternalHooks } from '@/ExternalHooks';
 import { send, sendErrorResponse } from '@/ResponseHelper';
 import { rawBodyReader, bodyParser, corsMiddleware } from '@/middlewares';
-import { TestWebhooks } from '@/TestWebhooks';
 import { WaitingForms } from '@/WaitingForms';
-import { WaitingWebhooks } from '@/WaitingWebhooks';
 import { webhookRequestHandler } from '@/WebhookHelpers';
 import { generateHostInstanceId } from './databases/utils/generators';
 import { Logger } from '@/Logger';
 import { ServiceUnavailableError } from './errors/response-errors/service-unavailable.error';
 import { OnShutdown } from '@/decorators/OnShutdown';
-import { ActiveWebhooks } from '@/ActiveWebhooks';
+import { ActiveWebhooks } from '@/webhooks/active.webhooks';
+import { TestWebhooks } from '@/webhooks/test.webhooks';
+import { WaitingWebhooks } from '@/webhooks/waiting.webhooks';
 
 @Service()
 export abstract class AbstractServer {

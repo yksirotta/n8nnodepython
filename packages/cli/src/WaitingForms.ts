@@ -1,7 +1,7 @@
 import { Service } from 'typedi';
 
 import type { IExecutionResponse } from '@/Interfaces';
-import { WaitingWebhooks } from '@/WaitingWebhooks';
+import { WaitingWebhooks } from '@/webhooks/waiting.webhooks';
 
 @Service()
 export class WaitingForms extends WaitingWebhooks {

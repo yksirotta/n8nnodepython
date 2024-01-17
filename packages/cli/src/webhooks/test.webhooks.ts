@@ -22,10 +22,10 @@ import { NotFoundError } from '@/errors/response-errors/not-found.error';
 import { WorkflowMissingIdError } from '@/errors/workflow-missing-id.error';
 import { WebhookNotFoundError } from '@/errors/response-errors/webhook-not-found.error';
 import * as NodeExecuteFunctions from 'n8n-core';
-import { removeTrailingSlash } from './utils';
+import { removeTrailingSlash } from '@/utils';
 import type { TestWebhookRegistration } from '@/services/test-webhook-registrations.service';
 import { TestWebhookRegistrationsService } from '@/services/test-webhook-registrations.service';
-import { MultiMainSetup } from './services/orchestration/main/MultiMainSetup.ee';
+import { MultiMainSetup } from '@/services/orchestration/main/MultiMainSetup.ee';
 import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData';
 
 @Service()

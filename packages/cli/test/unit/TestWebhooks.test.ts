@@ -1,5 +1,5 @@
 import { mock } from 'jest-mock-extended';
-import { TestWebhooks } from '@/TestWebhooks';
+import { TestWebhooks } from '@/webhooks/test.webhooks';
 import { WebhookNotFoundError } from '@/errors/response-errors/webhook-not-found.error';
 import { v4 as uuid } from 'uuid';
 import { generateNanoId } from '@/databases/utils/generators';

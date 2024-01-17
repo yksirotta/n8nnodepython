@@ -21,7 +21,7 @@ import type {
 import { NodeTypes } from '@/NodeTypes';
 import { WorkflowRunner } from '@/WorkflowRunner';
 import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData';
-import { TestWebhooks } from '@/TestWebhooks';
+import { TestWebhooks } from '@/webhooks/test.webhooks';
 import { Logger } from '@/Logger';
 import { PermissionChecker } from '@/UserManagement/PermissionChecker';
 

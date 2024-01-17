@@ -9,7 +9,7 @@ import { ActiveWorkflowRunner } from '@/ActiveWorkflowRunner';
 import { Push } from '@/push';
 import { MultiMainSetup } from './MultiMainSetup.ee';
 import { WorkflowRepository } from '@/databases/repositories/workflow.repository';
-import { TestWebhooks } from '@/TestWebhooks';
+import { TestWebhooks } from '@/webhooks/test.webhooks';
 
 export async function handleCommandMessageMain(messageString: string) {
 	const queueModeId = config.getEnv('redis.queueModeId');
