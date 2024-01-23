@@ -23,9 +23,7 @@ describe('OAuth1CredentialController', () => {
 	mockInstance(Logger);
 	mockInstance(ExternalHooks);
 	mockInstance(SecretsHelper);
-	mockInstance(VariablesService, {
-		getAllCached: async () => [],
-	});
+	mockInstance(VariablesService);
 	const cipher = mockInstance(Cipher);
 	const credentialsHelper = mockInstance(CredentialsHelper);
 	const credentialsRepository = mockInstance(CredentialsRepository);

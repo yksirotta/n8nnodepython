@@ -1,16 +1,16 @@
 import type express from 'express';
 import { Container } from 'typedi';
 import type { StatusResult } from 'simple-git';
-import type { PublicSourceControlRequest } from '../../../types';
-import { authorize } from '../../shared/middlewares/global.middleware';
+
 import type { ImportResult } from '@/environments/sourceControl/types/importResult';
 import { SourceControlService } from '@/environments/sourceControl/sourceControl.service.ee';
 import { SourceControlPreferencesService } from '@/environments/sourceControl/sourceControlPreferences.service.ee';
-import {
-	getTrackingInformationFromPullResult,
-	isSourceControlLicensed,
-} from '@/environments/sourceControl/sourceControlHelper.ee';
+import { SourceControlTrackingService } from '@/environments/sourceControl/sourceControlTracking.service';
 import { InternalHooks } from '@/InternalHooks';
+import { License } from '@/License';
+
+import type { PublicSourceControlRequest } from '../../../types';
+import { authorize } from '../../shared/middlewares/global.middleware';
 
 export = {
 	pull: [
@@ -20,7 +20,7 @@ export = {
 			res: express.Response,
 		): Promise<ImportResult | StatusResult | Promise<express.Response>> => {
 			const sourceControlPreferencesService = Container.get(SourceControlPreferencesService);
-			if (!isSourceControlLicensed()) {
+			if (!Container.get(License).isSourceControlLicensed()) {
 				return res
 					.status(401)
 					.json({ status: 'Error', message: 'Source Control feature is not licensed' });
@@ -39,8 +39,11 @@ export = {
 				});
 
 				if (result.statusCode === 200) {
+					const data = Container.get(
+						SourceControlTrackingService,
+					).getTrackingInformationFromPullResult(result.statusResult);
 					void Container.get(InternalHooks).onSourceControlUserPulledAPI({
-						...getTrackingInformationFromPullResult(result.statusResult),
+						...data,
 						forced: req.body.force ?? false,
 					});
 					return res.status(200).send(result.statusResult);

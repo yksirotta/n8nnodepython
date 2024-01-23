@@ -1,100 +1,94 @@
-import Container, { Service } from 'typedi';
-import path from 'path';
-import {
-	getTagsPath,
-	getTrackingInformationFromPostPushResult,
-	getTrackingInformationFromPrePushResult,
-	getTrackingInformationFromPullResult,
-	getVariablesPath,
-	sourceControlFoldersExistCheck,
-} from './sourceControlHelper.ee';
-import type { SourceControlPreferences } from './types/sourceControlPreferences';
+import { Service } from 'typedi';
+import { writeFileSync } from 'fs';
+import isEqual from 'lodash/isEqual';
+import type { PushResult } from 'simple-git';
+import { ApplicationError } from 'n8n-workflow';
+
+import type { User } from '@db/entities/User';
+import type { TagEntity } from '@db/entities/TagEntity';
+import type { Variables } from '@db/entities/Variables';
+import { TagRepository } from '@db/repositories/tag.repository';
+import { BadRequestError } from '@/errors/response-errors/bad-request.error';
+import { InternalHooks } from '@/InternalHooks';
+import { Logger } from '@/Logger';
+
 import {
 	SOURCE_CONTROL_DEFAULT_EMAIL,
 	SOURCE_CONTROL_DEFAULT_NAME,
 	SOURCE_CONTROL_README,
 } from './constants';
 import { SourceControlGitService } from './sourceControlGit.service.ee';
-import type { PushResult } from 'simple-git';
+import { SourceControlBaseService } from './sourceControlBase.service';
+import { SourceControlPreferencesService } from './sourceControlPreferences.service.ee';
+import { SourceControlImportService } from './sourceControlImport.service.ee';
 import { SourceControlExportService } from './sourceControlExport.service.ee';
+import { SourceControlTrackingService } from './sourceControlTracking.service';
+import type { SourceControlPreferences } from './types/sourceControlPreferences';
 import type { ImportResult } from './types/importResult';
 import type { SourceControlPushWorkFolder } from './types/sourceControlPushWorkFolder';
-import type { SourceControllPullOptions } from './types/sourceControlPullWorkFolder';
+import type { SourceControlPullOptions } from './types/sourceControlPullWorkFolder';
 import type { SourceControlledFile } from './types/sourceControlledFile';
-import { SourceControlPreferencesService } from './sourceControlPreferences.service.ee';
-import { writeFileSync } from 'fs';
-import { SourceControlImportService } from './sourceControlImport.service.ee';
-import type { User } from '@db/entities/User';
-import isEqual from 'lodash/isEqual';
-import type { SourceControlGetStatus } from './types/sourceControlGetStatus';
-import type { TagEntity } from '@db/entities/TagEntity';
-import type { Variables } from '@db/entities/Variables';
 import type { SourceControlWorkflowVersionId } from './types/sourceControlWorkflowVersionId';
 import type { ExportableCredential } from './types/exportableCredential';
-import { InternalHooks } from '@/InternalHooks';
-import { TagRepository } from '@db/repositories/tag.repository';
-import { Logger } from '@/Logger';
-import { BadRequestError } from '@/errors/response-errors/bad-request.error';
-import { ApplicationError } from 'n8n-workflow';
+import type { SourceControlGetStatus } from './types/sourceControlGetStatus';
 
 @Service()
-export class SourceControlService {
-	private sshKeyName: string;
-
-	private sshFolder: string;
-
-	private gitFolder: string;
-
+export class SourceControlService extends SourceControlBaseService {
 	constructor(
-		private readonly logger: Logger,
-		private gitService: SourceControlGitService,
-		private sourceControlPreferencesService: SourceControlPreferencesService,
-		private sourceControlExportService: SourceControlExportService,
-		private sourceControlImportService: SourceControlImportService,
-		private tagRepository: TagRepository,
+		logger: Logger,
+		private readonly gitService: SourceControlGitService,
+		private readonly preferencesService: SourceControlPreferencesService,
+		private readonly exportService: SourceControlExportService,
+		private readonly importService: SourceControlImportService,
+		private readonly trackingService: SourceControlTrackingService,
+		private readonly tagRepository: TagRepository,
+		private readonly internalHooks: InternalHooks,
 	) {
-		const { gitFolder, sshFolder, sshKeyName } = sourceControlPreferencesService;
-		this.gitFolder = gitFolder;
-		this.sshFolder = sshFolder;
-		this.sshKeyName = sshKeyName;
+		super(logger);
 	}
 
 	async init(): Promise<void> {
+		const { gitFolder, sshFolder } = this.preferencesService;
 		this.gitService.resetService();
-		sourceControlFoldersExistCheck([this.gitFolder, this.sshFolder]);
-		await this.sourceControlPreferencesService.loadFromDbAndApplySourceControlPreferences();
-		if (this.sourceControlPreferencesService.isSourceControlLicensedAndEnabled()) {
-			await this.initGitService();
+		this.checkIfFoldersExists([gitFolder, sshFolder]);
+		await this.preferencesService.loadFromDbAndApplySourceControlPreferences();
+		if (this.preferencesService.isSourceControlLicensedAndEnabled()) {
+			await this.gitService.initService();
 		}
 	}
 
-	private async initGitService(): Promise<void> {
-		await this.gitService.initService({
-			sourceControlPreferences: this.sourceControlPreferencesService.getPreferences(),
-			gitFolder: this.gitFolder,
-			sshKeyName: this.sshKeyName,
-			sshFolder: this.sshFolder,
+	async reInit(): Promise<void> {
+		await this.init();
+		const { preferences } = this.preferencesService;
+		void this.internalHooks.onSourceControlSettingsUpdated({
+			branch_name: preferences.branchName,
+			connected: preferences.connected,
+			read_only_instance: preferences.branchReadOnly,
+			repo_type: this.getRepoType(preferences.repositoryUrl),
 		});
 	}
 
+	getRepoType(repoUrl: string): 'github' | 'gitlab' | 'other' {
+		if (repoUrl.includes('github.com')) {
+			return 'github';
+		} else if (repoUrl.includes('gitlab.com')) {
+			return 'gitlab';
+		}
+		return 'other';
+	}
+
 	private async sanityCheck(): Promise<void> {
+		const { gitFolder, sshFolder, preferences } = this.preferencesService;
 		try {
-			const foldersExisted = sourceControlFoldersExistCheck(
-				[this.gitFolder, this.sshFolder],
-				false,
-			);
+			const foldersExisted = this.checkIfFoldersExists([gitFolder, sshFolder], false);
 			if (!foldersExisted) {
 				throw new ApplicationError('No folders exist');
 			}
 			if (!this.gitService.git) {
-				await this.initGitService();
+				await this.gitService.initService();
 			}
 			const branches = await this.gitService.getCurrentBranch();
-			if (
-				branches.current === '' ||
-				branches.current !==
-					this.sourceControlPreferencesService.sourceControlPreferences.branchName
-			) {
+			if (branches.current === '' || branches.current !== preferences.branchName) {
 				throw new ApplicationError('Branch is not set up correctly');
 			}
 		} catch (error) {
@@ -106,16 +100,16 @@ export class SourceControlService {
 
 	async disconnect(options: { keepKeyPair?: boolean } = {}) {
 		try {
-			await this.sourceControlPreferencesService.setPreferences({
+			await this.preferencesService.setPreferences({
 				connected: false,
 				branchName: '',
 			});
-			await this.sourceControlExportService.deleteRepositoryFolder();
+			await this.exportService.deleteRepositoryFolder();
 			if (!options.keepKeyPair) {
-				await this.sourceControlPreferencesService.deleteKeyPairFiles();
+				await this.preferencesService.deleteKeyPairFiles();
 			}
 			this.gitService.resetService();
-			return this.sourceControlPreferencesService.sourceControlPreferences;
+			return this.preferencesService.preferences;
 		} catch (error) {
 			throw new ApplicationError('Failed to disconnect from source control', { cause: error });
 		}
@@ -123,7 +117,7 @@ export class SourceControlService {
 
 	async initializeRepository(preferences: SourceControlPreferences, user: User) {
 		if (!this.gitService.git) {
-			await this.initGitService();
+			await this.gitService.initService();
 		}
 		this.logger.debug('Initializing repository...');
 		await this.gitService.initRepository(preferences, user);
@@ -143,7 +137,7 @@ export class SourceControlService {
 		} else {
 			if (getBranchesResult.branches?.length === 0) {
 				try {
-					writeFileSync(path.join(this.gitFolder, '/README.md'), SOURCE_CONTROL_README);
+					writeFileSync(this.preferencesService.readmeFile, SOURCE_CONTROL_README);
 
 					await this.gitService.stage(new Set<string>(['README.md']));
 					await this.gitService.commit('Initial commit');
@@ -158,7 +152,7 @@ export class SourceControlService {
 				}
 			}
 		}
-		await this.sourceControlPreferencesService.setPreferences({
+		await this.preferencesService.setPreferences({
 			branchName: getBranchesResult.currentBranch,
 			connected: true,
 		});
@@ -168,7 +162,7 @@ export class SourceControlService {
 	async getBranches(): Promise<{ branches: string[]; currentBranch: string }> {
 		// fetch first to get include remote changes
 		if (!this.gitService.git) {
-			await this.initGitService();
+			await this.gitService.initService();
 		}
 		await this.gitService.fetch();
 		return await this.gitService.getBranches();
@@ -176,9 +170,9 @@ export class SourceControlService {
 
 	async setBranch(branch: string): Promise<{ branches: string[]; currentBranch: string }> {
 		if (!this.gitService.git) {
-			await this.initGitService();
+			await this.gitService.initService();
 		}
-		await this.sourceControlPreferencesService.setPreferences({
+		await this.preferencesService.setPreferences({
 			branchName: branch,
 			connected: branch?.length > 0,
 		});
@@ -189,7 +183,7 @@ export class SourceControlService {
 	// this will discard all local changes
 	async resetWorkfolder(): Promise<ImportResult | undefined> {
 		if (!this.gitService.git) {
-			await this.initGitService();
+			await this.gitService.initService();
 		}
 		try {
 			await this.gitService.resetBranch();
@@ -210,7 +204,7 @@ export class SourceControlService {
 	}> {
 		await this.sanityCheck();
 
-		if (this.sourceControlPreferencesService.isBranchReadOnly()) {
+		if (this.preferencesService.isBranchReadOnly()) {
 			throw new BadRequestError('Cannot push onto read-only branch.');
 		}
 
@@ -245,33 +239,33 @@ export class SourceControlService {
 			}
 		});
 
-		this.sourceControlExportService.rmFilesFromExportFolder(filesToBeDeleted);
+		this.exportService.rmFilesFromExportFolder(filesToBeDeleted);
 
 		const workflowsToBeExported = options.fileNames.filter(
 			(e) => e.type === 'workflow' && e.status !== 'deleted',
 		);
-		await this.sourceControlExportService.exportWorkflowsToWorkFolder(workflowsToBeExported);
+		await this.exportService.exportWorkflowsToWorkFolder(workflowsToBeExported);
 
 		const credentialsToBeExported = options.fileNames.filter(
 			(e) => e.type === 'credential' && e.status !== 'deleted',
 		);
 		const credentialExportResult =
-			await this.sourceControlExportService.exportCredentialsToWorkFolder(credentialsToBeExported);
+			await this.exportService.exportCredentialsToWorkFolder(credentialsToBeExported);
 		if (credentialExportResult.missingIds && credentialExportResult.missingIds.length > 0) {
 			credentialExportResult.missingIds.forEach((id) => {
-				filesToBePushed.delete(this.sourceControlExportService.getCredentialsPath(id));
+				filesToBePushed.delete(this.preferencesService.getCredentialPath(id));
 				statusResult = statusResult.filter(
-					(e) => e.file !== this.sourceControlExportService.getCredentialsPath(id),
+					(e) => e.file !== this.preferencesService.getCredentialPath(id),
 				);
 			});
 		}
 
 		if (options.fileNames.find((e) => e.type === 'tags')) {
-			await this.sourceControlExportService.exportTagsToWorkFolder();
+			await this.exportService.exportTagsToWorkFolder();
 		}
 
 		if (options.fileNames.find((e) => e.type === 'variables')) {
-			await this.sourceControlExportService.exportVariablesToWorkFolder();
+			await this.exportService.exportVariablesToWorkFolder();
 		}
 
 		await this.gitService.stage(filesToBePushed, filesToBeDeleted);
@@ -286,13 +280,13 @@ export class SourceControlService {
 		await this.gitService.commit(options.message ?? 'Updated Workfolder');
 
 		const pushResult = await this.gitService.push({
-			branch: this.sourceControlPreferencesService.getBranchName(),
+			branch: this.preferencesService.getBranchName(),
 			force: options.force ?? false,
 		});
 
 		// #region Tracking Information
-		void Container.get(InternalHooks).onSourceControlUserFinishedPushUI(
-			getTrackingInformationFromPostPushResult(statusResult),
+		void this.internalHooks.onSourceControlUserFinishedPushUI(
+			this.trackingService.getTrackingInformationFromPostPushResult(statusResult),
 		);
 		// #endregion
 
@@ -304,7 +298,7 @@ export class SourceControlService {
 	}
 
 	async pullWorkfolder(
-		options: SourceControllPullOptions,
+		options: SourceControlPullOptions,
 	): Promise<{ statusCode: number; statusResult: SourceControlledFile[] }> {
 		await this.sanityCheck();
 
@@ -344,32 +338,29 @@ export class SourceControlService {
 		const workflowsToBeImported = statusResult.filter(
 			(e) => e.type === 'workflow' && e.status !== 'deleted',
 		);
-		await this.sourceControlImportService.importWorkflowFromWorkFolder(
-			workflowsToBeImported,
-			options.userId,
-		);
+		await this.importService.importWorkflowFromWorkFolder(workflowsToBeImported, options.userId);
 
 		const credentialsToBeImported = statusResult.filter(
 			(e) => e.type === 'credential' && e.status !== 'deleted',
 		);
-		await this.sourceControlImportService.importCredentialsFromWorkFolder(
+		await this.importService.importCredentialsFromWorkFolder(
 			credentialsToBeImported,
 			options.userId,
 		);
 
 		const tagsToBeImported = statusResult.find((e) => e.type === 'tags');
 		if (tagsToBeImported) {
-			await this.sourceControlImportService.importTagsFromWorkFolder(tagsToBeImported);
+			await this.importService.importTagsFromWorkFolder(tagsToBeImported);
 		}
 
 		const variablesToBeImported = statusResult.find((e) => e.type === 'variables');
 		if (variablesToBeImported) {
-			await this.sourceControlImportService.importVariablesFromWorkFolder(variablesToBeImported);
+			await this.importService.importVariablesFromWorkFolder(variablesToBeImported);
 		}
 
 		// #region Tracking Information
-		void Container.get(InternalHooks).onSourceControlUserFinishedPullUI(
-			getTrackingInformationFromPullResult(statusResult),
+		void this.internalHooks.onSourceControlUserFinishedPullUI(
+			this.trackingService.getTrackingInformationFromPullResult(statusResult),
 		);
 		// #endregion
 
@@ -421,12 +412,12 @@ export class SourceControlService {
 
 		// #region Tracking Information
 		if (options.direction === 'push') {
-			void Container.get(InternalHooks).onSourceControlUserStartedPushUI(
-				getTrackingInformationFromPrePushResult(sourceControlledFiles),
+			void this.internalHooks.onSourceControlUserStartedPushUI(
+				this.trackingService.getTrackingInformationFromPrePushResult(sourceControlledFiles),
 			);
 		} else if (options.direction === 'pull') {
-			void Container.get(InternalHooks).onSourceControlUserStartedPullUI(
-				getTrackingInformationFromPullResult(sourceControlledFiles),
+			void this.internalHooks.onSourceControlUserStartedPullUI(
+				this.trackingService.getTrackingInformationFromPullResult(sourceControlledFiles),
 			);
 		}
 		// #endregion
@@ -460,8 +451,8 @@ export class SourceControlService {
 		options: SourceControlGetStatus,
 		sourceControlledFiles: SourceControlledFile[],
 	) {
-		const wfRemoteVersionIds = await this.sourceControlImportService.getRemoteVersionIdsFromFiles();
-		const wfLocalVersionIds = await this.sourceControlImportService.getLocalVersionIdsFromDb();
+		const wfRemoteVersionIds = await this.importService.getRemoteVersionIdsFromFiles();
+		const wfLocalVersionIds = await this.importService.getLocalVersionIdsFromDb();
 
 		const wfMissingInLocal = wfRemoteVersionIds.filter(
 			(remote) => wfLocalVersionIds.findIndex((local) => local.id === remote.id) === -1,
@@ -545,8 +536,8 @@ export class SourceControlService {
 		options: SourceControlGetStatus,
 		sourceControlledFiles: SourceControlledFile[],
 	) {
-		const credRemoteIds = await this.sourceControlImportService.getRemoteCredentialsFromFiles();
-		const credLocalIds = await this.sourceControlImportService.getLocalCredentialsFromDb();
+		const credRemoteIds = await this.importService.getRemoteCredentialsFromFiles();
+		const credLocalIds = await this.importService.getLocalCredentialsFromDb();
 
 		const credMissingInLocal = credRemoteIds.filter(
 			(remote) => credLocalIds.findIndex((local) => local.id === remote.id) === -1,
@@ -628,8 +619,8 @@ export class SourceControlService {
 		options: SourceControlGetStatus,
 		sourceControlledFiles: SourceControlledFile[],
 	) {
-		const varRemoteIds = await this.sourceControlImportService.getRemoteVariablesFromFile();
-		const varLocalIds = await this.sourceControlImportService.getLocalVariablesFromDb();
+		const varRemoteIds = await this.importService.getRemoteVariablesFromFile();
+		const varLocalIds = await this.importService.getLocalVariablesFromDb();
 
 		const varMissingInLocal = varRemoteIds.filter(
 			(remote) => varLocalIds.findIndex((local) => local.id === remote.id) === -1,
@@ -666,7 +657,7 @@ export class SourceControlService {
 					status: 'modified',
 					location: options.direction === 'push' ? 'local' : 'remote',
 					conflict: false,
-					file: getVariablesPath(this.gitFolder),
+					file: this.preferencesService.variablesExportFile,
 					updatedAt: new Date().toISOString(),
 				});
 			}
@@ -688,9 +679,8 @@ export class SourceControlService {
 			select: ['updatedAt'],
 		});
 
-		const tagMappingsRemote =
-			await this.sourceControlImportService.getRemoteTagsAndMappingsFromFile();
-		const tagMappingsLocal = await this.sourceControlImportService.getLocalTagsAndMappingsFromDb();
+		const tagMappingsRemote = await this.importService.getRemoteTagsAndMappingsFromFile();
+		const tagMappingsLocal = await this.importService.getLocalTagsAndMappingsFromDb();
 
 		const tagsMissingInLocal = tagMappingsRemote.tags.filter(
 			(remote) => tagMappingsLocal.tags.findIndex((local) => local.id === remote.id) === -1,
@@ -746,7 +736,7 @@ export class SourceControlService {
 					status: 'modified',
 					location: options.direction === 'push' ? 'local' : 'remote',
 					conflict: false,
-					file: getTagsPath(this.gitFolder),
+					file: this.preferencesService.tagsExportFile,
 					updatedAt: lastUpdatedTag[0]?.updatedAt.toISOString(),
 				});
 			}

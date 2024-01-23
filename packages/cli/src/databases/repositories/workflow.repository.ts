@@ -1,16 +1,13 @@
 import { Service } from 'typedi';
-import {
-	DataSource,
-	Repository,
-	In,
-	Like,
-	type UpdateResult,
-	type FindOptionsWhere,
-	type FindOptionsSelect,
-	type FindManyOptions,
-	type EntityManager,
-	type DeleteResult,
-	Not,
+import { DataSource, Repository, In, Like, Not } from 'typeorm';
+import type {
+	FindOptionsSelectByString,
+	UpdateResult,
+	FindOptionsWhere,
+	FindOptionsSelect,
+	FindManyOptions,
+	EntityManager,
+	DeleteResult,
 } from 'typeorm';
 import type { ListQuery } from '@/requests';
 import { isStringArray } from '@/utils';
@@ -54,12 +51,15 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 		});
 	}
 
-	async findByIds(workflowIds: string[], { fields }: { fields?: string[] } = {}) {
+	async findByIds(
+		workflowIds: string[],
+		{ select }: { select?: FindOptionsSelectByString<WorkflowEntity> } = {},
+	) {
 		const options: FindManyOptions<WorkflowEntity> = {
 			where: { id: In(workflowIds) },
 		};
 
-		if (fields?.length) options.select = fields as FindOptionsSelect<WorkflowEntity>;
+		if (select?.length) options.select = select;
 
 		return await this.find(options);
 	}

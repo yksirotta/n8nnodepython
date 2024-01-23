@@ -102,9 +102,7 @@ export class Telemetry {
 
 		this.executionCountsBuffer = {};
 
-		const sourceControlPreferences = Container.get(
-			SourceControlPreferencesService,
-		).getPreferences();
+		const sourceControlPreferences = Container.get(SourceControlPreferencesService).preferences;
 
 		// License info
 		const pulsePacket = {

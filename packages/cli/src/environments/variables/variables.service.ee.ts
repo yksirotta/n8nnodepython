@@ -1,25 +1,27 @@
-import { Container, Service } from 'typedi';
+import { Service } from 'typedi';
+import type { IDataObject } from 'n8n-workflow';
+
 import type { Variables } from '@db/entities/Variables';
-import { InternalHooks } from '@/InternalHooks';
 import { generateNanoId } from '@db/utils/generators';
-import { canCreateNewVariable } from './environmentHelpers';
-import { CacheService } from '@/services/cache/cache.service';
 import { VariablesRepository } from '@db/repositories/variables.repository';
 import { VariableCountLimitReachedError } from '@/errors/variable-count-limit-reached.error';
 import { VariableValidationError } from '@/errors/variable-validation.error';
+import { License } from '@/License';
+import { InternalHooks } from '@/InternalHooks';
+import { CacheService } from '@/services/cache/cache.service';
 
 @Service()
 export class VariablesService {
 	constructor(
-		protected cacheService: CacheService,
-		protected variablesRepository: VariablesRepository,
+		private readonly cacheService: CacheService,
+		private readonly variablesRepository: VariablesRepository,
+		private readonly license: License,
+		private readonly internalHooks: InternalHooks,
 	) {}
 
 	async getAllCached(): Promise<Variables[]> {
 		const variables = await this.cacheService.get('variables', {
-			async refreshFn() {
-				return await Container.get(VariablesService).findAll();
-			},
+			refreshFn: async () => await this.findAll(),
 		});
 		return (variables as Array<Partial<Variables>>).map((v) => this.variablesRepository.create(v));
 	}
@@ -35,6 +37,16 @@ export class VariablesService {
 			return null;
 		}
 		return this.variablesRepository.create(foundVariable as Partial<Variables>);
+	}
+
+	async getVariablesObject() {
+		const variables = await this.getAllCached();
+		return Object.freeze(
+			variables.reduce((prev, curr) => {
+				prev[curr.key] = curr.value;
+				return prev;
+			}, {} as IDataObject),
+		);
 	}
 
 	async delete(id: string): Promise<void> {
@@ -65,12 +77,12 @@ export class VariablesService {
 	}
 
 	async create(variable: Omit<Variables, 'id'>): Promise<Variables> {
-		if (!canCreateNewVariable(await this.getCount())) {
+		if (!this.canCreateNewVariable(await this.getCount())) {
 			throw new VariableCountLimitReachedError('Variables limit reached');
 		}
 		this.validateVariable(variable);
 
-		void Container.get(InternalHooks).onVariableCreated({ variable_type: variable.type });
+		void this.internalHooks.onVariableCreated({ variable_type: variable.type });
 		const saveResult = await this.variablesRepository.save({
 			...variable,
 			id: generateNanoId(),
@@ -84,5 +96,18 @@ export class VariablesService {
 		await this.variablesRepository.update(id, variable);
 		await this.updateCache();
 		return (await this.getCached(id))!;
+	}
+
+	private canCreateNewVariable(variableCount: number): boolean {
+		if (!this.license.isVariablesEnabled()) {
+			return false;
+		}
+		// This defaults to -1 which is what we want if we've enabled
+		// variables via the config
+		const limit = this.license.getVariablesLimit();
+		if (limit === -1) {
+			return true;
+		}
+		return limit > variableCount;
 	}
 }

@@ -1,6 +1,6 @@
 import { Service } from 'typedi';
 import { DataSource, Repository, In, Not } from 'typeorm';
-import type { EntityManager, FindManyOptions, FindOptionsWhere } from 'typeorm';
+import type { EntityManager, FindOptionsSelectByString, FindOptionsWhere } from 'typeorm';
 import { SharedWorkflow, type WorkflowSharingRole } from '../entities/SharedWorkflow';
 import { type User } from '../entities/User';
 import type { Scope } from '@n8n/permissions';
@@ -134,7 +134,7 @@ export class SharedWorkflowRepository extends Repository<SharedWorkflow> {
 
 	async findWithFields(
 		workflowIds: string[],
-		{ select }: Pick<FindManyOptions<SharedWorkflow>, 'select'>,
+		{ select }: { select: FindOptionsSelectByString<SharedWorkflow> },
 	) {
 		return await this.find({
 			where: {

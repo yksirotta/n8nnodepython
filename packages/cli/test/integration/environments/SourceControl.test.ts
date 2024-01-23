@@ -61,16 +61,16 @@ describe('GET /sourceControl/preferences', () => {
 			});
 	});
 
-	test('refreshing key pairsshould return new rsa key', async () => {
+	test('refreshing key pairs should return new rsa key', async () => {
 		config.set('sourceControl.defaultKeyPairType', 'rsa');
 		await authOwnerAgent
 			.post('/source-control/generate-key-pair')
 			.send()
 			.expect(200)
 			.expect((res) => {
-				expect(
-					Container.get(SourceControlPreferencesService).getPreferences().keyGeneratorType,
-				).toBe('rsa');
+				expect(Container.get(SourceControlPreferencesService).preferences.keyGeneratorType).toBe(
+					'rsa',
+				);
 				expect(res.body.data).toHaveProperty('publicKey');
 				expect(res.body.data).toHaveProperty('keyGeneratorType');
 				expect(res.body.data.keyGeneratorType).toBe('rsa');

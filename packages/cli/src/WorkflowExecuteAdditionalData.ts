@@ -68,6 +68,7 @@ import { WorkflowStaticDataService } from './workflows/workflowStaticData.servic
 import { WorkflowRepository } from './databases/repositories/workflow.repository';
 import { UrlService } from './services/url.service';
 import { WorkflowExecutionService } from './workflows/workflowExecution.service';
+import { VariablesService } from './environments/variables/variables.service.ee';
 
 const ERROR_TRIGGER_TYPE = config.getEnv('nodes.errorTriggerType');
 
@@ -969,7 +970,7 @@ export async function getBase(
 	const webhookTestBaseUrl = urlBaseWebhook + config.getEnv('endpoints.webhookTest');
 	const webhookWaitingBaseUrl = urlBaseWebhook + config.getEnv('endpoints.webhookWaiting');
 
-	const variables = await WorkflowHelpers.getVariables();
+	const variables = await Container.get(VariablesService).getVariablesObject();
 
 	return {
 		credentialsHelper: Container.get(CredentialsHelper),

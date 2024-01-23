@@ -11,32 +11,38 @@ import type {
 	SimpleGitOptions,
 	StatusResult,
 } from 'simple-git';
-import type { SourceControlPreferences } from './types/sourceControlPreferences';
+import { ApplicationError } from 'n8n-workflow';
+
+import type { User } from '@db/entities/User';
+import { Logger } from '@/Logger';
+import { OwnershipService } from '@/services/ownership.service';
+
 import {
 	SOURCE_CONTROL_DEFAULT_BRANCH,
 	SOURCE_CONTROL_DEFAULT_EMAIL,
 	SOURCE_CONTROL_DEFAULT_NAME,
 	SOURCE_CONTROL_ORIGIN,
 } from './constants';
-import { sourceControlFoldersExistCheck } from './sourceControlHelper.ee';
-import type { User } from '@db/entities/User';
-import { Logger } from '@/Logger';
-import { ApplicationError } from 'n8n-workflow';
-import { OwnershipService } from '@/services/ownership.service';
+import type { SourceControlPreferences } from './types/sourceControlPreferences';
+import { SourceControlPreferencesService } from './sourceControlPreferences.service.ee';
+import { SourceControlBaseService } from './sourceControlBase.service';
 
 @Service()
-export class SourceControlGitService {
+export class SourceControlGitService extends SourceControlBaseService {
 	git: SimpleGit | null = null;
 
 	private gitOptions: Partial<SimpleGitOptions> = {};
 
 	constructor(
-		private readonly logger: Logger,
+		logger: Logger,
 		private readonly ownershipService: OwnershipService,
-	) {}
+		private readonly preferencesService: SourceControlPreferencesService,
+	) {
+		super(logger);
+	}
 
 	/**
-	 * Run pre-checks before initialising git
+	 * Run pre-checks before initializing git
 	 * Checks for existence of required binaries (git and ssh)
 	 */
 	private preInitCheck(): boolean {
@@ -60,18 +66,7 @@ export class SourceControlGitService {
 		return true;
 	}
 
-	async initService(options: {
-		sourceControlPreferences: SourceControlPreferences;
-		gitFolder: string;
-		sshFolder: string;
-		sshKeyName: string;
-	}): Promise<void> {
-		const {
-			sourceControlPreferences: sourceControlPreferences,
-			gitFolder,
-			sshKeyName,
-			sshFolder,
-		} = options;
+	async initService(): Promise<void> {
 		this.logger.debug('GitService.init');
 		if (this.git !== null) {
 			return;
@@ -80,7 +75,8 @@ export class SourceControlGitService {
 		this.preInitCheck();
 		this.logger.debug('Git pre-check passed');
 
-		sourceControlFoldersExistCheck([gitFolder, sshFolder]);
+		const { gitFolder, sshFolder, sshKeyName, preferences } = this.preferencesService;
+		this.checkIfFoldersExists([gitFolder, sshFolder]);
 
 		const sshKnownHosts = path.join(sshFolder, 'known_hosts');
 		const sshCommand = `ssh -o UserKnownHostsFile=${sshKnownHosts} -o StrictHostKeyChecking=no -i ${sshKeyName}`;
@@ -104,10 +100,10 @@ export class SourceControlGitService {
 		if (!(await this.checkRepositorySetup())) {
 			await this.git.init();
 		}
-		if (!(await this.hasRemote(sourceControlPreferences.repositoryUrl))) {
-			if (sourceControlPreferences.connected && sourceControlPreferences.repositoryUrl) {
+		if (!(await this.hasRemote(preferences.repositoryUrl))) {
+			if (preferences.connected && preferences.repositoryUrl) {
 				const instanceOwner = await this.ownershipService.getInstanceOwner();
-				await this.initRepository(sourceControlPreferences, instanceOwner);
+				await this.initRepository(preferences, instanceOwner);
 			}
 		}
 	}

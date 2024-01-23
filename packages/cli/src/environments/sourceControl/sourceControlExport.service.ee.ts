@@ -1,68 +1,43 @@
-import Container, { Service } from 'typedi';
-import path from 'path';
-import {
-	SOURCE_CONTROL_CREDENTIAL_EXPORT_FOLDER,
-	SOURCE_CONTROL_GIT_FOLDER,
-	SOURCE_CONTROL_TAGS_EXPORT_FILE,
-	SOURCE_CONTROL_WORKFLOW_EXPORT_FOLDER,
-} from './constants';
-import { ApplicationError, type ICredentialDataDecryptedObject } from 'n8n-workflow';
+import { Service } from 'typedi';
 import { writeFile as fsWriteFile, rm as fsRm } from 'fs/promises';
 import { rmSync } from 'fs';
-import { Credentials, InstanceSettings } from 'n8n-core';
-import type { ExportableWorkflow } from './types/exportableWorkflow';
-import type { ExportableCredential } from './types/exportableCredential';
-import type { ExportResult } from './types/exportResult';
-import {
-	getCredentialExportPath,
-	getVariablesPath,
-	getWorkflowExportPath,
-	sourceControlFoldersExistCheck,
-	stringContainsExpression,
-} from './sourceControlHelper.ee';
+import { ApplicationError, type ICredentialDataDecryptedObject } from 'n8n-workflow';
+import { Credentials } from 'n8n-core';
+
 import type { WorkflowEntity } from '@db/entities/WorkflowEntity';
-import type { SourceControlledFile } from './types/sourceControlledFile';
-import { VariablesService } from '../variables/variables.service.ee';
 import { TagRepository } from '@db/repositories/tag.repository';
 import { WorkflowRepository } from '@db/repositories/workflow.repository';
-import { Logger } from '@/Logger';
 import { SharedCredentialsRepository } from '@db/repositories/sharedCredentials.repository';
 import { SharedWorkflowRepository } from '@db/repositories/sharedWorkflow.repository';
 import { WorkflowTagMappingRepository } from '@db/repositories/workflowTagMapping.repository';
+import { Logger } from '@/Logger';
+
+import type { SourceControlledFile } from './types/sourceControlledFile';
+import type { ExportableWorkflow } from './types/exportableWorkflow';
+import type { ExportableCredential } from './types/exportableCredential';
+import type { ExportResult } from './types/exportResult';
+import { SourceControlPreferencesService } from './sourceControlPreferences.service.ee';
+import { SourceControlBaseService } from './sourceControlBase.service';
+import { VariablesService } from '../variables/variables.service.ee';
 
 @Service()
-export class SourceControlExportService {
-	private gitFolder: string;
-
-	private workflowExportFolder: string;
-
-	private credentialExportFolder: string;
-
+export class SourceControlExportService extends SourceControlBaseService {
 	constructor(
-		private readonly logger: Logger,
+		logger: Logger,
 		private readonly variablesService: VariablesService,
 		private readonly tagRepository: TagRepository,
-		instanceSettings: InstanceSettings,
+		private readonly sharedCredentialsRepository: SharedCredentialsRepository,
+		private readonly sharedWorkflowRepository: SharedWorkflowRepository,
+		private readonly workflowRepository: WorkflowRepository,
+		private readonly workflowTagMappingRepository: WorkflowTagMappingRepository,
+		private readonly preferencesService: SourceControlPreferencesService,
 	) {
-		this.gitFolder = path.join(instanceSettings.n8nFolder, SOURCE_CONTROL_GIT_FOLDER);
-		this.workflowExportFolder = path.join(this.gitFolder, SOURCE_CONTROL_WORKFLOW_EXPORT_FOLDER);
-		this.credentialExportFolder = path.join(
-			this.gitFolder,
-			SOURCE_CONTROL_CREDENTIAL_EXPORT_FOLDER,
-		);
-	}
-
-	getWorkflowPath(workflowId: string): string {
-		return getWorkflowExportPath(workflowId, this.workflowExportFolder);
-	}
-
-	getCredentialsPath(credentialsId: string): string {
-		return getCredentialExportPath(credentialsId, this.credentialExportFolder);
+		super(logger);
 	}
 
 	async deleteRepositoryFolder() {
 		try {
-			await fsRm(this.gitFolder, { recursive: true });
+			await fsRm(this.preferencesService.gitFolder, { recursive: true });
 		} catch (error) {
 			this.logger.error(`Failed to delete work folder: ${(error as Error).message}`);
 		}
@@ -83,7 +58,7 @@ export class SourceControlExportService {
 	) {
 		await Promise.all(
 			workflowsToBeExported.map(async (e) => {
-				const fileName = this.getWorkflowPath(e.id);
+				const fileName = this.preferencesService.getWorkflowPath(e.id);
 				const sanitizedWorkflow: ExportableWorkflow = {
 					id: e.id,
 					name: e.name,
@@ -102,11 +77,11 @@ export class SourceControlExportService {
 
 	async exportWorkflowsToWorkFolder(candidates: SourceControlledFile[]): Promise<ExportResult> {
 		try {
-			sourceControlFoldersExistCheck([this.workflowExportFolder]);
+			const { workflowExportFolder } = this.preferencesService;
+			this.checkIfFoldersExists([workflowExportFolder]);
 			const workflowIds = candidates.map((e) => e.id);
-			const sharedWorkflows =
-				await Container.get(SharedWorkflowRepository).findByWorkflowIds(workflowIds);
-			const workflows = await Container.get(WorkflowRepository).findByIds(workflowIds);
+			const sharedWorkflows = await this.sharedWorkflowRepository.findByWorkflowIds(workflowIds);
+			const workflows = await this.workflowRepository.findByIds(workflowIds);
 
 			// determine owner of each workflow to be exported
 			const owners: Record<string, string> = {};
@@ -118,10 +93,10 @@ export class SourceControlExportService {
 			// await fsWriteFile(ownersFileName, JSON.stringify(owners, null, 2));
 			return {
 				count: sharedWorkflows.length,
-				folder: this.workflowExportFolder,
+				folder: workflowExportFolder,
 				files: workflows.map((e) => ({
 					id: e?.id,
-					name: this.getWorkflowPath(e?.name),
+					name: this.preferencesService.getWorkflowPath(e?.name),
 				})),
 			};
 		} catch (error) {
@@ -131,22 +106,23 @@ export class SourceControlExportService {
 
 	async exportVariablesToWorkFolder(): Promise<ExportResult> {
 		try {
-			sourceControlFoldersExistCheck([this.gitFolder]);
+			const { gitFolder } = this.preferencesService;
+			this.checkIfFoldersExists([gitFolder]);
 			const variables = await this.variablesService.getAllCached();
 			// do not export empty variables
 			if (variables.length === 0) {
 				return {
 					count: 0,
-					folder: this.gitFolder,
+					folder: gitFolder,
 					files: [],
 				};
 			}
-			const fileName = getVariablesPath(this.gitFolder);
+			const fileName = this.preferencesService.variablesExportFile;
 			const sanitizedVariables = variables.map((e) => ({ ...e, value: '' }));
 			await fsWriteFile(fileName, JSON.stringify(sanitizedVariables, null, 2));
 			return {
 				count: sanitizedVariables.length,
-				folder: this.gitFolder,
+				folder: gitFolder,
 				files: [
 					{
 						id: '',
@@ -163,18 +139,19 @@ export class SourceControlExportService {
 
 	async exportTagsToWorkFolder(): Promise<ExportResult> {
 		try {
-			sourceControlFoldersExistCheck([this.gitFolder]);
+			const { gitFolder, tagsExportFile } = this.preferencesService;
+			this.checkIfFoldersExists([gitFolder]);
 			const tags = await this.tagRepository.find();
 			// do not export empty tags
 			if (tags.length === 0) {
 				return {
 					count: 0,
-					folder: this.gitFolder,
+					folder: gitFolder,
 					files: [],
 				};
 			}
-			const mappings = await Container.get(WorkflowTagMappingRepository).find();
-			const fileName = path.join(this.gitFolder, SOURCE_CONTROL_TAGS_EXPORT_FILE);
+			const mappings = await this.workflowTagMappingRepository.find();
+			const fileName = tagsExportFile;
 			await fsWriteFile(
 				fileName,
 				JSON.stringify(
@@ -188,7 +165,7 @@ export class SourceControlExportService {
 			);
 			return {
 				count: tags.length,
-				folder: this.gitFolder,
+				folder: gitFolder,
 				files: [
 					{
 						id: '',
@@ -201,9 +178,9 @@ export class SourceControlExportService {
 		}
 	}
 
-	private replaceCredentialData = (
+	private replaceCredentialData(
 		data: ICredentialDataDecryptedObject,
-	): ICredentialDataDecryptedObject => {
+	): ICredentialDataDecryptedObject {
 		for (const [key] of Object.entries(data)) {
 			try {
 				if (data[key] === null) {
@@ -211,7 +188,7 @@ export class SourceControlExportService {
 				} else if (typeof data[key] === 'object') {
 					data[key] = this.replaceCredentialData(data[key] as ICredentialDataDecryptedObject);
 				} else if (typeof data[key] === 'string') {
-					data[key] = stringContainsExpression(data[key] as string) ? data[key] : '';
+					data[key] = this.stringContainsExpression(data[key] as string) ? data[key] : '';
 				} else if (typeof data[key] === 'number') {
 					// TODO: leaving numbers in for now, but maybe we should remove them
 					continue;
@@ -222,15 +199,19 @@ export class SourceControlExportService {
 			}
 		}
 		return data;
-	};
+	}
+
+	private stringContainsExpression(testString: string): boolean {
+		return /^=.*\{\{.*\}\}/.test(testString);
+	}
 
 	async exportCredentialsToWorkFolder(candidates: SourceControlledFile[]): Promise<ExportResult> {
 		try {
-			sourceControlFoldersExistCheck([this.credentialExportFolder]);
+			const { credentialExportFolder } = this.preferencesService;
+			this.checkIfFoldersExists([credentialExportFolder]);
 			const credentialIds = candidates.map((e) => e.id);
-			const credentialsToBeExported = await Container.get(
-				SharedCredentialsRepository,
-			).findByCredentialIds(credentialIds);
+			const credentialsToBeExported =
+				await this.sharedCredentialsRepository.findByCredentialIds(credentialIds);
 			let missingIds: string[] = [];
 			if (credentialsToBeExported.length !== credentialIds.length) {
 				const foundCredentialIds = credentialsToBeExported.map((e) => e.credentialsId);
@@ -244,7 +225,9 @@ export class SourceControlExportService {
 					const credentialObject = new Credentials({ id, name }, type, nodesAccess, data);
 					const plainData = credentialObject.getData();
 					const sanitizedData = this.replaceCredentialData(plainData);
-					const fileName = this.getCredentialsPath(sharedCredential.credentials.id);
+					const fileName = this.preferencesService.getCredentialPath(
+						sharedCredential.credentials.id,
+					);
 					const sanitizedCredential: ExportableCredential = {
 						id: sharedCredential.credentials.id,
 						name: sharedCredential.credentials.name,
@@ -258,10 +241,10 @@ export class SourceControlExportService {
 			);
 			return {
 				count: credentialsToBeExported.length,
-				folder: this.credentialExportFolder,
+				folder: credentialExportFolder,
 				files: credentialsToBeExported.map((e) => ({
 					id: e.credentials.id,
-					name: path.join(this.credentialExportFolder, `${e.credentials.name}.json`),
+					name: this.preferencesService.getCredentialPath(e.credentials.name),
 				})),
 				missingIds,
 			};

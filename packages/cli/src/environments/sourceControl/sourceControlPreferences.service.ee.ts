@@ -1,31 +1,37 @@
-import Container, { Service } from 'typedi';
-import { SourceControlPreferences } from './types/sourceControlPreferences';
+import { Service } from 'typedi';
 import type { ValidationError } from 'class-validator';
 import { validate } from 'class-validator';
+import { generateKeyPairSync } from 'crypto';
+import path from 'path';
 import { readFileSync as fsReadFileSync, existsSync as fsExistsSync } from 'fs';
 import { writeFile as fsWriteFile, rm as fsRm } from 'fs/promises';
-import {
-	generateSshKeyPair,
-	isSourceControlLicensed,
-	sourceControlFoldersExistCheck,
-} from './sourceControlHelper.ee';
 import { InstanceSettings } from 'n8n-core';
 import { ApplicationError, jsonParse } from 'n8n-workflow';
-import {
-	SOURCE_CONTROL_SSH_FOLDER,
-	SOURCE_CONTROL_GIT_FOLDER,
-	SOURCE_CONTROL_SSH_KEY_NAME,
-	SOURCE_CONTROL_PREFERENCES_DB_KEY,
-} from './constants';
-import path from 'path';
-import type { KeyPairType } from './types/keyPairType';
+
 import config from '@/config';
-import { Logger } from '@/Logger';
 import { SettingsRepository } from '@db/repositories/settings.repository';
+import { License } from '@/License';
+import { Logger } from '@/Logger';
+
+import {
+	SOURCE_CONTROL_CREDENTIAL_EXPORT_FOLDER,
+	SOURCE_CONTROL_GIT_FOLDER,
+	SOURCE_CONTROL_GIT_KEY_COMMENT,
+	SOURCE_CONTROL_PREFERENCES_DB_KEY,
+	SOURCE_CONTROL_SSH_FOLDER,
+	SOURCE_CONTROL_SSH_KEY_NAME,
+	SOURCE_CONTROL_TAGS_EXPORT_FILE,
+	SOURCE_CONTROL_VARIABLES_EXPORT_FILE,
+	SOURCE_CONTROL_WORKFLOW_EXPORT_FOLDER,
+} from './constants';
+import type { KeyPair } from './types/keyPair';
+import type { KeyPairType } from './types/keyPairType';
+import { SourceControlPreferences } from './types/sourceControlPreferences';
+import { SourceControlBaseService } from './sourceControlBase.service';
 
 @Service()
-export class SourceControlPreferencesService {
-	private _sourceControlPreferences: SourceControlPreferences = new SourceControlPreferences();
+export class SourceControlPreferencesService extends SourceControlBaseService {
+	private _preferences = new SourceControlPreferences();
 
 	readonly sshKeyName: string;
 
@@ -33,37 +39,57 @@ export class SourceControlPreferencesService {
 
 	readonly gitFolder: string;
 
+	readonly workflowExportFolder: string;
+
+	readonly credentialExportFolder: string;
+
+	readonly tagsExportFile: string;
+
+	readonly variablesExportFile: string;
+
+	readonly readmeFile: string;
+
 	constructor(
+		logger: Logger,
+		private readonly settingsRepository: SettingsRepository,
+		private readonly license: License,
 		instanceSettings: InstanceSettings,
-		private readonly logger: Logger,
 	) {
-		this.sshFolder = path.join(instanceSettings.n8nFolder, SOURCE_CONTROL_SSH_FOLDER);
-		this.gitFolder = path.join(instanceSettings.n8nFolder, SOURCE_CONTROL_GIT_FOLDER);
+		super(logger);
+
+		const { n8nFolder } = instanceSettings;
+		this.sshFolder = path.join(n8nFolder, SOURCE_CONTROL_SSH_FOLDER);
+		this.gitFolder = path.join(n8nFolder, SOURCE_CONTROL_GIT_FOLDER);
 		this.sshKeyName = path.join(this.sshFolder, SOURCE_CONTROL_SSH_KEY_NAME);
+		this.workflowExportFolder = path.join(this.gitFolder, SOURCE_CONTROL_WORKFLOW_EXPORT_FOLDER);
+		this.credentialExportFolder = path.join(
+			this.gitFolder,
+			SOURCE_CONTROL_CREDENTIAL_EXPORT_FOLDER,
+		);
+		this.tagsExportFile = path.join(this.gitFolder, SOURCE_CONTROL_TAGS_EXPORT_FILE);
+		this.variablesExportFile = path.join(this.gitFolder, SOURCE_CONTROL_VARIABLES_EXPORT_FILE);
+		this.readmeFile = path.join(this.gitFolder, 'README.md');
 	}
 
-	public get sourceControlPreferences(): SourceControlPreferences {
+	getWorkflowPath(workflowId: string): string {
+		return path.join(this.workflowExportFolder, `${workflowId}.json`);
+	}
+
+	getCredentialPath(credentialId: string): string {
+		return path.join(this.credentialExportFolder, `${credentialId}.json`);
+	}
+
+	public get preferences(): SourceControlPreferences {
 		return {
-			...this._sourceControlPreferences,
-			connected: this._sourceControlPreferences.connected ?? false,
+			...this._preferences,
+			connected: this._preferences.connected ?? false,
 			publicKey: this.getPublicKey(),
 		};
 	}
 
-	// merge the new preferences with the existing preferences when setting
-	public set sourceControlPreferences(preferences: Partial<SourceControlPreferences>) {
-		this._sourceControlPreferences = SourceControlPreferences.merge(
-			preferences,
-			this._sourceControlPreferences,
-		);
-	}
-
 	public isSourceControlSetup() {
-		return (
-			this.isSourceControlLicensedAndEnabled() &&
-			this.getPreferences().repositoryUrl &&
-			this.getPreferences().branchName
-		);
+		const { repositoryUrl, branchName } = this._preferences;
+		return this.isSourceControlLicensedAndEnabled() && repositoryUrl && branchName;
 	}
 
 	getPublicKey(): string {
@@ -92,14 +118,15 @@ export class SourceControlPreferencesService {
 	 * Note: this will overwrite any existing key pair
 	 */
 	async generateAndSaveKeyPair(keyPairType?: KeyPairType): Promise<SourceControlPreferences> {
-		sourceControlFoldersExistCheck([this.gitFolder, this.sshFolder]);
+		this.checkIfFoldersExists([this.gitFolder, this.sshFolder]);
+		const { keyGeneratorType } = this.preferences;
 		if (!keyPairType) {
 			keyPairType =
-				this.getPreferences().keyGeneratorType ??
+				keyGeneratorType ??
 				(config.get('sourceControl.defaultKeyPairType') as KeyPairType) ??
 				'ed25519';
 		}
-		const keyPair = await generateSshKeyPair(keyPairType);
+		const keyPair = await this.generateSshKeyPair(keyPairType);
 		if (keyPair.publicKey && keyPair.privateKey) {
 			try {
 				await fsWriteFile(this.sshKeyName + '.pub', keyPair.publicKey, {
@@ -112,30 +139,26 @@ export class SourceControlPreferencesService {
 			}
 		}
 		// update preferences only after generating key pair to prevent endless loop
-		if (keyPairType !== this.getPreferences().keyGeneratorType) {
+		if (keyPairType !== keyGeneratorType) {
 			await this.setPreferences({ keyGeneratorType: keyPairType });
 		}
-		return this.getPreferences();
+		return this.preferences;
 	}
 
 	isBranchReadOnly(): boolean {
-		return this._sourceControlPreferences.branchReadOnly;
+		return this._preferences.branchReadOnly;
 	}
 
 	isSourceControlConnected(): boolean {
-		return this.sourceControlPreferences.connected;
+		return this.preferences.connected;
 	}
 
 	isSourceControlLicensedAndEnabled(): boolean {
-		return this.isSourceControlConnected() && isSourceControlLicensed();
+		return this.isSourceControlConnected() && this.license.isSourceControlLicensed();
 	}
 
 	getBranchName(): string {
-		return this.sourceControlPreferences.branchName;
-	}
-
-	getPreferences(): SourceControlPreferences {
-		return this.sourceControlPreferences;
+		return this.preferences.branchName;
 	}
 
 	async validateSourceControlPreferences(
@@ -161,7 +184,7 @@ export class SourceControlPreferencesService {
 		preferences: Partial<SourceControlPreferences>,
 		saveToDb = true,
 	): Promise<SourceControlPreferences> {
-		sourceControlFoldersExistCheck([this.gitFolder, this.sshFolder]);
+		this.checkIfFoldersExists([this.gitFolder, this.sshFolder]);
 		if (!this.hasKeyPairFiles()) {
 			const keyPairType =
 				preferences.keyGeneratorType ??
@@ -169,11 +192,12 @@ export class SourceControlPreferencesService {
 			this.logger.debug(`No key pair files found, generating new pair using type: ${keyPairType}`);
 			await this.generateAndSaveKeyPair(keyPairType);
 		}
-		this.sourceControlPreferences = preferences;
+		// merge the new preferences with the existing preferences when setting
+		this._preferences = SourceControlPreferences.merge(preferences, this._preferences);
 		if (saveToDb) {
-			const settingsValue = JSON.stringify(this._sourceControlPreferences);
+			const settingsValue = JSON.stringify(this._preferences);
 			try {
-				await Container.get(SettingsRepository).save({
+				await this.settingsRepository.save({
 					key: SOURCE_CONTROL_PREFERENCES_DB_KEY,
 					value: settingsValue,
 					loadOnStartup: true,
@@ -182,13 +206,13 @@ export class SourceControlPreferencesService {
 				throw new ApplicationError('Failed to save source control preferences', { cause: error });
 			}
 		}
-		return this.sourceControlPreferences;
+		return this.preferences;
 	}
 
 	async loadFromDbAndApplySourceControlPreferences(): Promise<
 		SourceControlPreferences | undefined
 	> {
-		const loadedPreferences = await Container.get(SettingsRepository).findOne({
+		const loadedPreferences = await this.settingsRepository.findOne({
 			where: { key: SOURCE_CONTROL_PREFERENCES_DB_KEY },
 		});
 		if (loadedPreferences) {
@@ -205,7 +229,47 @@ export class SourceControlPreferencesService {
 				);
 			}
 		}
-		await this.setPreferences(new SourceControlPreferences(), true);
-		return this.sourceControlPreferences;
+		await this.setPreferences(new SourceControlPreferences());
+		return this.preferences;
+	}
+
+	async generateSshKeyPair(keyType: KeyPairType) {
+		const sshpk = await import('sshpk');
+		const keyPair: KeyPair = {
+			publicKey: '',
+			privateKey: '',
+		};
+		let generatedKeyPair: KeyPair;
+		switch (keyType) {
+			case 'ed25519':
+				generatedKeyPair = generateKeyPairSync('ed25519', {
+					privateKeyEncoding: { format: 'pem', type: 'pkcs8' },
+					publicKeyEncoding: { format: 'pem', type: 'spki' },
+				});
+				break;
+			case 'rsa':
+				generatedKeyPair = generateKeyPairSync('rsa', {
+					modulusLength: 4096,
+					publicKeyEncoding: {
+						type: 'spki',
+						format: 'pem',
+					},
+					privateKeyEncoding: {
+						type: 'pkcs8',
+						format: 'pem',
+					},
+				});
+				break;
+		}
+		const keyPublic = sshpk.parseKey(generatedKeyPair.publicKey, 'pem');
+		keyPublic.comment = SOURCE_CONTROL_GIT_KEY_COMMENT;
+		keyPair.publicKey = keyPublic.toString('ssh');
+		const keyPrivate = sshpk.parsePrivateKey(generatedKeyPair.privateKey, 'pem');
+		keyPrivate.comment = SOURCE_CONTROL_GIT_KEY_COMMENT;
+		keyPair.privateKey = keyPrivate.toString('ssh-private');
+		return {
+			privateKey: keyPair.privateKey,
+			publicKey: keyPair.publicKey,
+		};
 	}
 }

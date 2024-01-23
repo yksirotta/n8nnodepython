@@ -1,23 +1,15 @@
-import Container from 'typedi';
-import {
-	generateSshKeyPair,
-	getRepoType,
-	getTrackingInformationFromPostPushResult,
-	getTrackingInformationFromPrePushResult,
-	getTrackingInformationFromPullResult,
-	sourceControlFoldersExistCheck,
-} from '@/environments/sourceControl/sourceControlHelper.ee';
-import { License } from '@/License';
-import { SourceControlPreferencesService } from '@/environments/sourceControl/sourceControlPreferences.service.ee';
-import { InstanceSettings } from 'n8n-core';
-import path from 'path';
-import {
-	SOURCE_CONTROL_SSH_FOLDER,
-	SOURCE_CONTROL_GIT_FOLDER,
-} from '@/environments/sourceControl/constants';
+import { Container } from 'typedi';
 import { constants as fsConstants, accessSync } from 'fs';
+import { mock } from 'jest-mock-extended';
+import type { InstanceSettings } from 'n8n-core';
+
+import { License } from '@/License';
+import { SourceControlTrackingService } from '@/environments/sourceControl/sourceControlTracking.service';
+import { SourceControlPreferencesService } from '@/environments/sourceControl/sourceControlPreferences.service.ee';
 import type { SourceControlledFile } from '@/environments/sourceControl/types/sourceControlledFile';
 import type { SourceControlPreferences } from '@/environments/sourceControl/types/sourceControlPreferences';
+import { SourceControlService } from '@/environments/sourceControl/sourceControl.service.ee';
+
 import { mockInstance } from '../shared/mocking';
 
 const pushResult: SourceControlledFile[] = [
@@ -150,23 +142,28 @@ const pullResult: SourceControlledFile[] = [
 	},
 ];
 
-const license = mockInstance(License);
-
-beforeAll(async () => {
-	jest.resetAllMocks();
-	license.isSourceControlLicensed.mockReturnValue(true);
-	Container.get(SourceControlPreferencesService).getPreferences = () => ({
-		branchName: 'main',
-		connected: true,
-		repositoryUrl: 'git@example.com:n8ntest/n8n_testrepo.git',
-		branchReadOnly: false,
-		branchColor: '#5296D6',
-		publicKey:
-			'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDBSz2nMZAiUBWe6n89aWd5x9QMcIOaznVW3fpuCYC4L n8n deploy key',
-	});
-});
-
 describe('Source Control', () => {
+	const license = mockInstance(License);
+	const instanceSettings = mock<InstanceSettings>({ n8nFolder: '/tmp' });
+	mockInstance(SourceControlPreferencesService, {
+		preferences: {
+			branchName: 'main',
+			connected: true,
+			repositoryUrl: 'git@example.com:n8ntest/n8n_testrepo.git',
+			branchReadOnly: false,
+			branchColor: '#5296D6',
+			publicKey:
+				'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDBSz2nMZAiUBWe6n89aWd5x9QMcIOaznVW3fpuCYC4L n8n deploy key',
+		},
+	});
+	const trackingService = Container.get(SourceControlTrackingService);
+	const { generateSshKeyPair } = SourceControlPreferencesService.prototype;
+
+	beforeAll(async () => {
+		jest.resetAllMocks();
+		license.isSourceControlLicensed.mockReturnValue(true);
+	});
+
 	it('should generate an SSH key pair', async () => {
 		const keyPair = await generateSshKeyPair('ed25519');
 		expect(keyPair.privateKey).toBeTruthy();
@@ -183,10 +180,16 @@ describe('Source Control', () => {
 		expect(keyPair.publicKey).toContain('ssh-rsa');
 	});
 
+	// TODO: mock filesystem calls here
 	it('should check for git and ssh folders and create them if required', async () => {
-		const { n8nFolder } = Container.get(InstanceSettings);
-		const sshFolder = path.join(n8nFolder, SOURCE_CONTROL_SSH_FOLDER);
-		const gitFolder = path.join(n8nFolder, SOURCE_CONTROL_GIT_FOLDER);
+		const preferenceService = new SourceControlPreferencesService(
+			mock(),
+			mock(),
+			mock(),
+			instanceSettings,
+		);
+		const { gitFolder, sshFolder } = preferenceService;
+
 		let hasThrown = false;
 		try {
 			accessSync(sshFolder, fsConstants.F_OK);
@@ -202,21 +205,22 @@ describe('Source Control', () => {
 		}
 		expect(hasThrown).toBeTruthy();
 		// create missing folders
-		expect(sourceControlFoldersExistCheck([gitFolder, sshFolder], true)).toBe(false);
+		expect(preferenceService.checkIfFoldersExists([gitFolder, sshFolder], true)).toBe(false);
 		// find folders this time
-		expect(sourceControlFoldersExistCheck([gitFolder, sshFolder], true)).toBe(true);
+		expect(preferenceService.checkIfFoldersExists([gitFolder, sshFolder], true)).toBe(true);
 		expect(accessSync(sshFolder, fsConstants.F_OK)).toBeUndefined();
 		expect(accessSync(gitFolder, fsConstants.F_OK)).toBeUndefined();
 	});
 
 	it('should get repo type from url', async () => {
+		const { getRepoType } = SourceControlService.prototype;
 		expect(getRepoType('git@github.com:n8ntest/n8n_testrepo.git')).toBe('github');
 		expect(getRepoType('git@gitlab.com:n8ntest/n8n_testrepo.git')).toBe('gitlab');
 		expect(getRepoType('git@mygitea.io:n8ntest/n8n_testrepo.git')).toBe('other');
 	});
 
 	it('should get tracking information from pre-push results', () => {
-		const trackingResult = getTrackingInformationFromPrePushResult(pushResult);
+		const trackingResult = trackingService.getTrackingInformationFromPrePushResult(pushResult);
 		expect(trackingResult).toEqual({
 			workflows_eligible: 3,
 			workflows_eligible_with_conflicts: 1,
@@ -227,7 +231,7 @@ describe('Source Control', () => {
 	});
 
 	it('should get tracking information from post-push results', () => {
-		const trackingResult = getTrackingInformationFromPostPushResult(pushResult);
+		const trackingResult = trackingService.getTrackingInformationFromPostPushResult(pushResult);
 		expect(trackingResult).toEqual({
 			workflows_pushed: 2,
 			workflows_eligible: 3,
@@ -237,7 +241,7 @@ describe('Source Control', () => {
 	});
 
 	it('should get tracking information from pull results', () => {
-		const trackingResult = getTrackingInformationFromPullResult(pullResult);
+		const trackingResult = trackingService.getTrackingInformationFromPullResult(pullResult);
 		expect(trackingResult).toEqual({
 			cred_conflicts: 1,
 			workflow_conflicts: 1,

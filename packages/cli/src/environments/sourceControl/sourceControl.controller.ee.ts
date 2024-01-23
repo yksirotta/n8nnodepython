@@ -1,6 +1,9 @@
 import type { PullResult } from 'simple-git';
 import express from 'express';
+
 import { Authorized, Get, Post, Patch, RestController, RequireGlobalScope } from '@/decorators';
+import { BadRequestError } from '@/errors/response-errors/bad-request.error';
+
 import {
 	sourceControlLicensedMiddleware,
 	sourceControlLicensedAndEnabledMiddleware,
@@ -12,25 +15,21 @@ import type { SourceControlPreferences } from './types/sourceControlPreferences'
 import type { SourceControlledFile } from './types/sourceControlledFile';
 import { SOURCE_CONTROL_DEFAULT_BRANCH } from './constants';
 import type { ImportResult } from './types/importResult';
-import { InternalHooks } from '@/InternalHooks';
-import { getRepoType } from './sourceControlHelper.ee';
 import { SourceControlGetStatus } from './types/sourceControlGetStatus';
-import { BadRequestError } from '@/errors/response-errors/bad-request.error';
 
 @Authorized()
 @RestController('/source-control')
 export class SourceControlController {
 	constructor(
 		private readonly sourceControlService: SourceControlService,
-		private readonly sourceControlPreferencesService: SourceControlPreferencesService,
-		private readonly internalHooks: InternalHooks,
+		private readonly preferencesService: SourceControlPreferencesService,
 	) {}
 
 	@Authorized('none')
 	@Get('/preferences', { middlewares: [sourceControlLicensedMiddleware] })
 	async getPreferences(): Promise<SourceControlPreferences> {
 		// returns the settings with the privateKey property redacted
-		return this.sourceControlPreferencesService.getPreferences();
+		return this.preferencesService.preferences;
 	}
 
 	@Post('/preferences', { middlewares: [sourceControlLicensedMiddleware] })
@@ -38,7 +37,7 @@ export class SourceControlController {
 	async setPreferences(req: SourceControlRequest.UpdatePreferences) {
 		if (
 			req.body.branchReadOnly === undefined &&
-			this.sourceControlPreferencesService.isSourceControlConnected()
+			this.preferencesService.isSourceControlConnected()
 		) {
 			throw new BadRequestError(
 				'Cannot change preferences while connected to a source control provider. Please disconnect first.',
@@ -51,11 +50,8 @@ export class SourceControlController {
 				connected: undefined,
 				publicKey: undefined,
 			};
-			await this.sourceControlPreferencesService.validateSourceControlPreferences(
-				sanitizedPreferences,
-			);
-			const updatedPreferences =
-				await this.sourceControlPreferencesService.setPreferences(sanitizedPreferences);
+			await this.preferencesService.validateSourceControlPreferences(sanitizedPreferences);
+			const updatedPreferences = await this.preferencesService.setPreferences(sanitizedPreferences);
 			if (sanitizedPreferences.initRepo === true) {
 				try {
 					await this.sourceControlService.initializeRepository(
@@ -69,8 +65,8 @@ export class SourceControlController {
 						},
 						req.user,
 					);
-					if (this.sourceControlPreferencesService.getPreferences().branchName !== '') {
-						await this.sourceControlPreferencesService.setPreferences({
+					if (this.preferencesService.preferences.branchName !== '') {
+						await this.preferencesService.setPreferences({
 							connected: true,
 						});
 					}
@@ -80,18 +76,8 @@ export class SourceControlController {
 					throw error;
 				}
 			}
-			await this.sourceControlService.init();
-			const resultingPreferences = this.sourceControlPreferencesService.getPreferences();
-			// #region Tracking Information
-			// located in controller so as to not call this multiple times when updating preferences
-			void this.internalHooks.onSourceControlSettingsUpdated({
-				branch_name: resultingPreferences.branchName,
-				connected: resultingPreferences.connected,
-				read_only_instance: resultingPreferences.branchReadOnly,
-				repo_type: getRepoType(resultingPreferences.repositoryUrl),
-			});
-			// #endregion
-			return resultingPreferences;
+			await this.sourceControlService.reInit();
+			return this.preferencesService.preferences;
 		} catch (error) {
 			throw new BadRequestError((error as { message: string }).message);
 		}
@@ -108,10 +94,8 @@ export class SourceControlController {
 				publicKey: undefined,
 				repositoryUrl: undefined,
 			};
-			const currentPreferences = this.sourceControlPreferencesService.getPreferences();
-			await this.sourceControlPreferencesService.validateSourceControlPreferences(
-				sanitizedPreferences,
-			);
+			const currentPreferences = this.preferencesService.preferences;
+			await this.preferencesService.validateSourceControlPreferences(sanitizedPreferences);
 			if (
 				sanitizedPreferences.branchName &&
 				sanitizedPreferences.branchName !== currentPreferences.branchName
@@ -119,23 +103,13 @@ export class SourceControlController {
 				await this.sourceControlService.setBranch(sanitizedPreferences.branchName);
 			}
 			if (sanitizedPreferences.branchColor ?? sanitizedPreferences.branchReadOnly !== undefined) {
-				await this.sourceControlPreferencesService.setPreferences(
-					{
-						branchColor: sanitizedPreferences.branchColor,
-						branchReadOnly: sanitizedPreferences.branchReadOnly,
-					},
-					true,
-				);
+				await this.preferencesService.setPreferences({
+					branchColor: sanitizedPreferences.branchColor,
+					branchReadOnly: sanitizedPreferences.branchReadOnly,
+				});
 			}
-			await this.sourceControlService.init();
-			const resultingPreferences = this.sourceControlPreferencesService.getPreferences();
-			void this.internalHooks.onSourceControlSettingsUpdated({
-				branch_name: resultingPreferences.branchName,
-				connected: resultingPreferences.connected,
-				read_only_instance: resultingPreferences.branchReadOnly,
-				repo_type: getRepoType(resultingPreferences.repositoryUrl),
-			});
-			return resultingPreferences;
+			await this.sourceControlService.reInit();
+			return this.preferencesService.preferences;
 		} catch (error) {
 			throw new BadRequestError((error as { message: string }).message);
 		}
@@ -167,7 +141,7 @@ export class SourceControlController {
 		req: SourceControlRequest.PushWorkFolder,
 		res: express.Response,
 	): Promise<SourceControlledFile[]> {
-		if (this.sourceControlPreferencesService.isBranchReadOnly()) {
+		if (this.preferencesService.isBranchReadOnly()) {
 			throw new BadRequestError('Cannot push onto read-only branch.');
 		}
 		try {
@@ -242,7 +216,7 @@ export class SourceControlController {
 	): Promise<SourceControlPreferences> {
 		try {
 			const keyPairType = req.body.keyGeneratorType;
-			const result = await this.sourceControlPreferencesService.generateAndSaveKeyPair(keyPairType);
+			const result = await this.preferencesService.generateAndSaveKeyPair(keyPairType);
 			return result;
 		} catch (error) {
 			throw new BadRequestError((error as { message: string }).message);

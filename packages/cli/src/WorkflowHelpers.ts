@@ -1,7 +1,6 @@
 import { Container } from 'typedi';
 import { v4 as uuid } from 'uuid';
 import type {
-	IDataObject,
 	INode,
 	INodeCredentialsDetails,
 	IRun,
@@ -16,7 +15,6 @@ import type {
 import type { IWorkflowExecutionDataProcess } from '@/Interfaces';
 import type { WorkflowEntity } from '@db/entities/WorkflowEntity';
 import { CredentialsRepository } from '@db/repositories/credentials.repository';
-import { VariablesService } from '@/environments/variables/variables.service.ee';
 
 export function generateFailedExecutionFromError(
 	mode: WorkflowExecuteMode,
@@ -233,14 +231,4 @@ export function getExecutionStartNode(data: IWorkflowExecutionDataProcess, workf
 	}
 
 	return startNode;
-}
-
-export async function getVariables(): Promise<IDataObject> {
-	const variables = await Container.get(VariablesService).getAllCached();
-	return Object.freeze(
-		variables.reduce((prev, curr) => {
-			prev[curr.key] = curr.value;
-			return prev;
-		}, {} as IDataObject),
-	);
 }

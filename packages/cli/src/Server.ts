@@ -224,7 +224,6 @@ export class Server extends AbstractServer {
 			OrchestrationController,
 			WorkflowHistoryController,
 			BinaryDataController,
-			VariablesController,
 			InvitationController,
 			VariablesController,
 			ActiveWorkflowsController,

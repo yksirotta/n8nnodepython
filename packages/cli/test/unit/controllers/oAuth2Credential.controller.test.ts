@@ -24,9 +24,7 @@ import { NotFoundError } from '@/errors/response-errors/not-found.error';
 describe('OAuth2CredentialController', () => {
 	mockInstance(Logger);
 	mockInstance(SecretsHelper);
-	mockInstance(VariablesService, {
-		getAllCached: async () => [],
-	});
+	mockInstance(VariablesService);
 	const cipher = mockInstance(Cipher);
 	const externalHooks = mockInstance(ExternalHooks);
 	const credentialsHelper = mockInstance(CredentialsHelper);

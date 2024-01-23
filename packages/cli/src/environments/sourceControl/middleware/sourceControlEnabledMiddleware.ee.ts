@@ -1,14 +1,15 @@
 import type { RequestHandler } from 'express';
 import { Container } from 'typedi';
-import { isSourceControlLicensed } from '../sourceControlHelper.ee';
+
+import { License } from '@/License';
 import { SourceControlPreferencesService } from '../sourceControlPreferences.service.ee';
 
 export const sourceControlLicensedAndEnabledMiddleware: RequestHandler = (req, res, next) => {
-	const sourceControlPreferencesService = Container.get(SourceControlPreferencesService);
-	if (sourceControlPreferencesService.isSourceControlLicensedAndEnabled()) {
+	const preferencesService = Container.get(SourceControlPreferencesService);
+	if (preferencesService.isSourceControlLicensedAndEnabled()) {
 		next();
 	} else {
-		if (!sourceControlPreferencesService.isSourceControlConnected()) {
+		if (!preferencesService.isSourceControlConnected()) {
 			res.status(412).json({
 				status: 'error',
 				message: 'source_control_not_connected',
@@ -20,7 +21,7 @@ export const sourceControlLicensedAndEnabledMiddleware: RequestHandler = (req, r
 };
 
 export const sourceControlLicensedMiddleware: RequestHandler = (req, res, next) => {
-	if (isSourceControlLicensed()) {
+	if (Container.get(License).isSourceControlLicensed()) {
 		next();
 	} else {
 		res.status(401).json({ status: 'error', message: 'Unauthorized' });
