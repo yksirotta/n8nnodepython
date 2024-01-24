@@ -40,7 +40,6 @@ import { AuthController } from '@/controllers/auth.controller';
 import { BinaryDataController } from '@/controllers/binaryData.controller';
 import { DynamicNodeParametersController } from '@/controllers/dynamicNodeParameters.controller';
 import { MeController } from '@/controllers/me.controller';
-import { MFAController } from '@/controllers/mfa.controller';
 import { NodeTypesController } from '@/controllers/nodeTypes.controller';
 import { OAuth1CredentialController } from '@/controllers/oauth/oAuth1Credential.controller';
 import { OAuth2CredentialController } from '@/controllers/oauth/oAuth2Credential.controller';
@@ -69,8 +68,6 @@ import { PostHogClient } from './posthog';
 import { eventBus } from './eventbus';
 import { InternalHooks } from './InternalHooks';
 import { License } from './License';
-import { SamlController } from './sso/saml/routes/saml.controller.ee';
-import { SamlService } from './sso/saml/saml.service.ee';
 import {
 	isLdapCurrentAuthenticationMethod,
 	isSamlCurrentAuthenticationMethod,
@@ -217,7 +214,6 @@ export class Server extends AbstractServer {
 			TagsController,
 			TranslationController,
 			UsersController,
-			SamlController,
 			WorkflowStatisticsController,
 			ExternalSecretsController,
 			OrchestrationController,
@@ -238,6 +234,24 @@ export class Server extends AbstractServer {
 			controllers.push(DebugController);
 		}
 
+		if (isLdapEnabled()) {
+			const { LdapService } = await import('@/Ldap/ldap.service');
+			const { LdapController } = await require('@/Ldap/ldap.controller');
+			await Container.get(LdapService).init();
+			controllers.push(LdapController);
+		}
+
+		if (this.license.isSamlEnabled()) {
+			const { SamlController } = await import('@/sso/saml/routes/saml.controller.ee');
+			const { SamlService } = await import('@/sso/saml/saml.service.ee');
+			try {
+				await Container.get(SamlService).init();
+				controllers.push(SamlController);
+			} catch (error) {
+				this.logger.warn(`SAML initialization failed: ${error.message}`);
+			}
+		}
+
 		if (this.license.isSourceControlLicensed()) {
 			try {
 				const { SourceControlService } = await import(
@@ -256,13 +270,6 @@ export class Server extends AbstractServer {
 			}
 		}
 
-		if (isLdapEnabled()) {
-			const { LdapService } = await import('@/Ldap/ldap.service');
-			const { LdapController } = await require('@/Ldap/ldap.controller');
-			await Container.get(LdapService).init();
-			controllers.push(LdapController);
-		}
-
 		if (config.getEnv('nodes.communityPackages.enabled')) {
 			const { CommunityPackagesController } = await import(
 				'@/controllers/communityPackages.controller'
@@ -276,6 +283,7 @@ export class Server extends AbstractServer {
 		}
 
 		if (isMfaFeatureEnabled()) {
+			const { MFAController } = await import('@/controllers/mfa.controller');
 			controllers.push(MFAController);
 		}
 
@@ -366,18 +374,6 @@ export class Server extends AbstractServer {
 		await this.registerControllers(ignoredEndpoints);
 
 		this.app.use(`/${this.restEndpoint}/credentials`, credentialsController);
-
-		// ----------------------------------------
-		// SAML
-		// ----------------------------------------
-
-		// initialize SamlService if it is licensed, even if not enabled, to
-		// set up the initial environment
-		try {
-			await Container.get(SamlService).init();
-		} catch (error) {
-			this.logger.warn(`SAML initialization failed: ${error.message}`);
-		}
 
 		// ----------------------------------------
 		// curl-converter
