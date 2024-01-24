@@ -61,7 +61,6 @@ import { EventBusControllerEE } from '@/eventbus/eventBus.controller.ee';
 import { LicenseController } from '@/license/license.controller';
 import { setupPushServer, setupPushHandler } from '@/push';
 import { setupAuthMiddlewares } from './middlewares';
-import { isLdapEnabled } from './Ldap/helpers';
 import { AbstractServer } from './AbstractServer';
 import { PostHogClient } from './posthog';
 import { eventBus } from './eventbus';
@@ -73,8 +72,8 @@ import {
 } from './sso/ssoHelpers';
 
 import { WorkflowRepository } from '@db/repositories/workflow.repository';
+import { UserRepository } from '@db/repositories/user.repository';
 
-import { handleMfaDisable, isMfaFeatureEnabled } from './Mfa/helpers';
 import type { FrontendService } from './services/frontend.service';
 import { ActiveWorkflowsController } from './controllers/activeWorkflows.controller';
 import { OrchestrationController } from './controllers/orchestration.controller';
@@ -213,15 +212,17 @@ export class Server extends AbstractServer {
 			TagsController,
 			TranslationController,
 			UsersController,
-			ExternalSecretsController,
 			OrchestrationController,
-			WorkflowHistoryController,
 			BinaryDataController,
 			InvitationController,
 			RoleController,
 			ActiveWorkflowsController,
 			WorkflowsController,
 			ExecutionsController,
+
+			// TODO: load these optionally
+			ExternalSecretsController,
+			WorkflowHistoryController,
 		];
 
 		if (
@@ -239,7 +240,7 @@ export class Server extends AbstractServer {
 			controllers.push(WorkflowStatisticsController);
 		}
 
-		if (isLdapEnabled()) {
+		if (this.license.isLdapEnabled()) {
 			const { LdapService } = await import('@/Ldap/ldap.service');
 			const { LdapController } = await require('@/Ldap/ldap.controller');
 			await Container.get(LdapService).init();
@@ -287,7 +288,13 @@ export class Server extends AbstractServer {
 			controllers.push(E2EController);
 		}
 
-		if (isMfaFeatureEnabled()) {
+		if (!config.get('mfa.enabled')) {
+			const users = await Container.get(UserRepository).count({ where: { mfaEnabled: true } });
+			if (users) {
+				config.set('mfa.enabled', true);
+			}
+		}
+		if (config.get('mfa.enabled')) {
 			const { MFAController } = await import('@/controllers/mfa.controller');
 			controllers.push(MFAController);
 		}
@@ -373,8 +380,6 @@ export class Server extends AbstractServer {
 			const { Queue } = await import('@/Queue');
 			await Container.get(Queue).init();
 		}
-
-		await handleMfaDisable();
 
 		await this.registerControllers(ignoredEndpoints);
 
