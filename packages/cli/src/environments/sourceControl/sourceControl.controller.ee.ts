@@ -1,10 +1,7 @@
 import type { PullResult } from 'simple-git';
 import express from 'express';
 import { Authorized, Get, Post, Patch, RestController, RequireGlobalScope } from '@/decorators';
-import {
-	sourceControlLicensedMiddleware,
-	sourceControlLicensedAndEnabledMiddleware,
-} from './middleware/sourceControlEnabledMiddleware.ee';
+import { sourceControlLicensedAndEnabledMiddleware } from './middleware/sourceControlEnabledMiddleware.ee';
 import { SourceControlService } from './sourceControl.service.ee';
 import { SourceControlRequest } from './types/requests';
 import { SourceControlPreferencesService } from './sourceControlPreferences.service.ee';
@@ -27,13 +24,13 @@ export class SourceControlController {
 	) {}
 
 	@Authorized('none')
-	@Get('/preferences', { middlewares: [sourceControlLicensedMiddleware] })
+	@Get('/preferences')
 	async getPreferences(): Promise<SourceControlPreferences> {
 		// returns the settings with the privateKey property redacted
 		return this.sourceControlPreferencesService.getPreferences();
 	}
 
-	@Post('/preferences', { middlewares: [sourceControlLicensedMiddleware] })
+	@Post('/preferences')
 	@RequireGlobalScope('sourceControl:manage')
 	async setPreferences(req: SourceControlRequest.UpdatePreferences) {
 		if (
@@ -97,7 +94,7 @@ export class SourceControlController {
 		}
 	}
 
-	@Patch('/preferences', { middlewares: [sourceControlLicensedMiddleware] })
+	@Patch('/preferences')
 	@RequireGlobalScope('sourceControl:manage')
 	async updatePreferences(req: SourceControlRequest.UpdatePreferences) {
 		try {
@@ -141,7 +138,7 @@ export class SourceControlController {
 		}
 	}
 
-	@Post('/disconnect', { middlewares: [sourceControlLicensedMiddleware] })
+	@Post('/disconnect')
 	@RequireGlobalScope('sourceControl:manage')
 	async disconnect(req: SourceControlRequest.Disconnect) {
 		try {
@@ -152,7 +149,7 @@ export class SourceControlController {
 	}
 
 	@Authorized('any')
-	@Get('/get-branches', { middlewares: [sourceControlLicensedMiddleware] })
+	@Get('/get-branches')
 	async getBranches() {
 		try {
 			return await this.sourceControlService.getBranches();
@@ -226,7 +223,7 @@ export class SourceControlController {
 	}
 
 	@Authorized('any')
-	@Get('/status', { middlewares: [sourceControlLicensedMiddleware] })
+	@Get('/status')
 	async status(req: SourceControlRequest.GetStatus) {
 		try {
 			return await this.sourceControlService.getStatus(new SourceControlGetStatus(req.query));
@@ -235,7 +232,7 @@ export class SourceControlController {
 		}
 	}
 
-	@Post('/generate-key-pair', { middlewares: [sourceControlLicensedMiddleware] })
+	@Post('/generate-key-pair')
 	@RequireGlobalScope('sourceControl:manage')
 	async generateKeyPair(
 		req: SourceControlRequest.GenerateKeyPair,

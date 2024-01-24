@@ -1,6 +1,5 @@
 import type { RequestHandler } from 'express';
 import { Container } from 'typedi';
-import { isSourceControlLicensed } from '../sourceControlHelper.ee';
 import { SourceControlPreferencesService } from '../sourceControlPreferences.service.ee';
 
 export const sourceControlLicensedAndEnabledMiddleware: RequestHandler = (req, res, next) => {
@@ -16,13 +15,5 @@ export const sourceControlLicensedAndEnabledMiddleware: RequestHandler = (req, r
 		} else {
 			res.status(401).json({ status: 'error', message: 'Unauthorized' });
 		}
-	}
-};
-
-export const sourceControlLicensedMiddleware: RequestHandler = (req, res, next) => {
-	if (isSourceControlLicensed()) {
-		next();
-	} else {
-		res.status(401).json({ status: 'error', message: 'Unauthorized' });
 	}
 };

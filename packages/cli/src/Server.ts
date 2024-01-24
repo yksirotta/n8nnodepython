@@ -71,13 +71,10 @@ import { InternalHooks } from './InternalHooks';
 import { License } from './License';
 import { SamlController } from './sso/saml/routes/saml.controller.ee';
 import { SamlService } from './sso/saml/saml.service.ee';
-import { VariablesController } from './environments/variables/variables.controller.ee';
 import {
 	isLdapCurrentAuthenticationMethod,
 	isSamlCurrentAuthenticationMethod,
 } from './sso/ssoHelpers';
-import { SourceControlService } from '@/environments/sourceControl/sourceControl.service.ee';
-import { SourceControlController } from '@/environments/sourceControl/sourceControl.controller.ee';
 
 import { WorkflowRepository } from '@db/repositories/workflow.repository';
 
@@ -104,6 +101,8 @@ export class Server extends AbstractServer {
 
 	private frontendService?: FrontendService;
 
+	private license: License;
+
 	constructor() {
 		super('main');
 
@@ -116,6 +115,7 @@ export class Server extends AbstractServer {
 	}
 
 	async start() {
+		this.license = Container.get(License);
 		this.loadNodesAndCredentials = Container.get(LoadNodesAndCredentials);
 
 		if (!config.getEnv('endpoints.disableUi')) {
@@ -134,7 +134,7 @@ export class Server extends AbstractServer {
 
 		const isS3Selected = config.getEnv('binaryDataManager.mode') === 's3';
 		const isS3Available = config.getEnv('binaryDataManager.availableModes').includes('s3');
-		const isS3Licensed = Container.get(License).isBinaryDataS3Licensed();
+		const isS3Licensed = this.license.isBinaryDataS3Licensed();
 
 		const diagnosticInfo: IDiagnosticInfo = {
 			databaseType: config.getEnv('database.type'),
@@ -176,7 +176,7 @@ export class Server extends AbstractServer {
 			saml_enabled: isSamlCurrentAuthenticationMethod(),
 			binary_data_s3: isS3Available && isS3Selected && isS3Licensed,
 			multi_main_setup_enabled: config.getEnv('multiMainSetup.enabled'),
-			licensePlanName: Container.get(License).getPlanName(),
+			licensePlanName: this.license.getPlanName(),
 			licenseTenantId: config.getEnv('license.tenantId'),
 		};
 
@@ -218,15 +218,12 @@ export class Server extends AbstractServer {
 			TranslationController,
 			UsersController,
 			SamlController,
-			SourceControlController,
 			WorkflowStatisticsController,
 			ExternalSecretsController,
 			OrchestrationController,
 			WorkflowHistoryController,
 			BinaryDataController,
-			VariablesController,
 			InvitationController,
-			VariablesController,
 			RoleController,
 			ActiveWorkflowsController,
 			WorkflowsController,
@@ -239,6 +236,24 @@ export class Server extends AbstractServer {
 		) {
 			const { DebugController } = await import('@/controllers/debug.controller');
 			controllers.push(DebugController);
+		}
+
+		if (this.license.isSourceControlLicensed()) {
+			try {
+				const { SourceControlService } = await import(
+					'@/environments/sourceControl/sourceControl.service.ee'
+				);
+				const { SourceControlController } = await import(
+					'@/environments/sourceControl/sourceControl.controller.ee'
+				);
+				const { VariablesController } = await import(
+					'./environments/variables/variables.controller.ee'
+				);
+				await Container.get(SourceControlService).init();
+				controllers.push(SourceControlController, VariablesController);
+			} catch (error) {
+				this.logger.warn(`Source Control initialization failed: ${error.message}`);
+			}
 		}
 
 		if (isLdapEnabled()) {
@@ -362,15 +377,6 @@ export class Server extends AbstractServer {
 			await Container.get(SamlService).init();
 		} catch (error) {
 			this.logger.warn(`SAML initialization failed: ${error.message}`);
-		}
-
-		// ----------------------------------------
-		// Source Control
-		// ----------------------------------------
-		try {
-			await Container.get(SourceControlService).init();
-		} catch (error) {
-			this.logger.warn(`Source Control initialization failed: ${error.message}`);
 		}
 
 		// ----------------------------------------
