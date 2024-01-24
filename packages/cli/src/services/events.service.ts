@@ -1,6 +1,8 @@
 import { EventEmitter } from 'events';
 import { Container, Service } from 'typedi';
 import type { INode, IRun, IWorkflowBase } from 'n8n-workflow';
+
+import config from '@/config';
 import { StatisticsNames } from '@db/entities/WorkflowStatistics';
 import { WorkflowStatisticsRepository } from '@db/repositories/workflowStatistics.repository';
 import { UserService } from '@/services/user.service';
@@ -15,7 +17,7 @@ export class EventsService extends EventEmitter {
 		private readonly ownershipService: OwnershipService,
 	) {
 		super({ captureRejections: true });
-		if ('SKIP_STATISTICS_EVENTS' in process.env) return;
+		if (config.getEnv('workflowStatistics.disabled')) return;
 
 		this.on(
 			'nodeFetchedData',

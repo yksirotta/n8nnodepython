@@ -48,7 +48,6 @@ import { PasswordResetController } from '@/controllers/passwordReset.controller'
 import { TagsController } from '@/controllers/tags.controller';
 import { TranslationController } from '@/controllers/translation.controller';
 import { UsersController } from '@/controllers/users.controller';
-import { WorkflowStatisticsController } from '@/controllers/workflowStatistics.controller';
 import { ExternalSecretsController } from '@/ExternalSecrets/ExternalSecrets.controller.ee';
 import { ExecutionsController } from '@/executions/executions.controller';
 import { isApiEnabled, loadPublicApiVersions } from '@/PublicApi';
@@ -214,7 +213,6 @@ export class Server extends AbstractServer {
 			TagsController,
 			TranslationController,
 			UsersController,
-			WorkflowStatisticsController,
 			ExternalSecretsController,
 			OrchestrationController,
 			WorkflowHistoryController,
@@ -232,6 +230,13 @@ export class Server extends AbstractServer {
 		) {
 			const { DebugController } = await import('@/controllers/debug.controller');
 			controllers.push(DebugController);
+		}
+
+		if (!config.getEnv('workflowStatistics.disabled')) {
+			const { WorkflowStatisticsController } = await import(
+				'@/controllers/workflowStatistics.controller'
+			);
+			controllers.push(WorkflowStatisticsController);
 		}
 
 		if (isLdapEnabled()) {

@@ -1366,6 +1366,15 @@ export const schema = {
 		},
 	},
 
+	workflowStatistics: {
+		disabled: {
+			doc: 'Whether to skip collecting statistics on workflow executions',
+			format: Boolean,
+			default: false,
+			env: 'SKIP_STATISTICS_EVENTS',
+		},
+	},
+
 	workflowHistory: {
 		enabled: {
 			doc: 'Whether to save workflow history versions',
