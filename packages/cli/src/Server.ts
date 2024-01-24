@@ -24,7 +24,6 @@ import timezones from 'google-timezones-json';
 import history from 'connect-history-api-fallback';
 
 import config from '@/config';
-import { Queue } from '@/Queue';
 
 import { WorkflowsController } from '@/workflows/workflows.controller';
 import {
@@ -343,6 +342,7 @@ export class Server extends AbstractServer {
 		);
 
 		if (config.getEnv('executions.mode') === 'queue') {
+			const { Queue } = await import('@/Queue');
 			await Container.get(Queue).init();
 		}
 
