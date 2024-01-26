@@ -30,16 +30,16 @@ describe('OwnershipService', () => {
 
 			sharedWorkflowRepository.findOneOrFail.mockResolvedValueOnce(sharedWorkflow);
 
-			const returnedOwner = await ownershipService.getWorkflowOwnerCached('some-workflow-id');
+			const returnedOwnerId = await ownershipService.getWorkflowOwnerId('some-workflow-id');
 
-			expect(returnedOwner).toBe(mockOwner);
-			expect(returnedOwner).not.toBe(mockNonOwner);
+			expect(returnedOwnerId).toBe(mockOwner.id);
+			expect(returnedOwnerId).not.toBe(mockNonOwner.id);
 		});
 
 		test('should throw if no workflow owner found', async () => {
 			sharedWorkflowRepository.findOneOrFail.mockRejectedValue(new Error());
 
-			await expect(ownershipService.getWorkflowOwnerCached('some-workflow-id')).rejects.toThrow();
+			await expect(ownershipService.getWorkflowOwnerId('some-workflow-id')).rejects.toThrow();
 		});
 	});
 

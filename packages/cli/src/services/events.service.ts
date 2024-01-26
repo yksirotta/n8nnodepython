@@ -3,7 +3,7 @@ import { Container, Service } from 'typedi';
 import type { INode, IRun, IWorkflowBase } from 'n8n-workflow';
 import { StatisticsNames } from '@db/entities/WorkflowStatistics';
 import { WorkflowStatisticsRepository } from '@db/repositories/workflowStatistics.repository';
-import { UserService } from '@/services/user.service';
+// import { UserService } from '@/services/user.service';
 import { Logger } from '@/Logger';
 import { OwnershipService } from './ownership.service';
 
@@ -49,18 +49,19 @@ export class EventsService extends EventEmitter {
 			const upsertResult = await this.repository.upsertWorkflowStatistics(name, workflowId);
 
 			if (name === StatisticsNames.productionSuccess && upsertResult === 'insert') {
-				const owner = await Container.get(OwnershipService).getWorkflowOwnerCached(workflowId);
+				const ownerId = await Container.get(OwnershipService).getWorkflowOwnerId(workflowId);
 				const metrics = {
-					user_id: owner.id,
+					user_id: ownerId,
 					workflow_id: workflowId,
 				};
 
-				if (!owner.settings?.userActivated) {
-					await Container.get(UserService).updateSettings(owner.id, {
-						firstSuccessfulWorkflowId: workflowId,
-						userActivated: true,
-					});
-				}
+				// TODO: fix this
+				// if (!owner.settings?.userActivated) {
+				// 	await Container.get(UserService).updateSettings(ownerId, {
+				// 		firstSuccessfulWorkflowId: workflowId,
+				// 		userActivated: true,
+				// 	});
+				// }
 
 				// Send the metrics
 				this.emit('telemetry.onFirstProductionWorkflowSuccess', metrics);
@@ -80,10 +81,10 @@ export class EventsService extends EventEmitter {
 		if (insertResult === 'failed' || insertResult === 'alreadyExists') return;
 
 		// Compile the metrics since this was a new data loaded event
-		const owner = await this.ownershipService.getWorkflowOwnerCached(workflowId);
+		const ownerId = await this.ownershipService.getWorkflowOwnerId(workflowId);
 
 		let metrics = {
-			user_id: owner.id,
+			user_id: ownerId,
 			workflow_id: workflowId,
 			node_type: node.type,
 			node_id: node.id,

@@ -229,7 +229,7 @@ export class ActiveWorkflowRunner {
 	async clearWebhooks(workflowId: string) {
 		const workflowData = await this.workflowRepository.findOne({
 			where: { id: workflowId },
-			relations: ['shared', 'shared.user'],
+			relations: ['shared'],
 		});
 
 		if (workflowData === null) {
@@ -250,7 +250,7 @@ export class ActiveWorkflowRunner {
 		const mode = 'internal';
 
 		const additionalData = await WorkflowExecuteAdditionalData.getBase(
-			workflowData.shared[0].user.id,
+			workflowData.shared[0].userId,
 		);
 
 		const webhooks = WebhookHelpers.getWorkflowWebhooks(workflow, additionalData, undefined, true);
@@ -621,7 +621,7 @@ export class ActiveWorkflowRunner {
 				throw new WorkflowActivationError(`Workflow ${dbWorkflow.display()} has no owner`);
 			}
 
-			const additionalData = await WorkflowExecuteAdditionalData.getBase(sharing.user.id);
+			const additionalData = await WorkflowExecuteAdditionalData.getBase(sharing.userId);
 
 			if (shouldAddWebhooks) {
 				await this.addWebhooks(workflow, additionalData, 'trigger', activationMode);

@@ -35,7 +35,7 @@ describe('EventsService', () => {
 
 	config.set('diagnostics.enabled', true);
 	config.set('deployment.type', 'n8n-testing');
-	mocked(ownershipService.getWorkflowOwnerCached).mockResolvedValue(fakeUser);
+	mocked(ownershipService.getWorkflowOwnerId).mockResolvedValue(fakeUser.id);
 	const updateSettingsMock = jest.spyOn(userService, 'updateSettings').mockImplementation();
 
 	const eventsService = new EventsService(

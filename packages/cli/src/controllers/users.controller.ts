@@ -186,7 +186,7 @@ export class UsersController {
 		}
 
 		if (transferId) {
-			const transferee = users.find((user) => user.id === transferId);
+			const transferee = users.find((user) => user.id === transferId)!;
 
 			await this.userService.getManager().transaction(async (transactionManager) => {
 				// Get all workflow ids belonging to user to delete
@@ -209,8 +209,8 @@ export class UsersController {
 				// Transfer ownership of owned workflows
 				await transactionManager.update(
 					SharedWorkflow,
-					{ user: userToDelete, role: 'workflow:owner' },
-					{ user: transferee },
+					{ userId: userToDelete.id, role: 'workflow:owner' },
+					{ userId: transferee.id },
 				);
 
 				// Now do the same for creds
@@ -235,8 +235,8 @@ export class UsersController {
 				// Transfer ownership of owned credentials
 				await transactionManager.update(
 					SharedCredentials,
-					{ user: userToDelete, role: 'credential:owner' },
-					{ user: transferee },
+					{ userId: userToDelete.id, role: 'credential:owner' },
+					{ userId: transferee.id },
 				);
 
 				await transactionManager.delete(AuthIdentity, { userId: userToDelete.id });

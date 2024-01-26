@@ -88,9 +88,9 @@ export class WaitingWebhooks implements IWebhookManager {
 			settings: workflowData.settings,
 		});
 
-		let workflowOwner;
+		let workflowOwnerId;
 		try {
-			workflowOwner = await this.ownershipService.getWorkflowOwnerCached(workflowData.id);
+			workflowOwnerId = await this.ownershipService.getWorkflowOwnerId(workflowData.id);
 		} catch (error) {
 			throw new NotFoundError('Could not find workflow');
 		}
@@ -100,7 +100,7 @@ export class WaitingWebhooks implements IWebhookManager {
 			throw new NotFoundError('Could not find node to process webhook.');
 		}
 
-		const additionalData = await WorkflowExecuteAdditionalData.getBase(workflowOwner.id);
+		const additionalData = await WorkflowExecuteAdditionalData.getBase(workflowOwnerId);
 		const webhookData = NodeHelpers.getNodeWebhooks(
 			workflow,
 			workflowStartNode,

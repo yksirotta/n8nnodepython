@@ -55,7 +55,6 @@ import * as WorkflowHelpers from '@/WorkflowHelpers';
 import { WorkflowRunner } from '@/WorkflowRunner';
 import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData';
 import { ActiveExecutions } from '@/ActiveExecutions';
-import type { User } from '@db/entities/User';
 import type { WorkflowEntity } from '@db/entities/WorkflowEntity';
 import { EventsService } from '@/services/events.service';
 import { OwnershipService } from './services/ownership.service';
@@ -236,22 +235,18 @@ export async function executeWebhook(
 		$executionId: executionId,
 	};
 
-	let user: User;
-	if (
-		(workflowData as WorkflowEntity).shared?.length &&
-		(workflowData as WorkflowEntity).shared[0].user
-	) {
-		user = (workflowData as WorkflowEntity).shared[0].user;
-	} else {
+	const workflowEntity = workflowData as WorkflowEntity;
+	let userId = workflowEntity.shared?.[0].userId;
+	if (userId) {
 		try {
-			user = await Container.get(OwnershipService).getWorkflowOwnerCached(workflowData.id);
+			userId = await Container.get(OwnershipService).getWorkflowOwnerId(workflowData.id);
 		} catch (error) {
 			throw new NotFoundError('Cannot find workflow');
 		}
 	}
 
 	// Prepare everything that is needed to run the workflow
-	const additionalData = await WorkflowExecuteAdditionalData.getBase(user.id);
+	const additionalData = await WorkflowExecuteAdditionalData.getBase(userId);
 
 	// Get the responseMode
 	const responseMode = workflow.expression.getSimpleParameterValue(
@@ -528,7 +523,7 @@ export async function executeWebhook(
 			sessionId,
 			workflowData,
 			pinData,
-			userId: user.id,
+			userId,
 		};
 
 		let responsePromise: IDeferredPromise<IN8nHttpFullResponse> | undefined;

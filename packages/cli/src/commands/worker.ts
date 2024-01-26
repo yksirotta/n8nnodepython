@@ -125,7 +125,7 @@ export class Worker extends BaseCommand {
 		);
 		await executionRepository.updateStatus(executionId, 'running');
 
-		const workflowOwner = await Container.get(OwnershipService).getWorkflowOwnerCached(workflowId);
+		const workflowOwnerId = await Container.get(OwnershipService).getWorkflowOwnerId(workflowId);
 
 		let { staticData } = fullExecutionData.workflowData;
 		if (loadStaticData) {
@@ -167,7 +167,7 @@ export class Worker extends BaseCommand {
 		});
 
 		const additionalData = await WorkflowExecuteAdditionalData.getBase(
-			workflowOwner.id,
+			workflowOwnerId,
 			undefined,
 			executionTimeoutTimestamp,
 		);
@@ -181,7 +181,7 @@ export class Worker extends BaseCommand {
 		);
 
 		try {
-			await Container.get(PermissionChecker).check(workflow, workflowOwner.id);
+			await Container.get(PermissionChecker).check(workflow, workflowOwnerId);
 		} catch (error) {
 			if (error instanceof NodeOperationError) {
 				const failedExecution = generateFailedExecutionFromError(

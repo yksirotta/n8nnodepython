@@ -24,10 +24,10 @@ export class Reset extends BaseCommand {
 	async run(): Promise<void> {
 		const owner = await this.getInstanceOwner();
 
-		await Container.get(SharedWorkflowRepository).makeOwnerOfAllWorkflows(owner);
-		await Container.get(SharedCredentialsRepository).makeOwnerOfAllCredentials(owner);
+		await Container.get(SharedWorkflowRepository).makeOwnerOfAllWorkflows(owner.id);
+		await Container.get(SharedCredentialsRepository).makeOwnerOfAllCredentials(owner.id);
 
-		await Container.get(UserRepository).deleteAllExcept(owner);
+		await Container.get(UserRepository).deleteAllExcept(owner.id);
 		await Container.get(UserRepository).save(Object.assign(owner, defaultUserProps));
 
 		const danglingCredentials: CredentialsEntity[] = await Container.get(CredentialsRepository)
@@ -38,7 +38,7 @@ export class Reset extends BaseCommand {
 		const newSharedCredentials = danglingCredentials.map((credentials) =>
 			Container.get(SharedCredentialsRepository).create({
 				credentials,
-				user: owner,
+				userId: owner.id,
 				role: 'credential:owner',
 			}),
 		);

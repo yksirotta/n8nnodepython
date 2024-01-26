@@ -45,7 +45,7 @@ EECredentialsController.get(
 
 		let credential = await Container.get(CredentialsRepository).findOne({
 			where: { id: credentialId },
-			relations: ['shared', 'shared.user'],
+			relations: ['shared'],
 		});
 
 		if (!credential) {
@@ -54,7 +54,7 @@ EECredentialsController.get(
 			);
 		}
 
-		const userSharing = credential.shared?.find((shared) => shared.user.id === req.user.id);
+		const userSharing = credential.shared?.find((shared) => shared.userId === req.user.id);
 
 		if (!userSharing && !req.user.hasGlobalScope('credential:read')) {
 			throw new UnauthorizedError('Forbidden.');

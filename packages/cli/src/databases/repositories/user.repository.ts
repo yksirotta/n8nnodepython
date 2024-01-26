@@ -16,8 +16,8 @@ export class UserRepository extends Repository<User> {
 		});
 	}
 
-	async deleteAllExcept(user: User) {
-		await this.delete({ id: Not(user.id) });
+	async deleteAllExcept(userId: string) {
+		await this.delete({ id: Not(userId) });
 	}
 
 	async getByIds(transaction: EntityManager, ids: string[]) {

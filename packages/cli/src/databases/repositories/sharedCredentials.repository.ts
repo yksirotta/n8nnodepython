@@ -32,8 +32,8 @@ export class SharedCredentialsRepository extends Repository<SharedCredentials> {
 		});
 	}
 
-	async makeOwnerOfAllCredentials(user: User) {
-		return await this.update({ userId: Not(user.id), role: 'credential:owner' }, { user });
+	async makeOwnerOfAllCredentials(userId: string) {
+		return await this.update({ userId: Not(userId), role: 'credential:owner' }, { userId });
 	}
 
 	/**

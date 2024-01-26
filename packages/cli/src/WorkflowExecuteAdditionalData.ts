@@ -192,12 +192,12 @@ export function executeErrorWorkflow(
 			}
 
 			Container.get(OwnershipService)
-				.getWorkflowOwnerCached(workflowId)
-				.then((user) => {
+				.getWorkflowOwnerId(workflowId)
+				.then((userId) => {
 					void Container.get(WorkflowExecutionService).executeErrorWorkflow(
 						errorWorkflow,
 						workflowErrorData,
-						user,
+						userId,
 					);
 				})
 				.catch((error: Error) => {
@@ -220,12 +220,12 @@ export function executeErrorWorkflow(
 		) {
 			logger.verbose('Start internal error workflow', { executionId, workflowId });
 			void Container.get(OwnershipService)
-				.getWorkflowOwnerCached(workflowId)
-				.then((user) => {
+				.getWorkflowOwnerId(workflowId)
+				.then((userId) => {
 					void Container.get(WorkflowExecutionService).executeErrorWorkflow(
 						workflowId,
 						workflowErrorData,
-						user,
+						userId,
 					);
 				});
 		}

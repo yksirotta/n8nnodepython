@@ -4,7 +4,6 @@ import type { WorkflowSettings } from 'n8n-workflow';
 import { SubworkflowOperationError, Workflow } from 'n8n-workflow';
 
 import config from '@/config';
-import { User } from '@db/entities/User';
 import { WorkflowRepository } from '@db/repositories/workflow.repository';
 import { SharedWorkflowRepository } from '@db/repositories/sharedWorkflow.repository';
 import { UserRepository } from '@/databases/repositories/user.repository';
@@ -271,7 +270,7 @@ describe('checkSubworkflowExecutePolicy()', () => {
 			const parentWorkflow = createParentWorkflow();
 			const subworkflow = createSubworkflow(); // no caller policy
 
-			ownershipService.getWorkflowOwnerCached.mockResolvedValue(new User());
+			ownershipService.getWorkflowOwnerId.mockResolvedValue('id');
 
 			const check = permissionChecker.checkSubworkflowExecutePolicy(subworkflow, parentWorkflow.id);
 
@@ -291,8 +290,8 @@ describe('checkSubworkflowExecutePolicy()', () => {
 			const firstUser = Container.get(UserRepository).create({ id: uuid() });
 			const secondUser = Container.get(UserRepository).create({ id: uuid() });
 
-			ownershipService.getWorkflowOwnerCached.mockResolvedValueOnce(firstUser); // parent workflow
-			ownershipService.getWorkflowOwnerCached.mockResolvedValueOnce(secondUser); // subworkflow
+			ownershipService.getWorkflowOwnerId.mockResolvedValueOnce(firstUser.id); // parent workflow
+			ownershipService.getWorkflowOwnerId.mockResolvedValueOnce(secondUser.id); // subworkflow
 
 			const check = permissionChecker.checkSubworkflowExecutePolicy(subworkflow, parentWorkflow.id);
 
@@ -344,7 +343,7 @@ describe('checkSubworkflowExecutePolicy()', () => {
 		test('should not throw', async () => {
 			const parentWorkflow = createParentWorkflow();
 			const subworkflow = createSubworkflow({ policy: 'any' });
-			ownershipService.getWorkflowOwnerCached.mockResolvedValue(new User());
+			ownershipService.getWorkflowOwnerId.mockResolvedValue('id');
 
 			const check = permissionChecker.checkSubworkflowExecutePolicy(subworkflow, parentWorkflow.id);
 
@@ -357,8 +356,8 @@ describe('checkSubworkflowExecutePolicy()', () => {
 			const parentWorkflowOwner = Container.get(UserRepository).create({ id: uuid() });
 			const subworkflowOwner = Container.get(UserRepository).create({ id: uuid() });
 
-			ownershipService.getWorkflowOwnerCached.mockResolvedValueOnce(parentWorkflowOwner); // parent workflow
-			ownershipService.getWorkflowOwnerCached.mockResolvedValueOnce(subworkflowOwner); // subworkflow
+			ownershipService.getWorkflowOwnerId.mockResolvedValueOnce(parentWorkflowOwner.id); // parent workflow
+			ownershipService.getWorkflowOwnerId.mockResolvedValueOnce(subworkflowOwner.id); // subworkflow
 
 			const subworkflow = createSubworkflow({ policy: 'workflowsFromSameOwner' });
 
@@ -372,8 +371,8 @@ describe('checkSubworkflowExecutePolicy()', () => {
 
 			const bothWorkflowsOwner = Container.get(UserRepository).create({ id: uuid() });
 
-			ownershipService.getWorkflowOwnerCached.mockResolvedValueOnce(bothWorkflowsOwner); // parent workflow
-			ownershipService.getWorkflowOwnerCached.mockResolvedValueOnce(bothWorkflowsOwner); // subworkflow
+			ownershipService.getWorkflowOwnerId.mockResolvedValueOnce(bothWorkflowsOwner.id); // parent workflow
+			ownershipService.getWorkflowOwnerId.mockResolvedValueOnce(bothWorkflowsOwner.id); // subworkflow
 
 			const subworkflow = createSubworkflow({ policy: 'workflowsFromSameOwner' });
 

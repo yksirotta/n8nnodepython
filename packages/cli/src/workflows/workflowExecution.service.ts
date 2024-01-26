@@ -104,7 +104,7 @@ export class WorkflowExecutionService {
 	async executeErrorWorkflow(
 		workflowId: string,
 		workflowErrorData: IWorkflowErrorData,
-		runningUser: User,
+		runningUserId: string,
 	): Promise<void> {
 		// Wrap everything in try/catch to make sure that no errors bubble up and all get caught here
 		try {
@@ -227,7 +227,7 @@ export class WorkflowExecutionService {
 				executionMode,
 				executionData: runExecutionData,
 				workflowData,
-				userId: runningUser.id,
+				userId: runningUserId,
 			};
 
 			const workflowRunner = new WorkflowRunner();

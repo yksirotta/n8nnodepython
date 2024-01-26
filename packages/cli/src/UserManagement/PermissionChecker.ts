@@ -97,15 +97,14 @@ export class PermissionChecker {
 			policy = 'workflowsFromSameOwner';
 		}
 
-		const parentWorkflowOwner =
-			await this.ownershipService.getWorkflowOwnerCached(parentWorkflowId);
+		const parentWorkflowOwnerId = await this.ownershipService.getWorkflowOwnerId(parentWorkflowId);
 
-		const subworkflowOwner = await this.ownershipService.getWorkflowOwnerCached(subworkflow.id);
+		const subworkflowOwnerId = await this.ownershipService.getWorkflowOwnerId(subworkflow.id);
 
 		const description =
-			subworkflowOwner.id === parentWorkflowOwner.id
+			subworkflowOwnerId === parentWorkflowOwnerId
 				? 'Change the settings of the sub-workflow so it can be called by this one.'
-				: `${subworkflowOwner.firstName} (${subworkflowOwner.email}) can make this change. You may need to tell them the ID of the sub-workflow, which is ${subworkflow.id}`;
+				: `Sub-workflow owner can make this change. You may need to tell them the ID of the sub-workflow, which is ${subworkflow.id}`;
 
 		const errorToThrow = new WorkflowOperationError(
 			`Target workflow ID ${subworkflow.id} may not be called`,
@@ -131,7 +130,7 @@ export class PermissionChecker {
 			}
 		}
 
-		if (policy === 'workflowsFromSameOwner' && subworkflowOwner?.id !== parentWorkflowOwner.id) {
+		if (policy === 'workflowsFromSameOwner' && subworkflowOwnerId !== parentWorkflowOwnerId) {
 			throw errorToThrow;
 		}
 	}

@@ -231,7 +231,7 @@ export class WorkflowsController {
 				throw new NotFoundError(`Workflow with ID "${workflowId}" does not exist`);
 			}
 
-			const userSharing = workflow.shared?.find((shared) => shared.user.id === req.user.id);
+			const userSharing = workflow.shared?.find((shared) => shared.userId === req.user.id);
 			if (!userSharing && !req.user.hasGlobalScope('workflow:read')) {
 				throw new UnauthorizedError(
 					'You do not have permission to access this workflow. Ask the owner to share it with you',

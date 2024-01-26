@@ -63,7 +63,7 @@ export class SharedWorkflowRepository extends Repository<SharedWorkflow> {
 		};
 
 		if (!user.hasGlobalScope(scope)) {
-			where.user = { id: user.id };
+			where.userId = user.id;
 		}
 
 		if (roles) {
@@ -77,8 +77,8 @@ export class SharedWorkflowRepository extends Repository<SharedWorkflow> {
 		return await this.findOne({ relations, where });
 	}
 
-	async makeOwnerOfAllWorkflows(user: User) {
-		return await this.update({ userId: Not(user.id), role: 'workflow:owner' }, { user });
+	async makeOwnerOfAllWorkflows(userId: string) {
+		return await this.update({ userId: Not(userId), role: 'workflow:owner' }, { userId });
 	}
 
 	async getSharing(

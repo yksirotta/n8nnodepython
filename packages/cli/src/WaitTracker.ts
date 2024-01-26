@@ -153,13 +153,13 @@ export class WaitTracker {
 				throw new ApplicationError('Only saved workflows can be resumed.');
 			}
 			const workflowId = fullExecutionData.workflowData.id;
-			const user = await this.ownershipService.getWorkflowOwnerCached(workflowId);
+			const userId = await this.ownershipService.getWorkflowOwnerId(workflowId);
 
 			const data: IWorkflowExecutionDataProcess = {
 				executionMode: fullExecutionData.mode,
 				executionData: fullExecutionData.data,
 				workflowData: fullExecutionData.workflowData,
-				userId: user.id,
+				userId,
 			};
 
 			// Start the execution again
