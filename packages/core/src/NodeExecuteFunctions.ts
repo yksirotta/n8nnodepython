@@ -1309,9 +1309,8 @@ export async function requestOAuth2(
 
 				let newToken;
 
-				Logger.debug(
-					`OAuth2 token for "${credentialsType}" used by node "${node.name}" has been renewed.`,
-				);
+				// TODO: Add a mutex here
+
 				// if it's OAuth2 with client credentials grant type, get a new token
 				// instead of refreshing it.
 				if (credentials.grantType === 'clientCredentials') {
