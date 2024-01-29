@@ -156,18 +156,18 @@ export class WorkflowRunner {
 		executionId?: string,
 		responsePromise?: IDeferredPromise<IExecuteResponsePromiseData>,
 	): Promise<string> {
+		const workflowId = data.workflowData.id;
+		if (loadStaticData === true && workflowId) {
+			data.workflowData.staticData =
+				await this.workflowStaticDataService.getStaticDataById(workflowId);
+		}
+
 		if (this.executionsMode === 'queue' && data.executionMode !== 'manual') {
 			// Do not run "manual" executions in bull because sending events to the
 			// frontend would not be possible
-			executionId = await this.enqueueExecution(
-				data,
-				loadStaticData,
-				realtime,
-				executionId,
-				responsePromise,
-			);
+			executionId = await this.enqueueExecution(data, realtime, executionId, responsePromise);
 		} else {
-			executionId = await this.runMainProcess(data, loadStaticData, executionId, responsePromise);
+			executionId = await this.runMainProcess(data, executionId, responsePromise);
 			void Container.get(InternalHooks).onWorkflowBeforeExecute(executionId, data);
 		}
 
@@ -212,16 +212,9 @@ export class WorkflowRunner {
 	/** Run the workflow in current process */
 	private async runMainProcess(
 		data: IWorkflowExecutionDataProcess,
-		loadStaticData?: boolean,
 		restartExecutionId?: string,
 		responsePromise?: IDeferredPromise<IExecuteResponsePromiseData>,
 	): Promise<string> {
-		const workflowId = data.workflowData.id;
-		if (loadStaticData === true && workflowId) {
-			data.workflowData.staticData =
-				await this.workflowStaticDataService.getStaticDataById(workflowId);
-		}
-
 		// Soft timeout to stop workflow execution after current running node
 		// Changes were made by adding the `workflowTimeout` to the `additionalData`
 		// So that the timeout will also work for executions with nested workflows.
@@ -239,7 +232,7 @@ export class WorkflowRunner {
 		}
 
 		const workflow = new Workflow({
-			id: workflowId,
+			id: data.workflowData.id,
 			name: data.workflowData.name,
 			nodes: data.workflowData.nodes,
 			connections: data.workflowData.connections,
@@ -394,13 +387,10 @@ export class WorkflowRunner {
 
 	private async enqueueExecution(
 		data: IWorkflowExecutionDataProcess,
-		loadStaticData?: boolean,
 		realtime?: boolean,
 		restartExecutionId?: string,
 		responsePromise?: IDeferredPromise<IExecuteResponsePromiseData>,
 	): Promise<string> {
-		// TODO: If "loadStaticData" is set to true it has to load data new on worker
-
 		// Register the active execution
 		const executionId = await this.activeExecutions.add(data, restartExecutionId);
 		if (responsePromise) {
@@ -409,7 +399,6 @@ export class WorkflowRunner {
 
 		const jobData: JobData = {
 			executionId,
-			loadStaticData: !!loadStaticData,
 		};
 
 		let priority = 100;

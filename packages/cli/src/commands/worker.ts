@@ -24,7 +24,6 @@ import { Queue } from '@/Queue';
 import { generateFailedExecutionFromError } from '@/WorkflowHelpers';
 import { N8N_VERSION } from '@/constants';
 import { ExecutionRepository } from '@db/repositories/execution.repository';
-import { WorkflowRepository } from '@db/repositories/workflow.repository';
 import { OwnershipService } from '@/services/ownership.service';
 import type { ICredentialsOverwrite } from '@/Interfaces';
 import { CredentialsOverwrites } from '@/CredentialsOverwrites';
@@ -101,7 +100,7 @@ export class Worker extends BaseCommand {
 	}
 
 	async runJob(job: Job, nodeTypes: INodeTypes): Promise<JobResponse> {
-		const { executionId, loadStaticData } = job.data;
+		const { executionId } = job.data;
 		const executionRepository = Container.get(ExecutionRepository);
 		const fullExecutionData = await executionRepository.findSingleExecution(executionId, {
 			includeData: true,
@@ -127,24 +126,6 @@ export class Worker extends BaseCommand {
 
 		const workflowOwner = await Container.get(OwnershipService).getWorkflowOwnerCached(workflowId);
 
-		let { staticData } = fullExecutionData.workflowData;
-		if (loadStaticData) {
-			const workflowData = await Container.get(WorkflowRepository).findOne({
-				select: ['id', 'staticData'],
-				where: {
-					id: workflowId,
-				},
-			});
-			if (workflowData === null) {
-				this.logger.error(
-					'Worker execution failed because workflow could not be found in database.',
-					{ workflowId, executionId },
-				);
-				throw new ApplicationError('Workflow could not be found', { extra: { workflowId } });
-			}
-			staticData = workflowData.staticData;
-		}
-
 		const workflowSettings = fullExecutionData.workflowData.settings ?? {};
 
 		let workflowTimeout = workflowSettings.executionTimeout ?? config.getEnv('executions.timeout'); // initialize with default
@@ -162,7 +143,7 @@ export class Worker extends BaseCommand {
 			connections: fullExecutionData.workflowData.connections,
 			active: fullExecutionData.workflowData.active,
 			nodeTypes,
-			staticData,
+			staticData: fullExecutionData.workflowData.staticData,
 			settings: fullExecutionData.workflowData.settings,
 		});
 
