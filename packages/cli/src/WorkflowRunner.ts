@@ -215,6 +215,9 @@ export class WorkflowRunner {
 		restartExecutionId?: string,
 		responsePromise?: IDeferredPromise<IExecuteResponsePromiseData>,
 	): Promise<string> {
+		// Register a new execution
+		const executionId = await this.activeExecutions.add(data, restartExecutionId);
+
 		// Soft timeout to stop workflow execution after current running node
 		// Changes were made by adding the `workflowTimeout` to the `additionalData`
 		// So that the timeout will also work for executions with nested workflows.
@@ -249,8 +252,6 @@ export class WorkflowRunner {
 		);
 		additionalData.restartExecutionId = restartExecutionId;
 
-		// Register the active execution
-		const executionId = await this.activeExecutions.add(data, restartExecutionId);
 		additionalData.executionId = executionId;
 
 		this.logger.verbose(
@@ -391,8 +392,9 @@ export class WorkflowRunner {
 		restartExecutionId?: string,
 		responsePromise?: IDeferredPromise<IExecuteResponsePromiseData>,
 	): Promise<string> {
-		// Register the active execution
+		// Register a new execution
 		const executionId = await this.activeExecutions.add(data, restartExecutionId);
+
 		if (responsePromise) {
 			this.activeExecutions.attachResponsePromise(executionId, responsePromise);
 		}
