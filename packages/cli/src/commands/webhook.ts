@@ -1,9 +1,7 @@
 import { Container } from 'typedi';
 import { Flags, type Config } from '@oclif/core';
-import { sleep } from 'n8n-workflow';
 
 import config from '@/config';
-import { ActiveExecutions } from '@/ActiveExecutions';
 import { WebhookServer } from '@/WebhookServer';
 import { Queue } from '@/Queue';
 import { BaseCommand } from './BaseCommand';
@@ -41,22 +39,6 @@ export class Webhook extends BaseCommand {
 
 		try {
 			await this.externalHooks?.run('n8n.stop', []);
-
-			// Wait for active workflow executions to finish
-			const activeExecutionsInstance = Container.get(ActiveExecutions);
-			let executingWorkflows = activeExecutionsInstance.getActiveExecutions();
-
-			let count = 0;
-			while (executingWorkflows.length !== 0) {
-				if (count++ % 4 === 0) {
-					this.logger.info(
-						`Waiting for ${executingWorkflows.length} active executions to finish...`,
-					);
-				}
-
-				await sleep(500);
-				executingWorkflows = activeExecutionsInstance.getActiveExecutions();
-			}
 		} catch (error) {
 			await this.exitWithCrash('There was an error shutting down n8n.', error);
 		}

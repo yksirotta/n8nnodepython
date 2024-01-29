@@ -23,7 +23,6 @@ export type JobQueue = Bull.Queue<JobData>;
 
 export interface JobData {
 	executionId: string;
-	loadStaticData: boolean;
 }
 
 export interface JobResponse {
