@@ -7,13 +7,13 @@ import type {
 	ExecutionStatus,
 } from 'n8n-workflow';
 import { ApplicationError, createDeferredPromise, sleep } from 'n8n-workflow';
+import type { IWorkflowExecutionDataProcess } from 'n8n-core';
 
 import type {
 	ExecutionPayload,
 	IExecutingWorkflowData,
 	IExecutionDb,
 	IExecutionsCurrentSummary,
-	IWorkflowExecutionDataProcess,
 } from '@/Interfaces';
 import { isWorkflowIdValid } from '@/utils';
 import { ExecutionRepository } from '@db/repositories/execution.repository';

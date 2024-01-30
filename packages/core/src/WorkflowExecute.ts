@@ -66,6 +66,7 @@ export class WorkflowExecute {
 				waitingExecutionSource: {},
 			},
 		},
+		private readonly isResumedFromWait = false,
 	) {}
 
 	/**
@@ -836,7 +837,7 @@ export class WorkflowExecute {
 
 			const returnPromise = (async () => {
 				try {
-					if (!this.additionalData.restartExecutionId) {
+					if (!this.isResumedFromWait) {
 						await this.executeHook('workflowExecuteBefore', [workflow]);
 					}
 				} catch (error) {

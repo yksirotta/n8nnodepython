@@ -7,9 +7,7 @@ import type {
 	IDataObject,
 	IDeferredPromise,
 	IExecuteResponsePromiseData,
-	IPinData,
 	IRun,
-	IRunData,
 	IRunExecutionData,
 	ITaskData,
 	ITelemetryTrackProperties,
@@ -27,7 +25,7 @@ import type {
 
 import type { ActiveWorkflowRunner } from '@/ActiveWorkflowRunner';
 
-import type { WorkflowExecute } from 'n8n-core';
+import type { IWorkflowExecutionDataProcess, WorkflowExecute } from 'n8n-core';
 
 import type PCancelable from 'p-cancelable';
 
@@ -553,20 +551,6 @@ export interface IWorkflowErrorData {
 		id?: string;
 		name: string;
 	};
-}
-
-export interface IWorkflowExecutionDataProcess {
-	destinationNode?: string;
-	restartExecutionId?: string;
-	executionMode: WorkflowExecuteMode;
-	executionData?: IRunExecutionData;
-	runData?: IRunData;
-	pinData?: IPinData;
-	retryOf?: string;
-	sessionId?: string;
-	startNodes?: string[];
-	workflowData: IWorkflowBase;
-	userId: string;
 }
 
 export interface IWorkflowExecuteProcess {

@@ -11,7 +11,7 @@ import type {
 	WorkflowExecuteMode,
 } from 'n8n-workflow';
 import { TelemetryHelpers } from 'n8n-workflow';
-import { InstanceSettings } from 'n8n-core';
+import { InstanceSettings, type IWorkflowExecutionDataProcess } from 'n8n-core';
 
 import { N8N_VERSION } from '@/constants';
 import type { AuthProviderType } from '@db/entities/AuthIdentity';
@@ -25,7 +25,6 @@ import type {
 	ITelemetryUserDeletionData,
 	IWorkflowDb,
 	IExecutionTrackProperties,
-	IWorkflowExecutionDataProcess,
 } from '@/Interfaces';
 import { EventsService } from '@/services/events.service';
 import { NodeTypes } from '@/NodeTypes';

@@ -1,13 +1,12 @@
 import { Container } from 'typedi';
 import { Flags } from '@oclif/core';
 import { promises as fs } from 'fs';
-import { PLACEHOLDER_EMPTY_WORKFLOW_ID } from 'n8n-core';
+import { PLACEHOLDER_EMPTY_WORKFLOW_ID, type IWorkflowExecutionDataProcess } from 'n8n-core';
 import type { IWorkflowBase } from 'n8n-workflow';
 import { ApplicationError, ExecutionBaseError } from 'n8n-workflow';
 
 import { ActiveExecutions } from '@/ActiveExecutions';
 import { WorkflowRunner } from '@/WorkflowRunner';
-import type { IWorkflowExecutionDataProcess } from '@/Interfaces';
 import { findCliWorkflowStart, isWorkflowIdValid } from '@/utils';
 import { BaseCommand } from './BaseCommand';
 

@@ -3,7 +3,7 @@
 /* eslint-disable id-denylist */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { WorkflowExecute } from 'n8n-core';
+import { WorkflowExecute, type IWorkflowExecutionDataProcess } from 'n8n-core';
 
 import type {
 	IDataObject,
@@ -40,7 +40,6 @@ import { ExternalHooks } from '@/ExternalHooks';
 import type {
 	IPushDataExecutionFinished,
 	IWorkflowExecuteProcess,
-	IWorkflowExecutionDataProcess,
 	IWorkflowErrorData,
 	IPushDataType,
 	ExecutionPayload,

@@ -1,6 +1,7 @@
 import { type Workflow } from 'n8n-workflow';
+import type { IWorkflowExecutionDataProcess } from 'n8n-core';
+
 import { getExecutionStartNode } from '@/WorkflowHelpers';
-import type { IWorkflowExecutionDataProcess } from '@/Interfaces';
 
 describe('WorkflowHelpers', () => {
 	describe('getExecutionStartNode', () => {

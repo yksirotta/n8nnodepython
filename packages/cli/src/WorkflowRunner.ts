@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Container, Service } from 'typedi';
-import { WorkflowExecute } from 'n8n-core';
+import { WorkflowExecute, type IWorkflowExecutionDataProcess } from 'n8n-core';
 
 import type {
 	ExecutionError,
@@ -28,7 +28,7 @@ import { ExecutionRepository } from '@db/repositories/execution.repository';
 import { MessageEventBus } from '@/eventbus';
 import { ExecutionDataRecoveryService } from '@/eventbus/executionDataRecovery.service';
 import { ExternalHooks } from '@/ExternalHooks';
-import type { IExecutionResponse, IWorkflowExecutionDataProcess } from '@/Interfaces';
+import type { IExecutionResponse } from '@/Interfaces';
 import { NodeTypes } from '@/NodeTypes';
 import type { Job, JobData, JobResponse } from '@/Queue';
 import { Queue } from '@/Queue';
@@ -310,6 +310,7 @@ export class WorkflowRunner {
 					additionalData,
 					data.executionMode,
 					data.executionData,
+					data.isResumedFromWait,
 				);
 				workflowExecution = workflowExecute.processRunExecutionData(workflow);
 			} else if (
@@ -325,7 +326,12 @@ export class WorkflowRunner {
 				const startNode = WorkflowHelpers.getExecutionStartNode(data, workflow);
 
 				// Can execute without webhook so go on
-				const workflowExecute = new WorkflowExecute(additionalData, data.executionMode);
+				const workflowExecute = new WorkflowExecute(
+					additionalData,
+					data.executionMode,
+					undefined,
+					data.isResumedFromWait,
+				);
 				workflowExecution = workflowExecute.run(
 					workflow,
 					startNode,
@@ -335,7 +341,12 @@ export class WorkflowRunner {
 			} else {
 				this.logger.debug(`Execution ID ${executionId} is a partial execution.`, { executionId });
 				// Execute only the nodes between start and destination nodes
-				const workflowExecute = new WorkflowExecute(additionalData, data.executionMode);
+				const workflowExecute = new WorkflowExecute(
+					additionalData,
+					data.executionMode,
+					undefined,
+					data.isResumedFromWait,
+				);
 				workflowExecution = workflowExecute.runPartialWorkflow(
 					workflow,
 					data.runData,

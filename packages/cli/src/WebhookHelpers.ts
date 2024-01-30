@@ -12,7 +12,11 @@ import get from 'lodash/get';
 import { pipeline } from 'stream/promises';
 import formidable from 'formidable';
 
-import { BinaryDataService, NodeExecuteFunctions } from 'n8n-core';
+import {
+	BinaryDataService,
+	NodeExecuteFunctions,
+	type IWorkflowExecutionDataProcess,
+} from 'n8n-core';
 
 import type {
 	IBinaryData,
@@ -45,7 +49,6 @@ import type {
 	IResponseCallbackData,
 	IWebhookManager,
 	IWorkflowDb,
-	IWorkflowExecutionDataProcess,
 	WebhookCORSRequest,
 	WebhookRequest,
 } from '@/Interfaces';
@@ -525,6 +528,7 @@ export async function executeWebhook(
 			sessionId,
 			workflowData,
 			pinData,
+			isResumedFromWait: !!executionId,
 			userId: user.id,
 		};
 

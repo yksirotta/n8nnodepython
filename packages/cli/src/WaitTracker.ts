@@ -1,10 +1,12 @@
+import { Container, Service } from 'typedi';
 import {
 	ApplicationError,
 	ErrorReporterProxy as ErrorReporter,
 	WorkflowOperationError,
 } from 'n8n-workflow';
-import { Container, Service } from 'typedi';
-import type { IExecutionsStopData, IWorkflowExecutionDataProcess } from '@/Interfaces';
+import type { IWorkflowExecutionDataProcess } from 'n8n-core';
+
+import type { IExecutionsStopData } from '@/Interfaces';
 import { WorkflowRunner } from '@/WorkflowRunner';
 import { ExecutionRepository } from '@db/repositories/execution.repository';
 import { OwnershipService } from './services/ownership.service';
@@ -161,6 +163,7 @@ export class WaitTracker {
 				executionData: fullExecutionData.data,
 				workflowData: fullExecutionData.workflowData,
 				userId: user.id,
+				isResumedFromWait: true,
 			};
 
 			// Start the execution again

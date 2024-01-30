@@ -1,14 +1,33 @@
 import type {
+	IPinData,
 	IPollResponse,
+	IRunData,
+	IRunExecutionData,
 	ITriggerResponse,
+	IWorkflowBase,
 	IWorkflowSettings as IWorkflowSettingsWorkflow,
 	ValidationResult,
+	WorkflowExecuteMode,
 } from 'n8n-workflow';
 
 export type Class<T = object, A extends unknown[] = unknown[]> = new (...args: A) => T;
 
 export interface IResponseError extends Error {
 	statusCode?: number;
+}
+
+export interface IWorkflowExecutionDataProcess {
+	destinationNode?: string;
+	isResumedFromWait?: boolean;
+	executionMode: WorkflowExecuteMode;
+	executionData?: IRunExecutionData;
+	runData?: IRunData;
+	pinData?: IPinData;
+	retryOf?: string;
+	sessionId?: string;
+	startNodes?: string[];
+	workflowData: IWorkflowBase;
+	userId: string;
 }
 
 export interface IWorkflowSettings extends IWorkflowSettingsWorkflow {

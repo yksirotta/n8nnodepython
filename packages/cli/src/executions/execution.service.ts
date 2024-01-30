@@ -9,6 +9,7 @@ import type {
 	WorkflowExecuteMode,
 } from 'n8n-workflow';
 import { ApplicationError, jsonParse, Workflow, WorkflowOperationError } from 'n8n-workflow';
+import type { IWorkflowExecutionDataProcess } from 'n8n-core';
 
 import { ActiveExecutions } from '@/ActiveExecutions';
 import config from '@/config';
@@ -17,7 +18,6 @@ import type {
 	IExecutionFlattedResponse,
 	IExecutionResponse,
 	IWorkflowDb,
-	IWorkflowExecutionDataProcess,
 } from '@/Interfaces';
 import { NodeTypes } from '@/NodeTypes';
 import { Queue } from '@/Queue';
