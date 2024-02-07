@@ -1,0 +1,36 @@
+name: 'Lint'
+description: 'Restore the dist folders from cache, and run linting'
+inputs:
+  cacheKey:
+    description: 'Cache key to restore build artifacts from'
+    required: true
+    type: string
+  target:
+    type: choice
+    required: true
+    options:
+      - backend
+      - frontend
+      - nodes
+
+runs:
+  using: 'composite'
+  steps:
+    - run: corepack enable
+      shell: bash
+
+    - uses: actions/setup-node@v4.0.1
+      with:
+        node-version: 18.x
+        cache: pnpm
+
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+
+    - uses: actions/cache/restore@v4.0.0
+      with:
+        path: ./packages/**/dist
+        key: ${{ inputs.cacheKey }}
+
+    - run: pnpm lint:${{ inputs.target }}
+      shell: bash

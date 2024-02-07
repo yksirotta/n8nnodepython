@@ -1,0 +1,53 @@
+name: 'Unit tests'
+description: 'Restore the dist folders from cache, and run tests'
+inputs:
+  cacheKey:
+    description: 'Cache key to restore build artifacts from'
+    required: true
+    type: string
+  target:
+    type: choice
+    required: true
+    options:
+      - backend
+      - frontend
+      - nodes
+  nodeVersion:
+    description: 'Version of node to use.'
+    required: false
+    type: string
+    default: '18.x'
+  collectCoverage:
+    required: false
+    type: string
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - run: corepack enable
+      shell: bash
+
+    - uses: actions/setup-node@v4.0.1
+      with:
+        node-version: ${{ inputs.nodeVersion }}
+        cache: pnpm
+
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+
+    - uses: actions/cache/restore@v4.0.0
+      with:
+        path: ./packages/**/dist
+        key: ${{ inputs.cacheKey }}
+
+    - run: pnpm test:${{ inputs.target }}
+      shell: bash
+      env:
+        COVERAGE_ENABLED: ${{ inputs.collectCoverage }}
+
+    - uses: actions/cache/save@v4.0.0
+      if: ${{ inputs.collectCoverage == 'true' }}
+      with:
+        path: ./packages/**/coverage
+        key: ${{ inputs.cacheKey }}:${{ matrix.group }}:coverage

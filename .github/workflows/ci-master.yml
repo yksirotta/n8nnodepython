@@ -6,88 +6,71 @@ on:
       - master
 
 jobs:
-  install-and-build:
+  build:
+    name: Build
     runs-on: ubuntu-latest
-
-    timeout-minutes: 30
-
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-
     steps:
       - uses: actions/checkout@v4.1.1
-
-      - run: corepack enable
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4.0.1
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build
-        run: pnpm build
-
-      - name: Cache build artifacts
-        uses: actions/cache/save@v4.0.0
+          ref: ${{ github.sha }}
+      - uses: ./.github/actions/build-and-cache
         with:
-          path: ./packages/**/dist
-          key: ${{ github.sha }}-base:${{ matrix.node-version }}-test-lint
+          cacheKey: ${{ github.sha }}:build
 
   unit-test:
     name: Unit tests
-    uses: ./.github/workflows/units-tests-reusable.yml
-    needs: install-and-build
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x]
-    with:
-      ref: ${{ inputs.branch }}
-      nodeVersion: ${{ matrix.node-version }}
-      cacheKey: ${{ github.sha }}-base:${{ matrix.node-version }}-test-lint
-      collectCoverage: true
-
-  lint:
-    name: Lint changes
     runs-on: ubuntu-latest
-    needs: install-and-build
+    needs: build
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        target: [backend, frontend, nodes]
     steps:
       - uses: actions/checkout@v4.1.1
         with:
-          repository: n8n-io/n8n
-          ref: ${{ inputs.branch }}
-
-      - run: corepack enable
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4.0.1
+          ref: ${{ github.sha }}
+      - uses: ./.github/actions/unit-tests
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
+          cacheKey: ${{ github.sha }}:build
+          target: ${{ matrix.target }}
+          collectCoverage: true
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Restore cached build artifacts
-        uses: actions/cache/restore@v4.0.0
+  unit-test-node-20:
+    name: Unit tests (Node 20)
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        target: [backend, frontend, nodes]
+    steps:
+      - uses: actions/checkout@v4.1.1
         with:
-          path: ./packages/**/dist
-          key: ${{ github.sha }}-base:${{ matrix.node-version }}-test-lint
+          ref: ${{ github.sha }}
+      - uses: ./.github/actions/unit-tests
+        with:
+          cacheKey: ${{ github.sha }}:build
+          target: ${{ matrix.target }}
+          nodeVersion: 20.x
 
-      - name: Lint
-        env:
-          CI_LINT_MASTER: true
-        run: pnpm lint
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        target: [backend, frontend, nodes]
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ github.sha }}
+      - uses: ./.github/actions/lint
+        with:
+          cacheKey: ${{ github.sha }}:build
+          target: ${{ matrix.target }}
 
   notify-on-failure:
     name: Notify Slack on failure
     runs-on: ubuntu-latest
-    needs: [unit-test, lint]
+    needs: [unit-test, unit-test-node-20, lint]
     steps:
       - name: Notify Slack on failure
         uses: act10ns/slack@v2.0.0
@@ -97,3 +80,27 @@ jobs:
           channel: '#alerts-build'
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           message: Master branch (build or test or lint) failed (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+  upload-coverage:
+    name: Upload Coverage
+    runs-on: ubuntu-latest
+    needs: unit-test
+    steps:
+      - uses: actions/cache/restore@v4.0.0
+        with:
+          path: ./packages/**/coverage
+          key: ${{ github.sha }}:build:backend:coverage
+      - uses: actions/cache/restore@v4.0.0
+        with:
+          path: ./packages/**/coverage
+          key: ${{ github.sha }}:build:frontend:coverage
+      - uses: actions/cache/restore@v4.0.0
+        with:
+          path: ./packages/**/coverage
+          key: ${{ github.sha }}:build:nodes:coverage
+      - run: ls -R packages
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          files: packages/**/coverage/cobertura-coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}

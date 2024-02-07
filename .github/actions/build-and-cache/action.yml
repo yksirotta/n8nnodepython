@@ -1,0 +1,35 @@
+name: 'Build and Cache'
+description: 'Build n8n and cache all the dist folders'
+inputs:
+  buildTarget:
+    type: choice
+    default: 'build'
+    options:
+      - build
+      - build:backend
+  cacheKey:
+    description: 'Cache key for modules and build artifacts'
+    required: true
+    type: string
+
+runs:
+  using: 'composite'
+  steps:
+    - run: corepack enable
+      shell: bash
+
+    - uses: actions/setup-node@v4.0.1
+      with:
+        node-version: 18.x
+        cache: pnpm
+
+    - run: pnpm install --frozen-lockfile
+      shell: bash
+
+    - run: pnpm ${{ inputs.buildTarget }}
+      shell: bash
+
+    - uses: actions/cache/save@v4.0.0
+      with:
+        path: ./packages/**/dist
+        key: ${{ inputs.cacheKey }}
