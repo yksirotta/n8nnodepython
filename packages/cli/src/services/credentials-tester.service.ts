@@ -16,21 +16,17 @@ import type {
 	INodeExecutionData,
 	INodeProperties,
 	INodeType,
-	IVersionedNodeType,
 	IRunExecutionData,
 	WorkflowExecuteMode,
 	ITaskDataConnections,
 	INodeTypeData,
-	INodeTypes,
 	ICredentialTestFunctions,
 } from 'n8n-workflow';
 import {
 	VersionedNodeType,
-	NodeHelpers,
 	RoutingNode,
 	Workflow,
 	ErrorReporterProxy as ErrorReporter,
-	ApplicationError,
 } from 'n8n-workflow';
 
 import * as WorkflowExecuteAdditionalData from '@/WorkflowExecuteAdditionalData';
@@ -50,20 +46,6 @@ const mockNodesData: INodeTypeData = {
 		type: {
 			description: { properties: [] as INodeProperties[] },
 		} as INodeType,
-	},
-};
-
-const mockNodeTypes: INodeTypes = {
-	getByName(nodeType: string): INodeType | IVersionedNodeType {
-		return mockNodesData[nodeType]?.type;
-	},
-	getByNameAndVersion(nodeType: string, version?: number): INodeType {
-		if (!mockNodesData[nodeType]) {
-			throw new ApplicationError(RESPONSE_ERROR_MESSAGES.NO_NODE, {
-				tags: { nodeType },
-			});
-		}
-		return NodeHelpers.getVersionedNodeType(mockNodesData[nodeType].type, version);
 	},
 };
 
@@ -272,7 +254,7 @@ export class CredentialsTester {
 			nodes: workflowData.nodes,
 			connections: workflowData.connections,
 			active: false,
-			nodeTypes: mockNodeTypes,
+			nodeTypes: this.nodeTypes,
 		});
 
 		const mode = 'internal';

@@ -13,14 +13,10 @@ import type {
 	INodeCredentialsDetails,
 	INodeParameters,
 	INodeProperties,
-	INodeType,
-	IVersionedNodeType,
 	IRequestOptionsSimplified,
 	IWorkflowDataProxyAdditionalKeys,
 	WorkflowExecuteMode,
 	IHttpRequestHelper,
-	INodeTypeData,
-	INodeTypes,
 	IWorkflowExecuteAdditionalData,
 	IExecuteData,
 } from 'n8n-workflow';
@@ -32,48 +28,14 @@ import type { CredentialsEntity } from '@db/entities/CredentialsEntity';
 import { NodeTypes } from '@/NodeTypes';
 import { CredentialTypes } from '@/CredentialTypes';
 import { CredentialsOverwrites } from '@/CredentialsOverwrites';
-import { RESPONSE_ERROR_MESSAGES } from './constants';
 
-import { Logger } from '@/Logger';
 import { CredentialsRepository } from '@db/repositories/credentials.repository';
 import { SharedCredentialsRepository } from '@db/repositories/sharedCredentials.repository';
 import { CredentialNotFoundError } from './errors/credential-not-found.error';
 
-const mockNode = {
-	name: '',
-	typeVersion: 1,
-	type: 'mock',
-	position: [0, 0],
-	parameters: {} as INodeParameters,
-} as INode;
-
-const mockNodesData: INodeTypeData = {
-	mock: {
-		sourcePath: '',
-		type: {
-			description: { properties: [] as INodeProperties[] },
-		} as INodeType,
-	},
-};
-
-const mockNodeTypes: INodeTypes = {
-	getByName(nodeType: string): INodeType | IVersionedNodeType {
-		return mockNodesData[nodeType]?.type;
-	},
-	getByNameAndVersion(nodeType: string, version?: number): INodeType {
-		if (!mockNodesData[nodeType]) {
-			throw new ApplicationError(RESPONSE_ERROR_MESSAGES.NO_NODE, {
-				tags: { nodeType },
-			});
-		}
-		return NodeHelpers.getVersionedNodeType(mockNodesData[nodeType].type, version);
-	},
-};
-
 @Service()
 export class CredentialsHelper extends ICredentialsHelper {
 	constructor(
-		private readonly logger: Logger,
 		private readonly credentialTypes: CredentialTypes,
 		private readonly nodeTypes: NodeTypes,
 		private readonly credentialsOverwrites: CredentialsOverwrites,
@@ -407,16 +369,23 @@ export class CredentialsHelper extends ICredentialsHelper {
 				throw e;
 			}
 		} else {
+			const nodeType = this.credentialTypes.getSupportedNodes(type)[0];
+			const node = {
+				name: '',
+				typeVersion: 1,
+				type: nodeType,
+				parameters: {} as INodeParameters,
+			} as INode;
 			const workflow = new Workflow({
-				nodes: [mockNode],
+				nodes: [node],
 				connections: {},
 				active: false,
-				nodeTypes: mockNodeTypes,
+				nodeTypes: this.nodeTypes,
 			});
 
 			// Resolve expressions if any are set
 			decryptedData = workflow.expression.getComplexParameterValue(
-				mockNode,
+				node,
 				decryptedData as INodeParameters,
 				mode,
 				additionalKeys,
