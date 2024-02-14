@@ -5,7 +5,7 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
-import { jsonParse, NodeOperationError } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 
 import { contactFields, contactOperations } from './ContactDescription';
 
@@ -21,7 +21,6 @@ import {
 	agileCrmApiRequestUpdate,
 	getFilterRules,
 	simplifyResponse,
-	validateJSON,
 } from './GenericFunctions';
 
 import type { IDeal } from './DealInterface';
@@ -146,14 +145,8 @@ export class AgileCrm implements INodeType {
 							);
 						}
 					} else if (filterType === 'json') {
-						const filterJsonRules = this.getNodeParameter('filterJson', i) as string;
-						if (validateJSON(filterJsonRules) !== undefined) {
-							Object.assign(filterJson, jsonParse(filterJsonRules));
-						} else {
-							throw new NodeOperationError(this.getNode(), 'Filter (JSON) must be a valid json', {
-								itemIndex: i,
-							});
-						}
+						const filterJsonRules = this.getNodeParameter('filterJson', i);
+						Object.assign(filterJson, filterJsonRules);
 					}
 					body.filterJson = JSON.stringify(filterJson);
 
@@ -198,19 +191,8 @@ export class AgileCrm implements INodeType {
 					const properties: IDataObject[] = [];
 
 					if (jsonParameters) {
-						const additionalFieldsJson = this.getNodeParameter('additionalFieldsJson', i) as string;
-
-						if (additionalFieldsJson !== '') {
-							if (validateJSON(additionalFieldsJson) !== undefined) {
-								Object.assign(body, jsonParse(additionalFieldsJson));
-							} else {
-								throw new NodeOperationError(
-									this.getNode(),
-									'Additional fields must be a valid JSON',
-									{ itemIndex: i },
-								);
-							}
-						}
+						const additionalFieldsJson = this.getNodeParameter('additionalFieldsJson', i);
+						Object.assign(body, additionalFieldsJson);
 					} else {
 						const additionalFields = this.getNodeParameter('additionalFields', i);
 
@@ -362,19 +344,8 @@ export class AgileCrm implements INodeType {
 					const properties: IDataObject[] = [];
 
 					if (jsonParameters) {
-						const additionalFieldsJson = this.getNodeParameter('additionalFieldsJson', i) as string;
-
-						if (additionalFieldsJson !== '') {
-							if (validateJSON(additionalFieldsJson) !== undefined) {
-								Object.assign(body, jsonParse(additionalFieldsJson));
-							} else {
-								throw new NodeOperationError(
-									this.getNode(),
-									'Additional fields must be a valid JSON',
-									{ itemIndex: i },
-								);
-							}
-						}
+						const additionalFieldsJson = this.getNodeParameter('additionalFieldsJson', i);
+						Object.assign(body, additionalFieldsJson);
 					} else {
 						const additionalFields = this.getNodeParameter('additionalFields', i);
 
@@ -551,19 +522,8 @@ export class AgileCrm implements INodeType {
 					const body: IDeal = {};
 
 					if (jsonParameters) {
-						const additionalFieldsJson = this.getNodeParameter('additionalFieldsJson', i) as string;
-
-						if (additionalFieldsJson !== '') {
-							if (validateJSON(additionalFieldsJson) !== undefined) {
-								Object.assign(body, jsonParse(additionalFieldsJson));
-							} else {
-								throw new NodeOperationError(
-									this.getNode(),
-									'Additional fields must be a valid JSON',
-									{ itemIndex: i },
-								);
-							}
-						}
+						const additionalFieldsJson = this.getNodeParameter('additionalFieldsJson', i);
+						Object.assign(body, additionalFieldsJson);
 					} else {
 						const additionalFields = this.getNodeParameter('additionalFields', i);
 
@@ -592,18 +552,7 @@ export class AgileCrm implements INodeType {
 
 					if (jsonParameters) {
 						const additionalFieldsJson = this.getNodeParameter('additionalFieldsJson', i) as string;
-
-						if (additionalFieldsJson !== '') {
-							if (validateJSON(additionalFieldsJson) !== undefined) {
-								Object.assign(body, jsonParse(additionalFieldsJson));
-							} else {
-								throw new NodeOperationError(
-									this.getNode(),
-									'Additional fields must be valid JSON',
-									{ itemIndex: i },
-								);
-							}
-						}
+						Object.assign(body, additionalFieldsJson);
 					} else {
 						const additionalFields = this.getNodeParameter('additionalFields', i);
 						body.id = this.getNodeParameter('dealId', i) as number;

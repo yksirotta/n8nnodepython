@@ -204,7 +204,7 @@ export const dealFields: INodeProperties[] = [
 		typeOptions: {
 			alwaysOpenEditWindow: true,
 		},
-		default: '',
+		default: {},
 		displayOptions: {
 			show: {
 				resource: ['deal'],
@@ -329,7 +329,7 @@ export const dealFields: INodeProperties[] = [
 		typeOptions: {
 			alwaysOpenEditWindow: true,
 		},
-		default: '',
+		default: {},
 		displayOptions: {
 			show: {
 				resource: ['deal'],

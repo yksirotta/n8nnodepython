@@ -8,7 +8,6 @@ import {
 	executeFilter,
 	isFilterValue,
 	type INode,
-	type INodeParameters,
 	type INodeProperties,
 	type INodePropertyCollection,
 	type INodePropertyOptions,
@@ -16,11 +15,10 @@ import {
 	type NodeParameterValueType,
 } from 'n8n-workflow';
 
-function findPropertyFromParameterName(
+export function findPropertyFromParameterName(
 	parameterName: string,
 	nodeType: INodeType,
 	node: INode,
-	nodeParameters: INodeParameters,
 ): INodePropertyOptions | INodeProperties | INodePropertyCollection {
 	let property: INodePropertyOptions | INodeProperties | INodePropertyCollection | undefined;
 	const paramParts = parameterName.split('.');
@@ -33,7 +31,7 @@ function findPropertyFromParameterName(
 		return options.find(
 			(i) =>
 				i.name === name &&
-				NodeHelpers.displayParameterPath(nodeParameters, i, currentParamPath, node),
+				NodeHelpers.displayParameterPath(node.parameters, i, currentParamPath, node),
 		);
 	};
 
@@ -185,15 +183,12 @@ export function extractValue(
 	nodeType: INodeType,
 	itemIndex = 0,
 ): NodeParameterValueType | object {
-	let property: INodePropertyOptions | INodeProperties | INodePropertyCollection;
+	const property = findPropertyFromParameterName(parameterName, nodeType, node);
+	// Definitely doesn't have value extractor
+	if (!('type' in property)) {
+		return value;
+	}
 	try {
-		property = findPropertyFromParameterName(parameterName, nodeType, node, node.parameters);
-
-		// Definitely doesn't have value extractor
-		if (!('type' in property)) {
-			return value;
-		}
-
 		if (property.type === 'resourceLocator') {
 			return extractValueRLC(value, property, parameterName);
 		} else if (property.type === 'filter') {

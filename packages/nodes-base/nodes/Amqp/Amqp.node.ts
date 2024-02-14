@@ -49,7 +49,7 @@ export class Amqp implements INodeType {
 				displayName: 'Headers',
 				name: 'headerParametersJson',
 				type: 'json',
-				default: '',
+				default: {},
 				description:
 					'Header parameters as JSON (flat object). Sent as application_properties in amqp-message meta info.',
 			},
@@ -151,29 +151,22 @@ export class Amqp implements INodeType {
 			const credentials = await this.getCredentials('amqp');
 
 			const sink = this.getNodeParameter('sink', 0, '') as string;
-			const applicationProperties = this.getNodeParameter('headerParametersJson', 0, {}) as
-				| string
-				| object;
+			if (sink === '') {
+				throw new NodeOperationError(this.getNode(), 'Queue or Topic required!');
+			}
+
+			const applicationProperties = this.getNodeParameter('headerParametersJson', 0, {}) as object;
 			const options = this.getNodeParameter('options', 0, {});
 			const containerId = options.containerId as string;
 			const containerReconnect = (options.reconnect as boolean) || true;
 			const containerReconnectLimit = (options.reconnectLimit as number) || 50;
 
-			let headerProperties: Dictionary<any>;
-			if (typeof applicationProperties === 'string' && applicationProperties !== '') {
-				headerProperties = JSON.parse(applicationProperties);
-			} else {
-				headerProperties = applicationProperties as object;
-			}
-
-			if (sink === '') {
-				throw new NodeOperationError(this.getNode(), 'Queue or Topic required!');
-			}
+			const headerProperties: Dictionary<any> = applicationProperties;
 
 			const container = create_container();
 
 			/*
-				Values are documentet here: https://github.com/amqp/rhea#container
+				Values are documented here: https://github.com/amqp/rhea#container
 			*/
 			const connectOptions: ContainerOptions = {
 				host: credentials.hostname,

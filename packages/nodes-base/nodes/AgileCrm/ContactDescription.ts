@@ -353,7 +353,7 @@ export const contactFields: INodeProperties[] = [
 		typeOptions: {
 			alwaysOpenEditWindow: true,
 		},
-		default: '',
+		default: {},
 		displayOptions: {
 			show: {
 				resource: ['contact'],
@@ -795,7 +795,7 @@ export const contactFields: INodeProperties[] = [
 		typeOptions: {
 			alwaysOpenEditWindow: true,
 		},
-		default: '',
+		default: {},
 		displayOptions: {
 			show: {
 				resource: ['contact'],

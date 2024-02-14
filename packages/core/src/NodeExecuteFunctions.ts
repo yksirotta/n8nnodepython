@@ -135,7 +135,7 @@ import {
 	UM_EMAIL_TEMPLATES_INVITE,
 	UM_EMAIL_TEMPLATES_PWRESET,
 } from './Constants';
-import { extractValue } from './ExtractValue';
+import { extractValue, findPropertyFromParameterName } from './ExtractValue';
 import type { ExtendedValidationResult, IResponseError } from './Interfaces';
 import {
 	getAllWorkflowExecutionMetadata,
@@ -2320,7 +2320,6 @@ export function getNodeParameter(
 	}
 
 	const value = get(node.parameters, parameterName, fallbackValue);
-
 	if (value === undefined) {
 		throw new ApplicationError('Could not get parameter', { extra: { parameterName } });
 	}
@@ -2361,6 +2360,17 @@ export function getNodeParameter(
 	// This is outside the try/catch because it throws errors with proper messages
 	if (options?.extractValue) {
 		returnData = extractValue(returnData, parameterName, node, nodeType, itemIndex);
+	} else {
+		const property = findPropertyFromParameterName(parameterName, nodeType, node);
+		if ('type' in property && property.type === 'json') {
+			try {
+				return jsonParse(value as string);
+			} catch (error) {
+				throw new NodeOperationError(node, `${parameterName} must be valid json`, {
+					itemIndex,
+				});
+			}
+		}
 	}
 
 	// Validate parameter value if it has a schema defined(RMC) or validateType defined
