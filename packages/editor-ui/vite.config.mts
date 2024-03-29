@@ -3,6 +3,7 @@ import { resolve } from 'path';
 import { defineConfig, mergeConfig } from 'vite';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import checker from 'vite-plugin-checker';
+import { VitePWA } from 'vite-plugin-pwa';
 
 import packageJSON from './package.json';
 import { vitestConfig } from '../design-system/vite.config.mts';
@@ -75,6 +76,12 @@ const plugins = [
 		compiler: 'vue3',
 	}),
 	vue(),
+	VitePWA({
+		registerType: 'autoUpdate',
+		devOptions: {
+			enabled: true,
+		},
+	}),
 ];
 if (process.env.ENABLE_TYPE_CHECKING === 'true') {
 	plugins.push(checker({ vueTsc: true }));

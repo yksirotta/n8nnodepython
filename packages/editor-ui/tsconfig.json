@@ -17,7 +17,7 @@
 			"n8n-design-system/*": ["../design-system/src/*"],
 			"@n8n/chat/*": ["../@n8n/chat/src/*"]
 		},
-		"lib": ["esnext", "dom", "dom.iterable", "scripthost"],
+		"lib": ["esnext", "webworker", "dom", "dom.iterable", "scripthost"],
 		// TODO: remove all options below this line
 		"noUnusedLocals": false,
 		"useUnknownInCatchVariables": false,
