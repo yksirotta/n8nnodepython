@@ -719,11 +719,11 @@ export interface ICredentialTestFunctions {
 	};
 }
 
-interface BaseHelperFunctions {
+export interface BaseHelperFunctions {
 	createDeferredPromise: <T = void>() => Promise<IDeferredPromise<T>>;
 }
 
-interface JsonHelperFunctions {
+export interface JsonHelperFunctions {
 	returnJsonArray(jsonData: IDataObject | IDataObject[]): INodeExecutionData[];
 }
 
