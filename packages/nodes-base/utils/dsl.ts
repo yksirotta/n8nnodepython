@@ -1,37 +1,26 @@
-import type { INodeProperties, INodePropertyTypeOptions } from 'n8n-workflow';
+import type {
+	INodeProperties,
+	INodePropertyTypeOptions,
+	NodeParameterValueType,
+} from 'n8n-workflow';
 
 type Type = 'number' | 'string' | 'options';
 
 abstract class Property<T> {
 	abstract type: Type;
 
-	protected _name: string | undefined; // TODO: make mandatory
-
-	protected _displayName: string | undefined; // TODO: make mandatory
-
-	protected _defaultValue: T | undefined; // TODO: make mandatory
-
 	protected _required: boolean = false;
 
 	protected _typeOptions: INodePropertyTypeOptions | undefined;
 
-	name(value: string) {
-		this._name = value;
-		return this;
-	}
+	constructor(
+		readonly name: string,
+		readonly displayName: string,
+		readonly defaultValue: T,
+	) {}
 
-	displayName(value: string) {
-		this._displayName = value;
-		return this;
-	}
-
-	default(value: T) {
-		this._defaultValue = value;
-		return this;
-	}
-
-	required(value: boolean = true) {
-		this._required = value;
+	get required() {
+		this._required = true;
 		return this;
 	}
 
@@ -43,9 +32,9 @@ abstract class Property<T> {
 	toNodeProperty(): INodeProperties {
 		const toReturn: INodeProperties = {
 			type: this.type,
-			name: this._name!,
-			displayName: this._displayName!,
-			default: this._defaultValue!,
+			name: this.name,
+			displayName: this.displayName,
+			default: this.defaultValue as NodeParameterValueType,
 		};
 		if (this._typeOptions) toReturn.typeOptions = this._typeOptions;
 		return toReturn;
@@ -58,8 +47,12 @@ class NumberProperty extends Property<number> {
 
 class StringProperty extends Property<string> {
 	override type = 'string' as Type;
+}
 
-	override _defaultValue = '';
+class SecretProperty extends Property<string> {
+	override type = 'string' as Type;
+
+	override _typeOptions = { password: true };
 }
 
 class OptionsProperty extends Property<string> {
@@ -80,21 +73,16 @@ class OptionsProperty extends Property<string> {
 	}
 }
 
-class PropertiesObject {
-	constructor(readonly properties: Record<string, Property<any>>) {}
+export const number = (name: string, displayName: string, defaultValue: number) =>
+	new NumberProperty(name, displayName, defaultValue);
 
-	toNodeProperties(): INodeProperties[] {
-		const toReturn: INodeProperties[] = [];
-		for (const [name, prop] of Object.entries(this.properties)) {
-			toReturn.push(prop.name(name).toNodeProperty());
-		}
-		return toReturn;
-	}
-}
+export const string = (name: string, displayName: string, defaultValue: string = '') =>
+	new StringProperty(name, displayName, defaultValue);
 
-export const number = () => new NumberProperty();
-export const string = () => new StringProperty();
-export const options = () => new OptionsProperty();
-export const object = (fields: Record<string, Property<any>>) => new PropertiesObject(fields);
+export const secret = (name: string, displayName: string) =>
+	new SecretProperty(name, displayName, '');
+
+export const options = (name: string, displayName: string, defaultValue: string) =>
+	new OptionsProperty(name, displayName, defaultValue);
 
 export type InferProps<T> = any;
