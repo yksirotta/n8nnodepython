@@ -190,20 +190,20 @@ export class Worker extends BaseCommand {
 			this.logger.debug(`Queued worker execution status for ${executionId} is "${status}"`);
 		};
 
-		let workflowExecute: WorkflowExecute;
 		let workflowRun: PCancelable<IRun>;
 		if (fullExecutionData.data !== undefined) {
-			workflowExecute = new WorkflowExecute(
+			const workflowExecute = new WorkflowExecute(
+				workflow,
 				additionalData,
 				fullExecutionData.mode,
 				fullExecutionData.data,
 			);
-			workflowRun = workflowExecute.processRunExecutionData(workflow);
+			workflowRun = workflowExecute.processRunExecutionData();
 		} else {
 			// Execute all nodes
 			// Can execute without webhook so go on
-			workflowExecute = new WorkflowExecute(additionalData, fullExecutionData.mode);
-			workflowRun = workflowExecute.run(workflow);
+			const workflowExecute = new WorkflowExecute(workflow, additionalData, fullExecutionData.mode);
+			workflowRun = workflowExecute.run();
 		}
 
 		Worker.runningJobs[job.id] = workflowRun;
