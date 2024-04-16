@@ -10,19 +10,19 @@ import type { PgpDatabase, PostgresNodeOptions } from '../helpers/interfaces';
 import { formatPrivateKey } from '@utils/utilities';
 import { PostgresCredentialType } from '../../../../credentials/Postgres.credentials';
 
-async function createSshConnectConfig(credentials: PostgresCredentialType) {
+async function createSshConnectConfig(credentials: PostgresCredentialType & { sshTunnel: true }) {
 	if (credentials.sshAuthenticateWith === 'password') {
 		return {
-			host: credentials.sshHost as string,
-			port: credentials.sshPort as number,
-			username: credentials.sshUser as string,
-			password: credentials.sshPassword as string,
+			host: credentials.sshHost,
+			port: credentials.sshPort,
+			username: credentials.sshUser,
+			password: credentials.sshPassword,
 		} as ConnectConfig;
 	} else {
 		const options: ConnectConfig = {
-			host: credentials.sshHost as string,
-			username: credentials.sshUser as string,
-			port: credentials.sshPort as number,
+			host: credentials.sshHost,
+			username: credentials.sshUser,
+			port: credentials.sshPort,
 			privateKey: formatPrivateKey(credentials.privateKey as string),
 		};
 
@@ -41,7 +41,7 @@ export async function configurePostgres(
 ) {
 	const pgp = pgPromise({
 		// prevent spam in console "WARNING: Creating a duplicate database object for the same connection."
-		// duplicate connections created when auto loading parameters, they are closed imidiatly after, but several could be open at the same time
+		// duplicate connections created when auto loading parameters, they are closed immediately after, but several could be open at the same time
 		noWarnings: true,
 	});
 
@@ -98,7 +98,7 @@ export async function configurePostgres(
 		const tunnelConfig = await createSshConnectConfig(credentials);
 
 		const localHost = '127.0.0.1';
-		const localPort = credentials.sshPostgresPort as number;
+		const localPort = credentials.sshPostgresPort;
 
 		let proxy: Server | undefined;
 

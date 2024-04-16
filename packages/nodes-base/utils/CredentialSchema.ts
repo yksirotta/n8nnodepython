@@ -56,7 +56,9 @@ function credentialSchemaMixin<
 }
 
 const StringProperty = credentialSchemaMixin(z.ZodString);
+// @ts-ignore
 const NumberProperty = credentialSchemaMixin(z.ZodNumber);
+// @ts-ignore
 const BooleanProperty = credentialSchemaMixin(z.ZodBoolean);
 // @ts-ignore
 class EnumProperty<T> extends credentialSchemaMixin(z.ZodEnum<T>) {}
