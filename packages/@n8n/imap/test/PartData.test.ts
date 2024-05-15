@@ -75,14 +75,3 @@ describe('BinaryPartData', () => {
 		expect(partData.toString()).toBe('Hello, world!');
 	});
 });
-
-describe('UuencodedPartData', () => {
-	it('should correctly decode uuencoded data', () => {
-		const data = Buffer.from(
-			'YmVnaW4gNjQ0IGRhdGEKLTImNUw7JlxMKCc9TzxGUUQoMGBgCmAKZW5kCg==',
-			'base64',
-		).toString('binary');
-		const partData = new UuencodedPartData(data);
-		expect(partData.toString()).toBe('Hello, world!');
-	});
-});

@@ -2,7 +2,7 @@
 import * as qp from 'quoted-printable';
 import * as iconvlite from 'iconv-lite';
 import * as utf8 from 'utf8';
-import * as uuencode from 'uuencode';
+import type { MessagePart } from './types';
 
 export abstract class PartData {
 	constructor(readonly buffer: Buffer) {}
@@ -11,7 +11,7 @@ export abstract class PartData {
 		return this.buffer.toString();
 	}
 
-	static fromData(data: string, encoding: string, charset?: string): PartData {
+	static fromData(data: string, encoding: MessagePart['encoding'], charset?: string): PartData {
 		if (encoding === 'BASE64') {
 			return new Base64PartData(data);
 		}
@@ -28,12 +28,9 @@ export abstract class PartData {
 			return new BinaryPartData(data, charset);
 		}
 
-		if (encoding === 'UUENCODE') {
-			return new UuencodedPartData(data);
-		}
-
 		// if it gets here, the encoding is not currently supported
-		throw new Error('Unknown encoding ' + encoding);
+		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+		throw new Error(`Unknown encoding ${encoding}`);
 	}
 }
 
@@ -71,14 +68,5 @@ export class BinaryPartData extends PartData {
 
 	toString() {
 		return iconvlite.decode(this.buffer, this.charset);
-	}
-}
-
-export class UuencodedPartData extends PartData {
-	constructor(data: string) {
-		const parts = data.split('\n'); // remove newline characters
-		const merged = parts.splice(1, parts.length - 4).join(''); // remove excess lines and join lines with empty string
-		const decoded = uuencode.decode(merged);
-		super(decoded);
 	}
 }

@@ -25,9 +25,6 @@ patchedDependencies:
   '@types/express-serve-static-core@4.17.43':
     hash: 5orrj4qleu2iko5t27vl44u4we
     path: patches/@types__express-serve-static-core@4.17.43.patch
-  '@types/uuencode@0.0.3':
-    hash: 3i7wecddkama6vhpu5o37g24u4
-    path: patches/@types__uuencode@0.0.3.patch
   '@types/ws@8.5.4':
     hash: nbzuqaoyqbrfwipijj5qriqqju
     path: patches/@types__ws@8.5.4.patch
@@ -215,9 +212,6 @@ importers:
       utf8:
         specifier: 3.0.0
         version: 3.0.0
-      uuencode:
-        specifier: 0.0.4
-        version: 0.0.4
     devDependencies:
       '@types/imap':
         specifier: ^0.8.40
@@ -228,9 +222,6 @@ importers:
       '@types/utf8':
         specifier: ^3.0.3
         version: 3.0.3
-      '@types/uuencode':
-        specifier: ^0.0.3
-        version: 0.0.3(patch_hash=3i7wecddkama6vhpu5o37g24u4)
 
   packages/@n8n/nodes-langchain:
     dependencies:
@@ -10163,13 +10154,6 @@ packages:
   /@types/utf8@3.0.3:
     resolution: {integrity: sha512-+lqLGxWZsEe4Z6OrzBI7Ym4SMUTaMS5yOrHZ0/IL0bpIye1Qbs4PpobJL2mLDbftUXlPFZR7fu6d1yM+bHLX1w==}
     dev: true
-
-  /@types/uuencode@0.0.3(patch_hash=3i7wecddkama6vhpu5o37g24u4):
-    resolution: {integrity: sha512-NaBWHPPQvcXqiSaMAGa2Ea/XaFcK/nHwGe2akwJBXRLkCNa2+izx/F1aKJrzFH+L68D88VLYIATTYP7B2k4zVA==}
-    dependencies:
-      '@types/node': 18.16.16
-    dev: true
-    patched: true
 
   /@types/uuid@8.3.4:
     resolution: {integrity: sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==}
@@ -24000,10 +23984,6 @@ packages:
   /utils-merge@1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
-
-  /uuencode@0.0.4:
-    resolution: {integrity: sha512-yEEhCuCi5wRV7Z5ZVf9iV2gWMvUZqKJhAs1ecFdKJ0qzbyaVelmsE3QjYAamehfp9FKLiZbKldd+jklG3O0LfA==}
-    dev: false
 
   /uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
