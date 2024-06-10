@@ -28,4 +28,20 @@ beforeEach(() => {
 			data: { status: 'success', message: 'Tested successfully' },
 		},
 	});
+
+	cy.intercept(
+		{
+			hostname: 'api.n8n.io',
+			pathname: '/api/health',
+		},
+		{ status: 'OK' },
+	);
+
+	cy.intercept(
+		{
+			hostname: 'api.n8n.io',
+			pathname: '/api/versions/*',
+		},
+		[],
+	);
 });
