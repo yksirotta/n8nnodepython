@@ -1,4 +1,5 @@
 import 'cypress-real-events';
+import { IN8nUISettings } from 'n8n-workflow';
 import { WorkflowPage } from '../pages';
 import {
 	BACKEND_BASE_URL,
@@ -68,8 +69,9 @@ Cypress.Commands.add('signout', () => {
 	cy.getCookie(N8N_AUTH_COOKIE).should('not.exist');
 });
 
-Cypress.Commands.add('interceptREST', (method, url) => {
-	cy.intercept(method, `${BACKEND_BASE_URL}/rest${url}`);
+export let settings: Partial<IN8nUISettings>;
+Cypress.Commands.add('overrideSettings', (value: Partial<IN8nUISettings>) => {
+	settings = value;
 });
 
 const setFeature = (feature: string, enabled: boolean) =>

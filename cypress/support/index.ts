@@ -2,6 +2,7 @@
 /// <reference types="cypress" />
 
 import type { Interception } from 'cypress/types/net-stubbing';
+import { IN8nUISettings } from 'n8n-workflow';
 
 interface SigninPayload {
 	email: string;
@@ -25,7 +26,7 @@ declare global {
 			signin(payload: SigninPayload): void;
 			signinAsOwner(): void;
 			signout(): void;
-			interceptREST(method: string, url: string): Chainable<Interception>;
+			overrideSettings(value: Partial<IN8nUISettings>): void;
 			enableFeature(feature: string): void;
 			disableFeature(feature: string): void;
 			enableQueueMode(): void;
