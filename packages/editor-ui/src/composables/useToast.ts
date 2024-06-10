@@ -42,6 +42,9 @@ export function useToast() {
 			enumerable: true,
 		});
 
+		// @ts-expect-error TODO: set this for e2e tests only
+		messageData.duration = 500;
+
 		const notification = Notification(messageData);
 
 		if (messageData.duration === 0) {
