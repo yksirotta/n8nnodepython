@@ -1,7 +1,6 @@
 {
 	"extends": ["../../tsconfig.json", "../../tsconfig.backend.json"],
 	"compilerOptions": {
-		"rootDir": ".",
 		"preserveSymlinks": true,
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
@@ -12,7 +11,6 @@
 			"@test/*": ["../test/shared/*"],
 			"@test-integration/*": ["../test/integration/shared/*"]
 		},
-		"tsBuildInfoFile": "dist/typecheck.tsbuildinfo",
 		// TODO: remove all options below this line
 		"strict": false,
 		"useUnknownInCatchVariables": false

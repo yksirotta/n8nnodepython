@@ -3,7 +3,6 @@
 	"compilerOptions": {
 		"sourceMap": false,
 		"declaration": false,
-		"lib": ["esnext", "dom"],
 		"types": ["cypress", "node", "cypress-real-events"]
 	},
 	"include": ["**/*.ts"],

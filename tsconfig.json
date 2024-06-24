@@ -4,7 +4,7 @@
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"target": "es2019",
-		"lib": ["es2019", "es2020", "es2022.error"],
+		"lib": ["dom", "esnext", "es2022.error"],
 		"removeComments": true,
 		"useUnknownInCatchVariables": true,
 		"forceConsistentCasingInFileNames": true,
@@ -19,7 +19,11 @@
 		"incremental": true,
 		"declaration": false,
 		"sourceMap": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+
+		"rootDir": "${configDir}",
+		"outDir": "${configDir}/dist",
+		"tsBuildInfoFile": "${configDir}/dist/typecheck.tsbuildinfo"
 	},
 	"exclude": ["**/dist/**/*", "**/node_modules/**/*", "cypress"],
 	"files": ["node_modules/jest-expect-message/types/index.d.ts"]

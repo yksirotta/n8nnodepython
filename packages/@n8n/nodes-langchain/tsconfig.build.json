@@ -1,8 +1,7 @@
 {
 	"extends": ["./tsconfig.json", "../../../tsconfig.build.json"],
 	"compilerOptions": {
-		"outDir": "dist",
-		"tsBuildInfoFile": "dist/build.tsbuildinfo"
+		"rootDir": "."
 	},
 	"include": [
 		"credentials/**/*.ts",

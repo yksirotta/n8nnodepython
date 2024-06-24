@@ -1,13 +1,9 @@
 {
 	"extends": "../../../tsconfig.json",
 	"compilerOptions": {
-		"rootDir": ".",
-		"outDir": "dist",
 		"target": "esnext",
 		"module": "esnext",
-		"allowJs": true,
-		"importHelpers": true,
-		"incremental": false,
+		"incremental": true,
 		"allowSyntheticDefaultImports": true,
 		"resolveJsonModule": true,
 		"baseUrl": ".",
@@ -16,7 +12,6 @@
 			"@/*": ["src/*"],
 			"@n8n/chat/*": ["src/*"]
 		},
-		"lib": ["esnext", "dom", "dom.iterable", "scripthost"],
 		// TODO: remove all options below this line
 		"useUnknownInCatchVariables": false
 	},
