@@ -147,7 +147,7 @@ export class ActiveExecutions {
 	/**
 	 * Forces an execution to stop
 	 */
-	async stopExecution(executionId: string): Promise<IRun | undefined> {
+	stopExecution(executionId: string) {
 		const execution = this.activeExecutions[executionId];
 		if (execution === undefined) {
 			// There is no execution running with that id
@@ -155,18 +155,17 @@ export class ActiveExecutions {
 		}
 
 		execution.workflowExecution!.cancel();
-
-		return await this.getPostExecutePromise(executionId);
 	}
 
 	/**
 	 * Returns a promise which will resolve with the data of the execution with the given id
 	 */
-	async getPostExecutePromise(executionId: string): Promise<IRun | undefined> {
+	// eslint-disable-next-line @typescript-eslint/promise-function-async
+	getPostExecutePromise(executionId: string): Promise<IRun | undefined> {
 		// Create the promise which will be resolved when the execution finished
-		const waitPromise = await createDeferredPromise<IRun | undefined>();
+		const waitPromise = createDeferredPromise<IRun | undefined>();
 		this.getExecution(executionId).postExecutePromises.push(waitPromise);
-		return await waitPromise.promise();
+		return waitPromise.promise;
 	}
 
 	/**
@@ -215,11 +214,7 @@ export class ActiveExecutions {
 				await this.concurrencyControl.removeAll(this.activeExecutions);
 			}
 
-			const stopPromises = executionIds.map(
-				async (executionId) => await this.stopExecution(executionId),
-			);
-
-			await Promise.allSettled(stopPromises);
+			executionIds.map((executionId) => this.stopExecution(executionId));
 		}
 
 		let count = 0;

@@ -281,13 +281,13 @@ export class KafkaTrigger implements INodeType {
 					}
 					let responsePromise = undefined;
 					if (!parallelProcessing && (options.nodeVersion as number) > 1) {
-						responsePromise = await createDeferredPromise<IRun>();
+						responsePromise = createDeferredPromise<IRun>();
 						this.emit([this.helpers.returnJsonArray([data])], undefined, responsePromise);
 					} else {
 						this.emit([this.helpers.returnJsonArray([data])]);
 					}
 					if (responsePromise) {
-						await responsePromise.promise();
+						await responsePromise.promise;
 					}
 				},
 			});

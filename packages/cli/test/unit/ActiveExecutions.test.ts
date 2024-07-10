@@ -78,12 +78,12 @@ describe('ActiveExecutions', () => {
 	test('Should attach and resolve response promise to existing execution', async () => {
 		const newExecution = mockExecutionData();
 		await activeExecutions.add(newExecution, FAKE_EXECUTION_ID);
-		const deferredPromise = await mockDeferredPromise();
+		const deferredPromise = mockDeferredPromise();
 		activeExecutions.attachResponsePromise(FAKE_EXECUTION_ID, deferredPromise);
 		const fakeResponse = { data: { resultData: { runData: {} } } };
 		activeExecutions.resolveResponsePromise(FAKE_EXECUTION_ID, fakeResponse);
 
-		await expect(deferredPromise.promise()).resolves.toEqual(fakeResponse);
+		await expect(deferredPromise.promise).resolves.toEqual(fakeResponse);
 	});
 
 	test('Should remove an existing execution', async () => {
@@ -119,7 +119,7 @@ describe('ActiveExecutions', () => {
 		const cancellablePromise = mockCancelablePromise();
 		cancellablePromise.cancel = cancelExecution;
 		activeExecutions.attachWorkflowExecution(executionId, cancellablePromise);
-		void activeExecutions.stopExecution(executionId);
+		activeExecutions.stopExecution(executionId);
 
 		expect(cancelExecution).toHaveBeenCalledTimes(1);
 	});

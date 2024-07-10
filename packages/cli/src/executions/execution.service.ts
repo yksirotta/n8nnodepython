@@ -443,9 +443,7 @@ export class ExecutionService {
 			return await this.executionRepository.stopBeforeRun(execution);
 		}
 
-		if (this.activeExecutions.has(execution.id)) {
-			await this.activeExecutions.stopExecution(execution.id);
-		}
+		this.activeExecutions.stopExecution(execution.id);
 
 		if (this.waitTracker.has(execution.id)) {
 			await this.waitTracker.stopExecution(execution.id);
@@ -460,9 +458,7 @@ export class ExecutionService {
 			return await this.stopInRegularMode(execution);
 		}
 
-		if (this.activeExecutions.has(execution.id)) {
-			await this.activeExecutions.stopExecution(execution.id);
-		}
+		this.activeExecutions.stopExecution(execution.id);
 
 		if (this.waitTracker.has(execution.id)) {
 			await this.waitTracker.stopExecution(execution.id);
