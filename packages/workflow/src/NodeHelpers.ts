@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-
 /* eslint-disable @typescript-eslint/no-use-before-define */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-
 /* eslint-disable prefer-spread */
 
 import get from 'lodash/get';
@@ -16,7 +13,6 @@ import { NodeConnectionType } from './Interfaces';
 import type {
 	FieldType,
 	IContextObject,
-	IHttpRequestMethods,
 	INode,
 	INodeCredentialDescription,
 	INodeIssueObjectProperty,
@@ -33,8 +29,6 @@ import type {
 	IParameterDependencies,
 	IRunExecutionData,
 	IVersionedNodeType,
-	IWebhookData,
-	IWorkflowExecuteAdditionalData,
 	NodeParameterValue,
 	ResourceMapperValue,
 	INodeTypeDescription,
@@ -356,6 +350,7 @@ const declarativeNodeOptionParameters: INodeProperties = {
  * as an AI Agent Tool.
  * Returns the modified item (not copied)
  */
+// TODO: move to NodeTypes in cli
 export function convertNodeToAiTool<
 	T extends object & { description: INodeTypeDescription | INodeTypeBaseDescription },
 >(item: T): T {
@@ -521,6 +516,7 @@ export function applyDeclarativeNodeOptionParameters(nodeType: INodeType): void 
 /**
  * Apply special parameters which should be added to nodeTypes depending on their type or configuration
  */
+// TODO: move to DirectoryLoader in core
 export function applySpecialNodeParameters(nodeType: INodeType): void {
 	const { properties, polling, supportsCORS } = nodeType.description;
 	if (polling) {
@@ -789,7 +785,7 @@ function getParameterDependencies(nodePropertiesArray: INodeProperties[]): IPara
  * to have the parameters available they depend on
  *
  */
-export function getParameterResolveOrder(
+function getParameterResolveOrder(
 	nodePropertiesArray: INodeProperties[],
 	parameterDependencies: IParameterDependencies,
 ): number[] {
@@ -1182,120 +1178,7 @@ export function getNodeParameters(
 }
 
 /**
- * Returns all the webhooks which should be created for the give node
- */
-export function getNodeWebhooks(
-	workflow: Workflow,
-	node: INode,
-	additionalData: IWorkflowExecuteAdditionalData,
-	ignoreRestartWebhooks = false,
-): IWebhookData[] {
-	if (node.disabled === true) {
-		// Node is disabled so webhooks will also not be enabled
-		return [];
-	}
-
-	const nodeType = workflow.nodeTypes.getByNameAndVersion(node.type, node.typeVersion);
-
-	if (nodeType.description.webhooks === undefined) {
-		// Node does not have any webhooks so return
-		return [];
-	}
-
-	const workflowId = workflow.id || '__UNSAVED__';
-	const mode = 'internal';
-
-	const returnData: IWebhookData[] = [];
-	for (const webhookDescription of nodeType.description.webhooks) {
-		if (ignoreRestartWebhooks && webhookDescription.restartWebhook === true) {
-			continue;
-		}
-
-		let nodeWebhookPath = workflow.expression.getSimpleParameterValue(
-			node,
-			webhookDescription.path,
-			mode,
-			{},
-		);
-		if (nodeWebhookPath === undefined) {
-			// TODO: Use a proper logger
-			console.error(
-				`No webhook path could be found for node "${node.name}" in workflow "${workflowId}".`,
-			);
-			continue;
-		}
-
-		nodeWebhookPath = nodeWebhookPath.toString();
-
-		if (nodeWebhookPath.startsWith('/')) {
-			nodeWebhookPath = nodeWebhookPath.slice(1);
-		}
-		if (nodeWebhookPath.endsWith('/')) {
-			nodeWebhookPath = nodeWebhookPath.slice(0, -1);
-		}
-
-		const isFullPath: boolean = workflow.expression.getSimpleParameterValue(
-			node,
-			webhookDescription.isFullPath,
-			'internal',
-			{},
-			undefined,
-			false,
-		) as boolean;
-		const restartWebhook: boolean = workflow.expression.getSimpleParameterValue(
-			node,
-			webhookDescription.restartWebhook,
-			'internal',
-			{},
-			undefined,
-			false,
-		) as boolean;
-		const path = getNodeWebhookPath(workflowId, node, nodeWebhookPath, isFullPath, restartWebhook);
-
-		const webhookMethods = workflow.expression.getSimpleParameterValue(
-			node,
-			webhookDescription.httpMethod,
-			mode,
-			{},
-			undefined,
-			'GET',
-		);
-
-		if (webhookMethods === undefined) {
-			// TODO: Use a proper logger
-			console.error(
-				`The webhook "${path}" for node "${node.name}" in workflow "${workflowId}" could not be added because the httpMethod is not defined.`,
-			);
-			continue;
-		}
-
-		let webhookId: string | undefined;
-		if ((path.startsWith(':') || path.includes('/:')) && node.webhookId) {
-			webhookId = node.webhookId;
-		}
-
-		String(webhookMethods)
-			.split(',')
-			.forEach((httpMethod) => {
-				if (!httpMethod) return;
-				returnData.push({
-					httpMethod: httpMethod.trim() as IHttpRequestMethods,
-					node: node.name,
-					path,
-					webhookDescription,
-					workflowId,
-					workflowExecuteAdditionalData: additionalData,
-					webhookId,
-				});
-			});
-	}
-
-	return returnData;
-}
-
-/**
  * Returns the webhook path
- *
  */
 export function getNodeWebhookPath(
 	workflowId: string,
@@ -1970,25 +1853,6 @@ export function getVersionedNodeType(
 		return object.getNodeType(version);
 	}
 	return object;
-}
-
-export function getVersionedNodeTypeAll(object: IVersionedNodeType | INodeType): INodeType[] {
-	if ('nodeVersions' in object) {
-		return uniqBy(
-			Object.values(object.nodeVersions)
-				.map((element) => {
-					element.description.name = object.description.name;
-					element.description.codex = object.description.codex;
-					return element;
-				})
-				.reverse(),
-			(node) => {
-				const { version } = node.description;
-				return Array.isArray(version) ? version.join(',') : version.toString();
-			},
-		);
-	}
-	return [object];
 }
 
 export function getCredentialsForNode(

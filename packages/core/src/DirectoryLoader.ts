@@ -1,4 +1,5 @@
 import glob from 'fast-glob';
+import { uniqBy } from 'lodash';
 import type {
 	CodexData,
 	DocumentationLink,
@@ -16,7 +17,6 @@ import {
 	ApplicationError,
 	LoggerProxy as Logger,
 	getCredentialsForNode,
-	getVersionedNodeTypeAll,
 	jsonParse,
 } from 'n8n-workflow';
 import { readFileSync } from 'node:fs';
@@ -154,7 +154,7 @@ export abstract class DirectoryLoader {
 			version: nodeVersion,
 		});
 
-		getVersionedNodeTypeAll(tempNode).forEach(({ description }) => {
+		this.getVersionedNodeTypeAll(tempNode).forEach(({ description }) => {
 			this.types.nodes.push(description);
 		});
 
@@ -202,6 +202,25 @@ export abstract class DirectoryLoader {
 		};
 
 		this.types.credentials.push(tempCredential);
+	}
+
+	getVersionedNodeTypeAll(object: IVersionedNodeType | INodeType): INodeType[] {
+		if ('nodeVersions' in object) {
+			return uniqBy(
+				Object.values(object.nodeVersions)
+					.map((element) => {
+						element.description.name = object.description.name;
+						element.description.codex = object.description.codex;
+						return element;
+					})
+					.reverse(),
+				(node) => {
+					const { version } = node.description;
+					return Array.isArray(version) ? version.join(',') : version.toString();
+				},
+			);
+		}
+		return [object];
 	}
 
 	/**

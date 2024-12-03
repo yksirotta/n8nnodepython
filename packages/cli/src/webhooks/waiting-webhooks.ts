@@ -1,9 +1,8 @@
 import type express from 'express';
+import type { IHttpRequestMethods, INodes, IWorkflowBase } from 'n8n-workflow';
 import {
+	ApplicationError,
 	FORM_NODE_TYPE,
-	type INodes,
-	type IWorkflowBase,
-	NodeHelpers,
 	SEND_AND_WAIT_OPERATION,
 	WAIT_NODE_TYPE,
 	Workflow,
@@ -16,13 +15,13 @@ import { NotFoundError } from '@/errors/response-errors/not-found.error';
 import type { IExecutionResponse, IWorkflowDb } from '@/interfaces';
 import { Logger } from '@/logging/logger.service';
 import { NodeTypes } from '@/node-types';
-import * as WebhookHelpers from '@/webhooks/webhook-helpers';
 import * as WorkflowExecuteAdditionalData from '@/workflow-execute-additional-data';
 
+import { AbstractWebhookManager } from './abstract-webhooks';
 import type {
 	IWebhookResponseCallbackData,
-	IWebhookManager,
 	WaitingWebhookRequest,
+	WebhookAccessControlOptions,
 } from './webhook.types';
 
 /**
@@ -31,16 +30,24 @@ import type {
  * feature.
  */
 @Service()
-export class WaitingWebhooks implements IWebhookManager {
+export class WaitingWebhooks extends AbstractWebhookManager {
 	protected includeForms = false;
 
 	constructor(
-		protected readonly logger: Logger,
-		protected readonly nodeTypes: NodeTypes,
+		logger: Logger,
+		nodeTypes: NodeTypes,
 		private readonly executionRepository: ExecutionRepository,
-	) {}
+	) {
+		super(logger, nodeTypes);
+	}
 
-	// TODO: implement `getWebhookMethods` for CORS support
+	async getWebhookMethods(): Promise<IHttpRequestMethods[]> {
+		throw new ApplicationError('Method not implemented.');
+	}
+
+	async findAccessControlOptions(): Promise<WebhookAccessControlOptions | undefined> {
+		throw new ApplicationError('Method not implemented.');
+	}
 
 	protected logReceivedWebhook(method: string, executionId: string) {
 		this.logger.debug(`Received waiting-webhook "${method}" for execution "${executionId}"`);
@@ -80,7 +87,7 @@ export class WaitingWebhooks implements IWebhookManager {
 		});
 	}
 
-	async executeWebhook(
+	async handleWebhookRequest(
 		req: WaitingWebhookRequest,
 		res: express.Response,
 	): Promise<IWebhookResponseCallbackData> {
@@ -164,11 +171,7 @@ export class WaitingWebhooks implements IWebhookManager {
 		}
 
 		const additionalData = await WorkflowExecuteAdditionalData.getBase();
-		const webhookData = NodeHelpers.getNodeWebhooks(
-			workflow,
-			workflowStartNode,
-			additionalData,
-		).find(
+		const webhookData = this.getNodeWebhooks(workflow, workflowStartNode, additionalData).find(
 			(webhook) =>
 				webhook.httpMethod === req.method &&
 				webhook.path === (suffix ?? '') &&
@@ -209,7 +212,7 @@ export class WaitingWebhooks implements IWebhookManager {
 
 		return await new Promise((resolve, reject) => {
 			const executionMode = 'webhook';
-			void WebhookHelpers.executeWebhook(
+			void this.executeWebhook(
 				workflow,
 				webhookData,
 				workflowData as IWorkflowDb,
